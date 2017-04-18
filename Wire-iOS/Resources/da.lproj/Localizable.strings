@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Dig";
 "content.system.call.called" = "%@ har ringet";
+"content.system.call.called.you" = "Dig har ringet";
 
 "content.system.renamed_conv.title" = "%@ omdøbte samtalen";
 "content.system.renamed_conv.title.you" = "Dig";

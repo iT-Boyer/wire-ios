@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "あなた";
 "content.system.call.called" = "%@ からの着信";
+"content.system.call.called.you" = "あなた からの着信";
 
 "content.system.renamed_conv.title" = "%@が会話に名前を付けました";
 "content.system.renamed_conv.title.you" = "あなた";

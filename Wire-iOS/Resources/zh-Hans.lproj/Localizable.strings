@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "你";
 "content.system.call.called" = "%@ 发送过通话请求";
+"content.system.call.called.you" = "你 发送过通话请求";
 
 "content.system.renamed_conv.title" = "%@ 重新命名了聊天室";
 "content.system.renamed_conv.title.you" = "你";

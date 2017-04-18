@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Sen";
 "content.system.call.called" = "%@ aradı";
+"content.system.call.called.you" = "Sen aradı";
 
 "content.system.renamed_conv.title" = "%@ bu konuşmanın adını değiştirdi";
 "content.system.renamed_conv.title.you" = "Sen";

@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Tu";
 "content.system.call.called" = "%@ ha chiamato";
+"content.system.call.called.you" = "Tu ha chiamato";
 
 "content.system.renamed_conv.title" = "%@ ha rinominato la conversazione";
 "content.system.renamed_conv.title.you" = "Tu";

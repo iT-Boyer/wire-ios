@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "أنت";
 "content.system.call.called" = "اتصل %@";
+"content.system.call.called.you" = "اتصل أنت";
 
 "content.system.renamed_conv.title" = "قام %@ بإعادة تسمية المُحادثة";
 "content.system.renamed_conv.title.you" = "أنت";

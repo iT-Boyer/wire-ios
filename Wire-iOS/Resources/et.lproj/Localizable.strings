@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Sina";
 "content.system.call.called" = "%@ helistas";
+"content.system.call.called.you" = "Sina helistas";
 
 "content.system.renamed_conv.title" = "%@ nimetas vestluse ümber";
 "content.system.renamed_conv.title.you" = "Sina";

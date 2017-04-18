@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Jij";
 "content.system.call.called" = "%@ belde";
+"content.system.call.called.you" = "Jij belde";
 
 "content.system.renamed_conv.title" = "%@ hernoemde het gesprek";
 "content.system.renamed_conv.title.you" = "Jij";

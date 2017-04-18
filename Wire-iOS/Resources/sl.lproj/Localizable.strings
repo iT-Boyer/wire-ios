@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Ti";
 "content.system.call.called" = "%@ je klical(-a)";
+"content.system.call.called.you" = "Ti je klical(-a)";
 
 "content.system.renamed_conv.title" = "%@ je preimenoval(-a) pogovor";
 "content.system.renamed_conv.title.you" = "Ti";

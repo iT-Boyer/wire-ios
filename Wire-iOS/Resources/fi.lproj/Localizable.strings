@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Sinä";
 "content.system.call.called" = "%@ soitti";
+"content.system.call.called.you" = "Sinä soitti";
 
 "content.system.renamed_conv.title" = "%@ nimesi keskustelun uudelleen";
 "content.system.renamed_conv.title.you" = "Sinä";

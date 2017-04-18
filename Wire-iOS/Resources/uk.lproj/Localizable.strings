@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Ви";
 "content.system.call.called" = "%@ дзвонив(-ла)";
+"content.system.call.called.you" = "Ви дзвонили";
 
 "content.system.renamed_conv.title" = "%@ перейменував(-ла) розмову";
 "content.system.renamed_conv.title.you" = "Ви";

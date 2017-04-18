@@ -253,6 +253,7 @@
 
 "content.system.call.you" = "Tú";
 "content.system.call.called" = "%@ llamó";
+"content.system.call.called.you" = "Tú llamó";
 
 "content.system.renamed_conv.title" = "%@ renombró el chat";
 "content.system.renamed_conv.title.you" = "Tú";
