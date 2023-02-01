@@ -18,10 +18,10 @@
 
 import UIKit
 import WireCanvas
-import Cartography
 import WireCommonComponents
+import WireSyncEngine
 
-protocol CanvasViewControllerDelegate: class {
+protocol CanvasViewControllerDelegate: AnyObject {
     func canvasViewController(_ canvasViewController: CanvasViewController, didExportImage image: UIImage)
 }
 
@@ -34,16 +34,16 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
 
     weak var delegate: CanvasViewControllerDelegate?
     var canvas = Canvas()
-    var toolbar: SketchToolbar!
-    let drawButton = IconButton()
-    let emojiButton = IconButton()
+    private lazy var toolbar: SketchToolbar = SketchToolbar(buttons: [photoButton, drawButton, emojiButton, sendButton])
+    let drawButton = NonLegacyIconButton()
+    let emojiButton = NonLegacyIconButton()
     let sendButton = IconButton.sendButton()
-    let photoButton = IconButton()
+    let photoButton = NonLegacyIconButton()
     let separatorLine = UIView()
     let hintLabel = UILabel()
     let hintImageView = UIImageView()
     var isEmojiKeyboardInTransition = false
-    var sketchImage: UIImage? = nil {
+    var sketchImage: UIImage? {
         didSet {
             if let image = sketchImage {
                 canvas.referenceImage = image
@@ -52,7 +52,7 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
         }
     }
 
-    let emojiKeyboardViewController =  EmojiKeyboardViewController()
+    let emojiKeyboardViewController = EmojiKeyboardViewController()
     let colorPickerController = SketchColorPickerController()
 
     override var shouldAutorotate: Bool {
@@ -74,21 +74,21 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
         super.viewDidLoad()
 
         canvas.delegate = self
-        canvas.backgroundColor = UIColor.white
+        canvas.backgroundColor = .white
         canvas.isAccessibilityElement = true
         canvas.accessibilityIdentifier = "canvas"
 
         emojiKeyboardViewController.delegate = self
 
-        toolbar = SketchToolbar(buttons: [photoButton, drawButton, emojiButton, sendButton])
-        separatorLine.backgroundColor = UIColor.from(scheme: .separator)
-        hintImageView.setIcon(.brush, size: 172, color: UIColor.from(scheme: .placeholderBackground, variant: .light))
-        hintLabel.text = "sketchpad.initial_hint".localized.uppercased(with: Locale.current)
+        separatorLine.backgroundColor = SemanticColors.View.backgroundSeparatorCell
+        hintImageView.setIcon(.brush, size: 132, color: SemanticColors.Label.textSettingsPasswordPlaceholder)
+        hintImageView.tintColor = SemanticColors.Label.textSettingsPasswordPlaceholder
+        hintLabel.text = L10n.Localizable.Sketchpad.initialHint.capitalized
         hintLabel.numberOfLines = 0
-        hintLabel.font = FontSpec(.small, .regular).font!
+        hintLabel.font = FontSpec.normalRegularFont.font
         hintLabel.textAlignment = .center
-        hintLabel.textColor = UIColor.from(scheme: .textPlaceholder)
-        self.view.backgroundColor = UIColor.from(scheme: .background)
+        hintLabel.textColor = SemanticColors.Label.textSettingsPasswordPlaceholder
+        self.view.backgroundColor = .white
 
         [canvas, hintLabel, hintImageView, toolbar].forEach(view.addSubview)
 
@@ -103,65 +103,76 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
         createConstraints()
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorScheme.default.statusBarStyle
-    }
-
     func configureNavigationItems() {
         let undoImage = StyleKitIcon.undo.makeImage(size: .tiny, color: .black)
         let closeImage = StyleKitIcon.cross.makeImage(size: .tiny, color: .black)
 
-        let closeButtonItem = UIBarButtonItem(image: closeImage, style: .plain, target: self, action: #selector(CanvasViewController.close))
+        let closeButtonItem = UIBarButtonItem(image: closeImage,
+                                              style: .plain,
+                                              target: self,
+                                              action: #selector(CanvasViewController.close))
         closeButtonItem.accessibilityIdentifier = "closeButton"
+        closeButtonItem.accessibilityLabel = L10n.Accessibility.Sketch.CloseButton.description
 
-        let undoButtonItem = UIBarButtonItem(image: undoImage, style: .plain, target: canvas, action: #selector(Canvas.undo))
+        let undoButtonItem = UIBarButtonItem(image: undoImage,
+                                             style: .plain,
+                                             target: canvas,
+                                             action: #selector(Canvas.undo))
         undoButtonItem.isEnabled = false
         undoButtonItem.accessibilityIdentifier = "undoButton"
+        undoButtonItem.accessibilityLabel = L10n.Accessibility.Sketch.UndoButton.description
 
         navigationItem.leftBarButtonItem = undoButtonItem
         navigationItem.rightBarButtonItem = closeButtonItem
     }
 
     func configureButtons() {
+
+        typealias Sketch = L10n.Accessibility.Sketch
         let hitAreaPadding = CGSize(width: 16, height: 16)
 
         sendButton.addTarget(self, action: #selector(exportImage), for: .touchUpInside)
         sendButton.isEnabled = false
         sendButton.hitAreaPadding = hitAreaPadding
+        sendButton.accessibilityLabel = Sketch.SendButton.description
 
         drawButton.setIcon(.brush, size: .tiny, for: .normal)
         drawButton.addTarget(self, action: #selector(toggleDrawTool), for: .touchUpInside)
         drawButton.hitAreaPadding = hitAreaPadding
         drawButton.accessibilityIdentifier = "drawButton"
+        drawButton.accessibilityLabel = Sketch.DrawButton.description
+        drawButton.accessibilityHint = Sketch.DrawButton.hint
 
         photoButton.setIcon(.photo, size: .tiny, for: .normal)
         photoButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
         photoButton.hitAreaPadding = hitAreaPadding
         photoButton.accessibilityIdentifier = "photoButton"
-        photoButton.isHidden = !SecurityFlags.cameraRoll.isEnabled
+        photoButton.accessibilityLabel = Sketch.SelectPictureButton.description
+        photoButton.isHidden = !MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).hasAccessToCameraRoll
 
         emojiButton.setIcon(.emoji, size: .tiny, for: .normal)
         emojiButton.addTarget(self, action: #selector(openEmojiKeyboard), for: .touchUpInside)
         emojiButton.hitAreaPadding = hitAreaPadding
         emojiButton.accessibilityIdentifier = "emojiButton"
+        emojiButton.accessibilityLabel = Sketch.SelectEmojiButton.description
 
         [photoButton, drawButton, emojiButton].forEach { iconButton in
-            iconButton.setIconColor(UIColor.from(scheme: .iconNormal), for: .normal)
-            iconButton.setIconColor(UIColor.from(scheme: .iconHighlighted), for: .highlighted)
-            iconButton.setIconColor(UIColor.accent(), for: .selected)
+            iconButton.layer.cornerRadius = 12
+            iconButton.clipsToBounds = true
+            iconButton.applyStyle(.iconButtonStyle)
         }
     }
 
     func configureColorPicker() {
         colorPickerController.sketchColors = [.black,
                                               .white,
-                                              .strongBlue,
-                                              .strongLimeGreen,
-                                              .brightYellow,
-                                              .vividRed,
-                                              .brightOrange,
-                                              .softPink,
-                                              .violet,
+                                              SemanticColors.LegacyColors.strongBlue,
+                                              SemanticColors.LegacyColors.strongLimeGreen,
+                                              SemanticColors.LegacyColors.brightYellow,
+                                              SemanticColors.LegacyColors.vividRed,
+                                              SemanticColors.LegacyColors.brightOrange,
+                                              SemanticColors.LegacyColors.softPink,
+                                              SemanticColors.LegacyColors.violet,
                                               UIColor(red: 0.688, green: 0.342, blue: 0.002, alpha: 1),
                                               UIColor(red: 0.381, green: 0.192, blue: 0.006, alpha: 1),
                                               UIColor(red: 0.894, green: 0.735, blue: 0.274, alpha: 1),
@@ -179,34 +190,42 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
         colorPickerController.selectedColorIndex = colorPickerController.sketchColors.firstIndex(of: UIColor.accent()) ?? 0
     }
 
-    func createConstraints() {
-        constrain(view, canvas, colorPickerController.view, toolbar, separatorLine) { container, canvas, colorPicker, toolbar, separatorLine in
-            colorPicker.top == container.top
-            colorPicker.left == container.left
-            colorPicker.right == container.right
-            colorPicker.height == 48
+    private func createConstraints() {
+        guard let colorPicker = colorPickerController.view else { return }
 
-            separatorLine.top == colorPicker.bottom
-            separatorLine.left == colorPicker.left
-            separatorLine.right == colorPicker.right
-            separatorLine.height == .hairline
+        [canvas,
+         colorPicker,
+         toolbar,
+         separatorLine,
+         hintImageView,
+         hintLabel].prepareForLayout()
 
-            canvas.top == colorPicker.bottom
-            canvas.left == container.left
-            canvas.right == container.right
+        NSLayoutConstraint.activate([
+            colorPicker.topAnchor.constraint(equalTo: view.topAnchor),
+            colorPicker.leftAnchor.constraint(equalTo: view.leftAnchor),
+            colorPicker.rightAnchor.constraint(equalTo: view.rightAnchor),
+            colorPicker.heightAnchor.constraint(equalToConstant: 48),
 
-            toolbar.top == canvas.bottom
-            toolbar.bottom == container.bottom
-            toolbar.left == container.left
-            toolbar.right == container.right
-        }
+            separatorLine.topAnchor.constraint(equalTo: colorPicker.bottomAnchor),
+            separatorLine.leftAnchor.constraint(equalTo: colorPicker.leftAnchor),
+            separatorLine.rightAnchor.constraint(equalTo: colorPicker.rightAnchor),
+            separatorLine.heightAnchor.constraint(equalToConstant: .hairline),
 
-        constrain(view, colorPickerController.view, hintImageView, hintLabel) { container, colorPicker, hintImageView, hintLabel in
-            hintImageView.center == container.center
-            hintLabel.top == colorPicker.bottom + 16
-            hintLabel.leftMargin == container.leftMargin
-            hintLabel.rightMargin == container.rightMargin
-        }
+            canvas.topAnchor.constraint(equalTo: colorPicker.bottomAnchor),
+            canvas.leftAnchor.constraint(equalTo: view.leftAnchor),
+            canvas.rightAnchor.constraint(equalTo: view.rightAnchor),
+
+            toolbar.topAnchor.constraint(equalTo: canvas.bottomAnchor),
+            toolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            toolbar.leftAnchor.constraint(equalTo: view.leftAnchor),
+            toolbar.rightAnchor.constraint(equalTo: view.rightAnchor),
+
+            hintImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            hintImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            hintLabel.topAnchor.constraint(equalTo: colorPicker.bottomAnchor, constant: 16),
+            hintLabel.layoutMarginsGuide.leftAnchor.constraint(equalTo: view.layoutMarginsGuide.leftAnchor),
+            hintLabel.layoutMarginsGuide.rightAnchor.constraint(equalTo: view.layoutMarginsGuide.rightAnchor)
+        ])
     }
 
     func updateButtonSelection() {
@@ -279,19 +298,21 @@ extension CanvasViewController: CanvasDelegate {
 extension CanvasViewController: EmojiKeyboardViewControllerDelegate {
 
     func showEmojiKeyboard(animated: Bool) {
-        guard !isEmojiKeyboardInTransition else { return }
+        guard !isEmojiKeyboardInTransition, let emojiKeyboardView = emojiKeyboardViewController.view else { return }
 
         emojiKeyboardViewController.willMove(toParent: self)
         view.addSubview(emojiKeyboardViewController.view)
 
-        constrain(view, emojiKeyboardViewController.view) { container, emojiKeyboardView in
-            emojiKeyboardView.height == KeyboardHeight.current
-            emojiKeyboardView.left == container.left
-            emojiKeyboardView.right == container.right
-            emojiKeyboardView.bottom == container.bottom
-        }
+        emojiKeyboardView.translatesAutoresizingMaskIntoConstraints = false
 
         addChild(emojiKeyboardViewController)
+
+        NSLayoutConstraint.activate([
+            emojiKeyboardView.heightAnchor.constraint(equalToConstant: KeyboardHeight.current),
+            emojiKeyboardView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            emojiKeyboardView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            emojiKeyboardView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         if animated {
             isEmojiKeyboardInTransition = true
@@ -304,10 +325,10 @@ extension CanvasViewController: EmojiKeyboardViewControllerDelegate {
                            delay: 0,
                            options: UIView.AnimationOptions(rawValue: UInt(7)),
                            animations: {
-                            self.emojiKeyboardViewController.view.transform = CGAffineTransform.identity
-                },
+                self.emojiKeyboardViewController.view.transform = CGAffineTransform.identity
+            },
                            completion: { _ in
-                            self.isEmojiKeyboardInTransition = false
+                self.isEmojiKeyboardInTransition = false
             })
         }
     }
@@ -330,12 +351,12 @@ extension CanvasViewController: EmojiKeyboardViewControllerDelegate {
                            delay: 0,
                            options: UIView.AnimationOptions(rawValue: UInt(7)),
                            animations: {
-                            let offscreen = CGAffineTransform(translationX: 0, y: self.emojiKeyboardViewController.view.bounds.size.height)
-                            self.emojiKeyboardViewController.view.transform = offscreen
-                },
+                let offscreen = CGAffineTransform(translationX: 0, y: self.emojiKeyboardViewController.view.bounds.size.height)
+                self.emojiKeyboardViewController.view.transform = offscreen
+            },
                            completion: { _ in
-                            self.isEmojiKeyboardInTransition = false
-                            removeEmojiKeyboardViewController()
+                self.isEmojiKeyboardInTransition = false
+                removeEmojiKeyboardViewController()
             })
         } else {
             removeEmojiKeyboardViewController()

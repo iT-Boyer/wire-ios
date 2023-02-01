@@ -20,15 +20,17 @@ import SnapshotTesting
 import XCTest
 @testable import Wire
 
-final class ProfileViewControllerTests: XCTestCase {
+final class ProfileViewControllerTests: ZMSnapshotTestCase {
 
-    var sut: ProfileViewController!
-    var mockUser: MockUser!
-    var selfUser: MockUser!
-    var teamIdentifier: UUID!
+    private var sut: ProfileViewController!
+    private var mockUser: MockUser!
+    private var selfUser: MockUser!
+    private var teamIdentifier: UUID!
+    private var mockClassificationProvider: MockClassificationProvider!
 
     override func setUp() {
         super.setUp()
+        accentColor = .strongBlue
         teamIdentifier = UUID()
         selfUser = MockUser.createSelfUser(name: "George Johnson", inTeam: teamIdentifier)
         selfUser.handle = "georgejohnson"
@@ -37,6 +39,8 @@ final class ProfileViewControllerTests: XCTestCase {
         mockUser = MockUser.createConnectedUser(name: "Catherine Jackson", inTeam: teamIdentifier)
         mockUser.handle = "catherinejackson"
         mockUser.feature(withUserClients: 6)
+
+        mockClassificationProvider = MockClassificationProvider()
     }
 
     override func tearDown() {
@@ -44,6 +48,7 @@ final class ProfileViewControllerTests: XCTestCase {
         mockUser = nil
         selfUser = nil
         teamIdentifier = nil
+        mockClassificationProvider = nil
 
         super.tearDown()
     }
@@ -258,6 +263,54 @@ final class ProfileViewControllerTests: XCTestCase {
                                     viewer: selfUser,
                                     conversation: conversation.convertToRegularConversation(),
                                     context: .groupConversation)
+
+        // THEN
+        verify(matching: sut)
+    }
+
+    func testForIncomingRequestFromClassifiedUser() {
+        // GIVEN
+        mockUser.isConnected = false
+        mockUser.canBeConnected = true
+        mockUser.isPendingApprovalBySelfUser = true
+        mockUser.emailAddress = nil
+        mockUser.teamIdentifier = nil
+
+        mockClassificationProvider.returnClassification = .classified
+
+        let conversation = MockConversation.groupConversation()
+        conversation.activeParticipants = [selfUser, mockUser]
+
+        // WHEN
+        sut = ProfileViewController(user: mockUser,
+                                    viewer: selfUser,
+                                    conversation: conversation.convertToRegularConversation(),
+                                    context: .groupConversation,
+                                    classificationProvider: mockClassificationProvider)
+
+        // THEN
+        verify(matching: sut)
+    }
+
+    func testForIncomingRequestFromNotClassifiedUser() {
+        // GIVEN
+        mockUser.isConnected = false
+        mockUser.canBeConnected = true
+        mockUser.isPendingApprovalBySelfUser = true
+        mockUser.emailAddress = nil
+        mockUser.teamIdentifier = nil
+
+        mockClassificationProvider.returnClassification = .notClassified
+
+        let conversation = MockConversation.groupConversation()
+        conversation.activeParticipants = [selfUser, mockUser]
+
+        // WHEN
+        sut = ProfileViewController(user: mockUser,
+                                    viewer: selfUser,
+                                    conversation: conversation.convertToRegularConversation(),
+                                    context: .groupConversation,
+                                    classificationProvider: mockClassificationProvider)
 
         // THEN
         verify(matching: sut)

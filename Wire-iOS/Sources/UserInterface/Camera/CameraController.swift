@@ -228,12 +228,7 @@ final class CameraController {
             connection.automaticallyAdjustsVideoMirroring = false
             connection.isVideoMirrored = false
 
-            let jpegType: Any
-            if #available(iOS 11.0, *) {
-                jpegType = AVVideoCodecType.jpeg
-            } else {
-                jpegType = AVVideoCodecJPEG
-            }
+            let jpegType = AVVideoCodecType.jpeg
 
             let settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: jpegType,
                                                            AVVideoCompressionPropertiesKey: [AVVideoQualityKey: 0.9]])
@@ -266,7 +261,6 @@ final class CameraController {
             self.completion = completion
         }
 
-        @available(iOS 11.0, *)
         func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
             defer { completion() }
 
@@ -280,32 +274,6 @@ final class CameraController {
 
             handler(PhotoResult(imageData, nil))
         }
-
-        @available(iOS, introduced: 10.0, deprecated: 11.0, message: "Use -captureOutput:didFinishProcessingPhoto:error: instead.")
-        func photoOutput(_ output: AVCapturePhotoOutput,
-                         didFinishProcessingPhoto photoSampleBuffer: CMSampleBuffer?,
-                         previewPhoto previewPhotoSampleBuffer: CMSampleBuffer?,
-                         resolvedSettings: AVCaptureResolvedPhotoSettings,
-                         bracketSettings: AVCaptureBracketedStillImageSettings?,
-                         error: Error?) {
-            if #available(iOS 11, *) { return }
-
-            defer { completion() }
-
-            if let error = error {
-                zmLog.error("PhotoCaptureDelegate encountered error while processing photo:\(error.localizedDescription)")
-                handler(PhotoResult(nil, error))
-                return
-            }
-
-            guard let buffer = photoSampleBuffer else { return }
-
-            let imageData = AVCapturePhotoOutput.jpegPhotoDataRepresentation(
-                    forJPEGSampleBuffer: buffer,
-                    previewPhotoSampleBuffer: previewPhotoSampleBuffer)
-
-            handler(PhotoResult(imageData, nil))
-        }
     }
 }
 
@@ -315,7 +283,7 @@ private extension AVCaptureVideoOrientation {
     /// then the interface orientation. Must be called on the main thread.
     static var current: AVCaptureVideoOrientation {
         let device = UIDevice.current.orientation
-        let ui = UIApplication.shared.statusBarOrientation
+        let ui = UIWindow.interfaceOrientation ?? .unknown
 
         let deviceOrientation = self.init(deviceOrientation: device)
         let uiOrientation = self.init(uiOrientation: ui)

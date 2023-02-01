@@ -17,22 +17,29 @@
 //
 
 import XCTest
-@testable import Wire
 import WireCommonComponents
+@testable import Wire
 
-final class ConversationInputBarViewControllerTests: XCTestCase {
+// In this class the snapshot tests they don't look the same as in the real app.
+// The first and last button for the input bar look like they have 4 rounded corners
+// instead of 2. That's because snapshot tests don't work well with maskedCorners and CI.
+// More on the issue can be found here: https://github.com/pointfreeco/swift-snapshot-testing/issues/358#issuecomment-939854566
+final class ConversationInputBarViewControllerTests: ZMSnapshotTestCase {
 
-    var mockConversation: MockInputBarConversationType!
+    private var mockConversation: MockInputBarConversationType!
+    private var mockClassificationProvider: MockClassificationProvider!
 
     override func setUp() {
         super.setUp()
 
         UIColor.setAccentOverride(.vividRed)
         mockConversation = MockInputBarConversationType()
+        mockClassificationProvider = MockClassificationProvider()
     }
 
     override func tearDown() {
         mockConversation = nil
+        mockClassificationProvider = nil
 
         super.tearDown()
     }
@@ -45,7 +52,7 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
                 return ConversationInputBarViewController(conversation: mockConversation)
             },
             widths: tabletWidths(),
-            snapshotBackgroundColor: .white)
+                       snapshotBackgroundColor: .white)
 
     }
 
@@ -91,7 +98,7 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
 
             // WHEN
             sut.mode = .timeoutConfguration
-            self.mockConversation.messageDestructionTimeout = .local(.none)
+            self.mockConversation.activeMessageDestructionTimeoutValue = nil
             return sut
         }
 
@@ -99,8 +106,7 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
     }
 
     private func setMessageDestructionTimeout(timeInterval: TimeInterval) {
-        mockConversation.messageDestructionTimeout = .local(MessageDestructionTimeoutValue(rawValue: timeInterval))
-        mockConversation.messageDestructionTimeoutValue = timeInterval
+        mockConversation.activeMessageDestructionTimeoutValue = .init(rawValue: timeInterval)
     }
 
     func testEphemeralTime10Second() {
@@ -200,7 +206,38 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
         } as () -> UIViewController)
     }
 
-// MARK: - file action sheet
+    func testEphemeralDisabled() {
+        // THEN
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            self.mockConversation.isSelfDeletingMessageSendingDisabled = true
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+
+            return sut
+        } as () -> UIViewController)
+    }
+
+    func testEphemeralWithForcedTimeout() {
+        // THEN
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            self.mockConversation.isSelfDeletingMessageTimeoutForced = true
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 300)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+
+            return sut
+        } as () -> UIViewController)
+    }
+
+    // MARK: - file action sheet
 
     func testUploadFileActionSheet() {
         let sut = ConversationInputBarViewController(conversation: mockConversation)
@@ -209,4 +246,31 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
 
         verify(matching: alert)
     }
+
+    // MARK: - Classification
+
+    func testClassifiedNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .classified
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
+    func testNotClassifiedNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .notClassified
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
+    func testNoClassificationNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .none
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
 }

@@ -1,24 +1,24 @@
-// 
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
-import Cartography
+import UIKit
 
-protocol TabBarDelegate: class {
+protocol TabBarDelegate: AnyObject {
     func tabBar(_ tabBar: TabBar, didSelectItemAt index: Int)
 }
 
@@ -33,15 +33,10 @@ final class TabBar: UIView {
     private let tabInset: CGFloat = 16
 
     private let selectionLineView = UIView()
+    private let lineView = UIView()
     private(set) var tabs: [Tab] = []
-    private var lineLeadingConstraint: NSLayoutConstraint?
+    private lazy var lineLeadingConstraint: NSLayoutConstraint = selectionLineView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: tabInset)
     private var didUpdateInitialBarPosition = false
-
-    var style: ColorSchemeVariant {
-        didSet {
-            tabs.forEach(updateTabStyle)
-        }
-    }
 
     fileprivate(set) var selectedIndex: Int {
         didSet {
@@ -61,12 +56,11 @@ final class TabBar: UIView {
 
     // MARK: - Initialization
 
-    init(items: [UITabBarItem], style: ColorSchemeVariant, selectedIndex: Int = 0) {
-        precondition(items.count > 0, "TabBar must be initialized with at least one item")
+    init(items: [UITabBarItem], selectedIndex: Int = 0) {
+        precondition(!items.isEmpty, "TabBar must be initialized with at least one item")
 
         self.items = items
         self.selectedIndex = selectedIndex
-        self.style = style
 
         super.init(frame: CGRect.zero)
 
@@ -77,11 +71,12 @@ final class TabBar: UIView {
         updateButtonSelection()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    fileprivate func setupViews() {
+    private func setupViews() {
         tabs = items.enumerated().map(makeButtonForItem)
         tabs.forEach(stackView.addArrangedSubview)
 
@@ -90,16 +85,10 @@ final class TabBar: UIView {
         stackView.alignment = .fill
         addSubview(stackView)
 
+        addSubview(lineView)
         addSubview(selectionLineView)
-        selectionLineView.backgroundColor = style == .dark ? .white : .black
-
-        constrain(self, selectionLineView) { selfView, selectionLineView in
-            lineLeadingConstraint = selectionLineView.leading == selfView.leading + tabInset
-            selectionLineView.height == 1
-            selectionLineView.bottom == selfView.bottom
-            let widthInset = tabInset * 2 / CGFloat(items.count)
-            selectionLineView.width == selfView.width / CGFloat(items.count) - widthInset
-        }
+        selectionLineView.backgroundColor = SemanticColors.TabBar.backgroundSeperatorSelected
+        lineView.backgroundColor = SemanticColors.TabBar.backgroundSeparator
     }
 
     override func layoutSubviews() {
@@ -112,12 +101,12 @@ final class TabBar: UIView {
 
     private func updateLinePosition(animated: Bool) {
         let offset = CGFloat(selectedIndex) * selectionLineView.bounds.width
-        guard offset != lineLeadingConstraint?.constant else { return }
+        guard offset != lineLeadingConstraint.constant else { return }
         updateLinePosition(offset: offset, animated: animated)
     }
 
     private func updateLinePosition(offset: CGFloat, animated: Bool) {
-        lineLeadingConstraint?.constant = offset + tabInset
+        lineLeadingConstraint.constant = offset + tabInset
 
         if animated {
             UIView.animate(
@@ -136,20 +125,32 @@ final class TabBar: UIView {
         updateLinePosition(offset: offset, animated: false)
     }
 
-    fileprivate func createConstraints() {
-        constrain(self, stackView) { selfView, stackView in
-            stackView.left == selfView.left + tabInset
-            stackView.right == selfView.right - tabInset
-            stackView.top == selfView.top
-            stackView.height == 48
+    private func createConstraints() {
+        let oneOverItemsCount: CGFloat = 1 / CGFloat(items.count)
+        let widthInset = tabInset * 2 * oneOverItemsCount
 
-            selfView.bottom == stackView.bottom
-        }
+        [self, lineView, selectionLineView, stackView].prepareForLayout()
+        NSLayoutConstraint.activate([
+            lineLeadingConstraint,
+            lineView.heightAnchor.constraint(equalTo: selectionLineView.heightAnchor),
+            lineView.bottomAnchor.constraint(equalTo: selectionLineView.bottomAnchor),
+            lineView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            lineView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            selectionLineView.heightAnchor.constraint(equalToConstant: 1),
+            selectionLineView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            selectionLineView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: oneOverItemsCount, constant: -widthInset),
+
+            stackView.leftAnchor.constraint(equalTo: leftAnchor, constant: tabInset),
+            stackView.rightAnchor.constraint(equalTo: rightAnchor, constant: -tabInset),
+            stackView.topAnchor.constraint(equalTo: topAnchor),
+            stackView.heightAnchor.constraint(equalToConstant: 48),
+
+            bottomAnchor.constraint(equalTo: stackView.bottomAnchor)
+        ])
     }
 
     fileprivate func makeButtonForItem(_ index: Int, _ item: UITabBarItem) -> Tab {
-        let tab = Tab(variant: style)
-        tab.textTransform = .upper
+        let tab = Tab()
         tab.setTitle(item.title, for: .normal)
 
         if let accessibilityID = item.accessibilityIdentifier {
@@ -166,12 +167,6 @@ final class TabBar: UIView {
 
         tab.addTarget(self, action: #selector(TabBar.itemSelected(_:)), for: .touchUpInside)
         return tab
-    }
-
-    // MARK: - Styling
-
-    fileprivate func updateTabStyle(_ tab: Tab) {
-        tab.colorSchemeVariant = style
     }
 
     // MARK: - Actions
@@ -211,5 +206,6 @@ final class TabBar: UIView {
     fileprivate func updateButtonSelection() {
         tabs.forEach { $0.isSelected = false }
         tabs[selectedIndex].isSelected = true
+        tabs[selectedIndex].accessibilityValue = L10n.Accessibility.TabBar.Item.value
     }
 }

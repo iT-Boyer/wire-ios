@@ -59,16 +59,16 @@ final class ProfileViewTests: ZMSnapshotTestCase {
 
     // MARK: - Helpers
 
-    func verifyProfile(options: ProfileHeaderViewController.Options, availability: Availability = .available, file: StaticString = #file, line: UInt = #line) {
+    func verifyProfile(options: ProfileHeaderViewController.Options, availability: AvailabilityKind = .available, file: StaticString = #file, line: UInt = #line) {
         let selfUser = MockUserType.createSelfUser(name: "selfUser", inTeam: UUID())
         selfUser.teamName = "Stunning"
         selfUser.handle = "browncow"
         selfUser.availability = availability
 
         let sut = ProfileHeaderViewController(user: selfUser, viewer: selfUser, options: options)
-        sut.colorSchemeVariant = .dark
         sut.view.frame.size = sut.view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
-        sut.view.backgroundColor = .black
+        sut.view.backgroundColor = SemanticColors.View.backgroundDefault
+        sut.overrideUserInterfaceStyle = .dark
 
         verify(view: sut.view, file: file, line: line)
     }

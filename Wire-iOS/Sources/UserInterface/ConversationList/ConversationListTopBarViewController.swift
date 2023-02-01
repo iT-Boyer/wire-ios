@@ -19,6 +19,7 @@
 import UIKit
 import WireDataModel
 import WireSyncEngine
+import WireCommonComponents
 
 typealias SelfUserType = UserType & SelfLegalHoldSubject
 
@@ -49,11 +50,10 @@ final class ConversationListTopBarViewController: UIViewController {
             observerToken = UserChangeInfo.add(observer: self, for: ZMUser.selfUser(), in: sharedSession)
         }
 
-        if #available(iOS 11.0, *) {
-            self.viewRespectsSystemMinimumLayoutMargins = false
-        }
+        viewRespectsSystemMinimumLayoutMargins = false
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -64,6 +64,8 @@ final class ConversationListTopBarViewController: UIViewController {
 
     override func viewDidLoad() {
         topBar?.splitSeparator = false
+        view.backgroundColor = SemanticColors.View.backgroundConversationList
+        view.addBorder(for: .bottom)
 
         availabilityViewController?.didMove(toParent: self)
 
@@ -81,7 +83,6 @@ final class ConversationListTopBarViewController: UIViewController {
     private func createTitleView() -> UIView {
         if selfUser.isTeamMember {
             let availabilityViewController = AvailabilityTitleViewController(user: selfUser, options: .header)
-            availabilityViewController.availabilityTitleView?.colorSchemeVariant = .dark
             addChild(availabilityViewController)
             self.availabilityViewController = availabilityViewController
 
@@ -91,7 +92,7 @@ final class ConversationListTopBarViewController: UIViewController {
 
             titleLabel.text = selfUser.name
             titleLabel.font = FontSpec(.normal, .semibold).font
-            titleLabel.textColor = UIColor.from(scheme: .textForeground, variant: .dark)
+            titleLabel.textColor = SemanticColors.Label.textDefault
             titleLabel.accessibilityTraits = .header
             titleLabel.accessibilityValue = selfUser.name
             titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
@@ -106,7 +107,8 @@ final class ConversationListTopBarViewController: UIViewController {
     private func createLegalHoldView() -> UIView {
         let imageView = UIImageView()
 
-        imageView.setIcon(.legalholdactive, size: .tiny, color: .vividRed)
+        imageView.setTemplateIcon(.legalholdactive, size: .tiny)
+        imageView.tintColor = SemanticColors.Icon.foregroundDefaultRed
         imageView.isUserInteractionEnabled = true
 
         let imageViewContainer = UIView()
@@ -132,7 +134,7 @@ final class ConversationListTopBarViewController: UIViewController {
 
     func createPendingLegalHoldRequestView() -> UIView {
         let button = IconButton(style: .circular)
-        button.setBackgroundImageColor(UIColor.vividRed.withAlphaComponent(0.5), for: .normal)
+        button.setBackgroundImageColor(SemanticColors.LegacyColors.vividRed.withAlphaComponent(0.5), for: .normal)
 
         button.setIcon(.clock, size: 12, for: .normal)
         button.setIconColor(.white, for: .normal)
@@ -160,8 +162,7 @@ final class ConversationListTopBarViewController: UIViewController {
         let user = session == nil ? nil : ZMUser.selfUser(inUserSession: session!)
         let accountView = AccountViewFactory.viewFor(account: account, user: user, displayContext: .conversationListHeader)
 
-        accountView.unreadCountStyle = .others
-        accountView.selected = false
+        accountView.unreadCountStyle = .current
         accountView.autoUpdateSelection = false
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(presentSettings))
@@ -169,8 +170,7 @@ final class ConversationListTopBarViewController: UIViewController {
 
         accountView.accessibilityTraits = .button
         accountView.accessibilityIdentifier = "bottomBarSettingsButton"
-        accountView.accessibilityLabel = "self.voiceover.label".localized
-        accountView.accessibilityHint = "self.voiceover.hint".localized
+        accountView.accessibilityHint = L10n.Accessibility.ConversationsList.AccountButton.hint
 
         if let selfUser = ZMUser.selfUser(),
             selfUser.clientsRequiringUserAttention.count > 0 {
@@ -223,7 +223,7 @@ final class ConversationListTopBarViewController: UIViewController {
 
     func createSettingsViewController() -> UIViewController {
         let selfProfileViewController = SelfProfileViewController(selfUser: ZMUser.selfUser())
-        return selfProfileViewController.wrapInNavigationController(navigationControllerClass: ClearBackgroundNavigationController.self)
+        return selfProfileViewController.wrapInNavigationController(navigationControllerClass: NavigationController.self)
     }
 
     func scrollViewDidScroll(scrollView: UIScrollView!) {
@@ -395,6 +395,7 @@ final class TopBar: UIView {
                                      rightSeparatorInsetConstraint])
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

@@ -17,6 +17,7 @@
 //
 
 import XCTest
+import WireCommonComponents
 @testable import Wire
 
 class AvailabilityLabelTests: ZMSnapshotTestCase {
@@ -39,7 +40,7 @@ class AvailabilityLabelTests: ZMSnapshotTestCase {
         verify(view: createLabelForList(.busy))
     }
 
-    func createLabelForList(_ availability: Availability) -> UILabel {
+    func createLabelForList(_ availability: AvailabilityKind) -> UILabel {
         guard let user = ZMUser.selfUser() else { return UILabel() }
         user.availability = availability
         let attributedString = AvailabilityStringBuilder.string(for: user, with: .list)
@@ -68,7 +69,7 @@ class AvailabilityLabelTests: ZMSnapshotTestCase {
         verify(view: createLabelForParticipants(.busy))
     }
 
-    func createLabelForParticipants(_ availability: Availability) -> UILabel {
+    func createLabelForParticipants(_ availability: AvailabilityKind) -> UILabel {
         guard let user = ZMUser.selfUser() else { return UILabel() }
         user.availability = availability
         let attributedString = AvailabilityStringBuilder.string(for: user, with: .participants)
@@ -97,7 +98,7 @@ class AvailabilityLabelTests: ZMSnapshotTestCase {
         verify(view: createLabelForPlaceholder(.busy))
 	}
 
-    func createLabelForPlaceholder(_ availability: Availability) -> UILabel {
+    func createLabelForPlaceholder(_ availability: AvailabilityKind) -> UILabel {
         guard let user = ZMUser.selfUser() else { return UILabel() }
         user.availability = availability
         let attributedString = AvailabilityStringBuilder.string(for: user, with: .placeholder, color: .lightGray)

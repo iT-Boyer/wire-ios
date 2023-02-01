@@ -34,7 +34,7 @@ protocol Shareable {
     func previewView() -> UIView?
 }
 
-final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate {
+final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource {
     let destinations: [D]
     let shareable: S
     private(set) var selectedDestinations: Set<D> = Set() {
@@ -78,13 +78,6 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
         self.showPreview = showPreview
         self.allowsMultipleSelection = allowsMultipleSelection
         super.init(nibName: nil, bundle: nil)
-        transitioningDelegate = self
-
-        let messagePreviewAppearance = MessagePreviewView.appearance(whenContainedInInstancesOf: [ShareViewController.self])
-        messagePreviewAppearance.colorSchemeVariant = .light
-
-        let messageThumbnailPreviewAppearance = MessageThumbnailPreviewView.appearance(whenContainedInInstancesOf: [ShareViewController.self])
-        messageThumbnailPreviewAppearance.colorSchemeVariant = .light
 
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(keyboardFrameWillChange(notification:)),
@@ -94,7 +87,6 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
                                                selector: #selector(keyboardFrameDidChange(notification:)),
                                                name: UIResponder.keyboardDidChangeFrameNotification,
                                                object: nil)
-
         createViews()
         createConstraints()
     }
@@ -104,19 +96,20 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
         fatalError("init(coder:) has not been implemented")
     }
 
-    let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
     let containerView  = UIView()
     var shareablePreviewView: UIView?
     var shareablePreviewWrapper: UIView?
     let searchIcon = UIImageView()
     let topSeparatorView = OverflowSeparatorView()
     let destinationsTableView = UITableView()
-    let closeButton = IconButton(style: .default, variant: .dark)
-    let sendButton = IconButton(style: .default, variant: .light)
+    let closeButton = IconButton(style: .default)
+    let sendButton = IconButton(style: .default)
+
+    let clearButton = IconButton(style: .default)
     let tokenField = TokenField()
     let bottomSeparatorLine: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor.from(scheme: .separator)
+        view.backgroundColor = SemanticColors.View.backgroundSeparatorCell
         return view
     }()
 
@@ -135,8 +128,7 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
                     let name = $0.displayName
                     return name.range(of: filterString, options: .caseInsensitive) != nil
                 }
-            }
-            else {
+            } else {
                 self.filteredDestinations = self.destinations
             }
 
@@ -157,6 +149,17 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
             self.shareable.share(to: Array(self.selectedDestinations))
             self.onDismiss?(self, true)
         }
+    }
+
+    @objc
+    func onClearButtonPressed() {
+        tokenField.clearFilterText()
+        tokenField.removeAllTokens()
+        updateClearIndicator(for: tokenField)
+    }
+
+    func resetQuery() {
+        tokenField.filterUnwantedAttachments()
     }
 
     // MARK: - UITableViewDataSource & UITableViewDelegate
@@ -209,16 +212,6 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
         self.topSeparatorView.scrollViewDidScroll(scrollView: scrollView)
     }
 
-    // MARK: - UIViewControllerTransitioningDelegate
-
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return BlurEffectTransition(visualEffectView: blurView, crossfadingViews: [containerView], reverse: false)
-    }
-
-    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return BlurEffectTransition(visualEffectView: blurView, crossfadingViews: [containerView], reverse: true)
-    }
-
     @objc
     private func keyboardFrameWillChange(notification: Notification) {
         let inputAccessoryHeight = UIResponder.currentFirst?.inputAccessoryView?.bounds.size.height ?? 0
@@ -236,6 +229,10 @@ final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Share
     private func keyboardFrameDidChange(notification: Notification) {
         updatePopoverFrame()
     }
+
+    private func updateClearIndicator(for tokenField: TokenField) {
+        clearButton.isHidden = tokenField.filterText.isEmpty && tokenField.tokens.isEmpty
+    }
 }
 
 // MARK: - TokenFieldDelegate
@@ -247,6 +244,7 @@ extension ShareViewController: TokenFieldDelegate {
     }
 
     func tokenField(_ tokenField: TokenField, changedFilterTextTo text: String) {
+        updateClearIndicator(for: tokenField)
         filterString = text
     }
 

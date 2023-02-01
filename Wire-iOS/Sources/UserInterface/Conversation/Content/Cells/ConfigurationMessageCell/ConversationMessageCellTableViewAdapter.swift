@@ -20,7 +20,7 @@ import Foundation
 import WireDataModel
 import UIKit
 
-protocol ConversationMessageCellMenuPresenter: class {
+protocol ConversationMessageCellMenuPresenter: AnyObject {
     func showMenu()
 }
 
@@ -67,7 +67,7 @@ class ConversationMessageCellTableViewAdapter<C: ConversationMessageCellDescript
         }
 
         set {
-            // no-op
+            super.accessibilityIdentifier = newValue
         }
     }
 
@@ -77,7 +77,7 @@ class ConversationMessageCellTableViewAdapter<C: ConversationMessageCellDescript
         }
 
         set {
-            // no-op
+            super.accessibilityLabel = newValue
         }
     }
 
@@ -139,6 +139,7 @@ class ConversationMessageCellTableViewAdapter<C: ConversationMessageCellDescript
         singleTapGesture.delegate = self
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -213,8 +214,7 @@ class ConversationMessageCellTableViewAdapter<C: ConversationMessageCellDescript
             self.becomeFirstResponder()
         }
 
-        menu.setTargetRect(selectionRect, in: selectionView)
-        menu.setMenuVisible(true, animated: true)
+        menu.showMenu(from: selectionView, rect: selectionRect)
     }
 
     // MARK: - Single Tap Action

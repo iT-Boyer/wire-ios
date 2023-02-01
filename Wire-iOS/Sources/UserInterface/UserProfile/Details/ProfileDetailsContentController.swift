@@ -24,7 +24,7 @@ import WireSyncEngine
  * An object that receives notifications from a profile details content controller.
  */
 
-protocol ProfileDetailsContentControllerDelegate: class {
+protocol ProfileDetailsContentControllerDelegate: AnyObject {
 
     /// Called when the profile details change.
     func profileDetailsContentDidChange()
@@ -55,6 +55,9 @@ final class ProfileDetailsContentController: NSObject,
 
         /// Display the status of groud admin enabled for a group conversation.
         case groupAdminStatus(enabled: Bool)
+
+        /// Display the reason for the forced user block.
+        case blockingReason
     }
 
     /// The user to display the details of.
@@ -156,7 +159,7 @@ final class ProfileDetailsContentController: NSObject,
 
             if let conversation = conversation {
                 let viewerCanChangeOtherRoles = viewer.canModifyOtherMember(in: conversation)
-                let userCanHaveRoleChanged = !user.isWirelessUser
+                let userCanHaveRoleChanged = !user.isWirelessUser && !user.isFederated
 
                 if viewerCanChangeOtherRoles && userCanHaveRoleChanged {
                     items.append(.groupAdminStatus(enabled: groupAdminEnabled))
@@ -166,6 +169,10 @@ final class ProfileDetailsContentController: NSObject,
             if let richProfile = richProfileInfoWithEmail {
                 // If there is rich profile data and the user is allowed to see it, display it.
                 items.append(richProfile)
+            }
+
+            if user.isBlocked && user.blockState == .blockedMissingLegalholdConsent {
+                items.append(.blockingReason)
             }
 
             contents = items
@@ -206,6 +213,8 @@ final class ProfileDetailsContentController: NSObject,
             return 0
         case .groupAdminStatus:
             return 1
+        case .blockingReason:
+            return 1
         }
     }
 
@@ -226,6 +235,9 @@ final class ProfileDetailsContentController: NSObject,
             } else {
                 header.titleLabel.text = "profile.read_receipts_disabled_memo.header".localized(uppercased: true)
             }
+        case .blockingReason:
+            header.titleLabel.text = nil
+            header.accessibilityIdentifier = nil
         }
 
         return header
@@ -250,11 +262,14 @@ final class ProfileDetailsContentController: NSObject,
             let cell = tableView.dequeueReusableCell(withIdentifier: userPropertyCellID) as? UserPropertyCell ?? UserPropertyCell(style: .default, reuseIdentifier: userPropertyCellID)
             cell.propertyName = field.type
             cell.propertyValue = field.value
-            cell.showSeparator = indexPath.row < fields.count - 1
             return cell
 
         case .readReceiptsStatus:
             fatalError("We do not create cells for the readReceiptsStatus section.")
+
+        case .blockingReason:
+            let cell = tableView.dequeueReusableCell(withIdentifier: UserBlockingReasonCell.zm_reuseIdentifier, for: indexPath) as! UserBlockingReasonCell
+            return cell
         }
     }
 
@@ -272,6 +287,8 @@ final class ProfileDetailsContentController: NSObject,
             footer.titleLabel.text = "profile.group_admin_status_memo.body".localized
             footer.accessibilityIdentifier = "GroupAdminStatusFooter"
             return footer
+        case .blockingReason:
+           return nil
         }
     }
 
@@ -291,11 +308,12 @@ final class ProfileDetailsContentController: NSObject,
 
         guard
             let role = newParticipantRole,
-            let session = ZMUserSession.shared(),
             let user = (user as? ZMUser) ?? (user as? ZMSearchUser)?.user
-            else { return }
+        else {
+            return
+        }
 
-        conversation?.updateRole(of: user, to: role, session: session) { (result) in
+        conversation?.updateRole(of: user, to: role) { (result) in
             if case .failure = result {
                 self.isAdminState.toggle()
                 self.updateUI()

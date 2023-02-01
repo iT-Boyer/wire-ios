@@ -23,9 +23,10 @@ final class RecordingDotView: UIView {
     public init() {
         super.init(frame: CGRect.zero)
 
-        backgroundColor = .vividRed
+        backgroundColor = SemanticColors.LegacyColors.vividRed
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -43,8 +44,7 @@ final class RecordingDotView: UIView {
 
             if animating {
                 self.startAnimation()
-            }
-            else {
+            } else {
                 self.stopAnimation()
             }
         }

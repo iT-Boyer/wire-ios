@@ -26,18 +26,7 @@ final class CustomSpacingStackView: UIView {
      This initializer must be used if you intend to call wr_addCustomSpacing.
      */
     init(customSpacedArrangedSubviews subviews: [UIView]) {
-        if #available(iOS 11, *) {
-            stackView = UIStackView(arrangedSubviews: subviews)
-        } else {
-            var subviewsWithSpacers: [UIView] = []
-
-            subviews.forEach { view in
-                subviewsWithSpacers.append(view)
-                subviewsWithSpacers.append(SpacingView(0))
-            }
-
-            stackView = UIStackView(arrangedSubviews: subviewsWithSpacers)
-        }
+        stackView = UIStackView(arrangedSubviews: subviews)
 
         super.init(frame: .zero)
 
@@ -45,9 +34,9 @@ final class CustomSpacingStackView: UIView {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        stackView = UIStackView()
-        super.init(coder: aDecoder)
+        fatalError("init(coder:) has not been implemented")
     }
 
     /**
@@ -63,23 +52,12 @@ final class CustomSpacingStackView: UIView {
      On iOS 11, it uses the default system implementation.
      */
     func wr_addCustomSpacing(_ customSpacing: CGFloat, after view: UIView) {
-        if #available(iOS 11, *) {
-            return stackView.setCustomSpacing(customSpacing, after: view)
-        }
-
-        guard let spacerIndex = stackView.subviews.firstIndex(of: view)?.advanced(by: 1),
-            let spacer = stackView.subviews[spacerIndex] as? SpacingView else { return }
-
-        if view.isHidden || customSpacing < (stackView.spacing * 2) {
-            spacer.isHidden = true
-        } else {
-            spacer.size = customSpacing - stackView.spacing
-        }
+        return stackView.setCustomSpacing(customSpacing, after: view)
     }
 
     private func createConstraints() {
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.fitInSuperview()
+        stackView.fitIn(view: self)
     }
 
     var alignment: UIStackView.Alignment {
@@ -119,6 +97,7 @@ final class SpacingView: UIView {
         setContentCompressionResistancePriority(UILayoutPriority(rawValue: 999), for: .horizontal)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -154,6 +133,7 @@ final class ContentInsetView: UIView {
         ])
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

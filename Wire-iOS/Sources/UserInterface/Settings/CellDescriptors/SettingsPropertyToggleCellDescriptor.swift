@@ -27,7 +27,7 @@ private let zmLog = ZMSLog(tag: "UI")
  */
 
 final class SettingsPropertyToggleCellDescriptor: SettingsPropertyCellDescriptorType {
-    static let cellType: SettingsTableCell.Type = SettingsToggleCell.self
+    static let cellType: SettingsTableCellProtocol.Type = SettingsToggleCell.self
     let inverse: Bool
     var title: String {
         return settingsProperty.propertyName.settingsPropertyLabelText
@@ -49,8 +49,7 @@ final class SettingsPropertyToggleCellDescriptor: SettingsPropertyCellDescriptor
             var boolValue = false
             if let value = self.settingsProperty.value().value() as? NSNumber {
                 boolValue = value.boolValue
-            }
-            else {
+            } else {
                 boolValue = false
             }
 

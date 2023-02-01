@@ -109,9 +109,9 @@ enum MessageAction: CaseIterable {
         case .forward:
             return .export
         case .like:
-            return .like
-        case .unlike:
             return .liked
+        case .unlike:
+            return .like
         case .resend:
             return .redo
         case .showInConversation:
@@ -128,12 +128,10 @@ enum MessageAction: CaseIterable {
         }
     }
 
-    @available(iOS 13.0, *)
     func systemIcon() -> UIImage? {
         return imageSystemName().flatMap(UIImage.init(systemName:))
     }
 
-    @available(iOS 13.0, *)
     private func imageSystemName() -> String? {
         let imageName: String?
         switch self {
@@ -218,23 +216,25 @@ enum MessageAction: CaseIterable {
     }
 
     var accessibilityLabel: String? {
+        typealias MessageAction = L10n.Accessibility.MessageAction
+
         switch self {
         case .copy:
-            return "copy"
+            return MessageAction.CopyButton.description
         case .save:
-            return "save"
+            return MessageAction.SaveButton.description
         case .sketchDraw:
-            return "sketch over image"
+            return MessageAction.SketchButton.description
         case .sketchEmoji:
-            return "sketch emoji over image"
+            return MessageAction.EmojiButton.description
         case .showInConversation:
-            return "reveal in conversation"
+            return MessageAction.RevealButton.description
         case .delete:
-            return "delete"
+            return MessageAction.DeleteButton.description
         case .unlike:
-            return "unlike"
+            return MessageAction.LikeButton.description
         case .like:
-            return "like"
+            return MessageAction.UnlikeButton.description
         default:
             return nil
         }

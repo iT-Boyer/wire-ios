@@ -57,8 +57,9 @@ indirect enum AuthenticationFlowStep: Equatable {
 
     // Sign-In
     case provideCredentials(AuthenticationCredentialsType, AuthenticationPrefilledCredentials?)
-    case sendLoginCode(phoneNumber: String, isResend: Bool)
-    case enterLoginCode(phoneNumber: String)
+    case requestPhoneVerificationCode(phoneNumber: String, isResend: Bool)
+    case enterPhoneVerificationCode(phoneNumber: String)
+    case enterEmailVerificationCode(email: String, password: String, isResend: Bool)
     case authenticateEmailCredentials(ZMEmailCredentials)
     case authenticatePhoneCredentials(ZMPhoneCredentials)
     case companyLogin
@@ -74,13 +75,15 @@ indirect enum AuthenticationFlowStep: Equatable {
     case pendingInitialSync(next: AuthenticationFlowStep?)
 
     // Registration
-    case teamCreation(TeamCreationState)
-    case createCredentials(UnregisteredUser, AuthenticationCredentialsType)
+    case createCredentials(UnregisteredUser)
     case sendActivationCode(UnverifiedCredentials, user: UnregisteredUser, isResend: Bool)
     case enterActivationCode(UnverifiedCredentials, user: UnregisteredUser)
     case activateCredentials(UnverifiedCredentials, user: UnregisteredUser, code: String)
     case incrementalUserCreation(UnregisteredUser, IntermediateRegistrationStep)
     case createUser(UnregisteredUser)
+
+    // Configuration
+    case configureDevice
 
     // MARK: - Properties
 
@@ -94,8 +97,9 @@ indirect enum AuthenticationFlowStep: Equatable {
 
         // Sign-In
         case .provideCredentials: return true
-        case .sendLoginCode: return false
-        case .enterLoginCode: return true
+        case .requestPhoneVerificationCode: return false
+        case .enterPhoneVerificationCode: return true
+        case .enterEmailVerificationCode: return true
         case .authenticateEmailCredentials: return false
         case .authenticatePhoneCredentials: return false
         case .registerEmailCredentials: return false
@@ -111,13 +115,15 @@ indirect enum AuthenticationFlowStep: Equatable {
         case .pendingEmailLinkVerification: return true
 
         // Registration
-        case .teamCreation(let teamState): return teamState.needsInterface
         case .createCredentials: return true
         case .sendActivationCode: return false
         case .enterActivationCode: return true
         case .activateCredentials: return false
         case .incrementalUserCreation(_, let intermediateStep): return intermediateStep.needsInterface
         case .createUser: return false
+
+        // Configuration
+        case .configureDevice: return false
         }
     }
 
@@ -136,7 +142,7 @@ enum IntermediateRegistrationStep: Equatable {
         switch self {
         case .start: return false
         case .provideMarketingConsent: return false
-        default : return true
+        default: return true
         }
     }
 }

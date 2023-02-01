@@ -17,39 +17,72 @@
 //
 
 import UIKit
+import WireCommonComponents
 
 extension IconLabelButton {
 
+    convenience init(callActionIcon: CallActionIconType, iconSize: StyleKitIcon.Size = .tiny) {
+        self.init(input: callActionIcon, iconSize: iconSize)
+    }
+
     static func speaker() -> IconLabelButton {
-        return .init(
-            icon: .speaker,
-            label: "voice.speaker_button.title".localized,
-            accessibilityIdentifier: "CallSpeakerButton"
-        )
+        .init(callActionIcon: .speaker)
     }
 
-    static func muteCall() -> IconLabelButton {
-        return .init(
-            icon: .microphoneWithStrikethrough,
-            label: "voice.mute_button.title".localized,
-            accessibilityIdentifier: "CallMuteButton"
-        )
+    static func microphone() -> IconLabelButton {
+        .init(callActionIcon: .microphone)
     }
 
-    static func video() -> IconLabelButton {
-        return .init(
-            icon: .videoCall,
-            label: "voice.video_button.title".localized,
-            accessibilityIdentifier: "CallVideoButton"
-        )
+    static func camera() -> IconLabelButton {
+        .init(callActionIcon: .camera)
     }
 
     static func flipCamera() -> IconLabelButton {
-        return .init(
-            icon: .cameraSwitch,
-            label: "voice.flip_video_button.title".localized,
-            accessibilityIdentifier: "CallFlipCameraButton"
-        )
+        .init(callActionIcon: .flipCamera)
     }
 
+}
+
+extension CallingActionButton {
+
+    convenience init(callingActionIcon: CallActionIconType) {
+        self.init(input: callingActionIcon)
+    }
+
+    static func speakerButton() -> CallingActionButton {
+        .init(callActionIcon: .speaker)
+    }
+
+    static func microphoneButton() -> CallingActionButton {
+        .init(callActionIcon: .microphone)
+    }
+
+    static func cameraButton() -> CallingActionButton {
+        .init(callActionIcon: .camera)
+    }
+
+    static func flipCameraButton() -> CallingActionButton {
+        .init(callActionIcon: .flipCamera)
+    }
+
+}
+
+extension EndCallButton {
+    static func endCallButton() -> EndCallButton {
+        .init(callActionIcon: .endCall)
+    }
+
+    static func bigEndCallButton() -> EndCallButton {
+        .init(callActionIcon: .endCall, iconSize: .medium)
+    }
+}
+
+extension PickUpButton {
+    static func pickUpButton() -> PickUpButton {
+        .init(callActionIcon: .pickUp)
+    }
+
+    static func bigPickUpButton() -> PickUpButton {
+        .init(callActionIcon: .pickUp, iconSize: .medium)
+    }
 }

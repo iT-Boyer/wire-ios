@@ -43,10 +43,10 @@ final class AppStateCalculatorTests: XCTestCase {
     func testThatAppStateChanges_OnDidBlacklistCurrentVersion() {
         // WHEN
         sut.applicationDidBecomeActive()
-        sut.sessionManagerDidBlacklistCurrentVersion()
+        sut.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
 
         // THEN
-        XCTAssertEqual(sut.appState, .blacklisted)
+        XCTAssertEqual(sut.appState, .blacklisted(reason: .appVersionBlacklisted))
         XCTAssertTrue(delegate.wasNotified)
     }
 
@@ -139,19 +139,44 @@ final class AppStateCalculatorTests: XCTestCase {
         XCTAssertTrue(delegate.wasNotified)
     }
 
+    func testThatAppStateChanges_OnDidPerformFederationMigration() {
+        testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: false)
+        testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: true)
+    }
+
+    func testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: Bool) {
+        // GIVEN
+        sut.applicationDidBecomeActive()
+
+        // WHEN
+        sut.sessionManagerDidPerformFederationMigration(authenticated: authenticated)
+
+        // THEN
+        if authenticated {
+            XCTAssertEqual(sut.appState, .authenticated(completedRegistration: false))
+        } else {
+            guard case let .unauthenticated(error: error) = sut.appState else {
+                return XCTFail("Error - unauthenticated")
+            }
+
+            XCTAssertEqual(error?.userSessionErrorCode, .needsAuthenticationAfterMigration)
+        }
+        XCTAssertTrue(delegate.wasNotified)
+    }
+
     // MARK: - Tests AppState Changes
 
     func testApplicationDontTransit_WhenAppStateDontChanges() {
         // GIVEN
         sut.applicationDidBecomeActive()
-        sut.testHelper_setAppState(.blacklisted)
+        sut.testHelper_setAppState(.blacklisted(reason: .appVersionBlacklisted))
         delegate.wasNotified = false
 
         // WHEN
-        sut.sessionManagerDidBlacklistCurrentVersion()
+        sut.sessionManagerDidBlacklistCurrentVersion(reason: .appVersionBlacklisted)
 
         // THEN
-        XCTAssertEqual(sut.appState, .blacklisted)
+        XCTAssertEqual(sut.appState, .blacklisted(reason: .appVersionBlacklisted))
         XCTAssertFalse(delegate.wasNotified)
     }
 
@@ -160,7 +185,7 @@ final class AppStateCalculatorTests: XCTestCase {
         let userSession = MockZMUserSession()
         userSession.lock = .database
         sut.applicationDidBecomeActive()
-        sut.testHelper_setAppState(.blacklisted)
+        sut.testHelper_setAppState(.blacklisted(reason: .appVersionBlacklisted))
         delegate.wasNotified = false
 
         // WHEN
@@ -200,6 +225,21 @@ final class AppStateCalculatorTests: XCTestCase {
 
         // THEN
         XCTAssertTrue(delegate.wasNotified)
+    }
+
+    func testThatItDoesntTransitionAwayFromBlacklisted_IfThereIsNoCurrentAPIVersion() {
+        // GIVEN
+        sut.applicationDidBecomeActive()
+        BackendInfo.apiVersion = nil
+
+        let blacklistState = AppState.blacklisted(reason: .clientAPIVersionObsolete)
+        sut.testHelper_setAppState(blacklistState)
+
+        // WHEN
+        sut.sessionManagerDidReportLockChange(forSession: MockZMUserSession())
+
+        // THEN
+        XCTAssertEqual(sut.appState, blacklistState)
     }
 }
 

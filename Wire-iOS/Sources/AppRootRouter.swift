@@ -19,6 +19,7 @@
 import UIKit
 import WireSyncEngine
 import avs
+import WireCommonComponents
 
 // MARK: - AppRootRouter
 public class AppRootRouter: NSObject {
@@ -57,7 +58,8 @@ public class AppRootRouter: NSObject {
     init(viewController: RootViewController,
          navigator: NavigatorProtocol,
          sessionManager: SessionManager,
-         appStateCalculator: AppStateCalculator) {
+         appStateCalculator: AppStateCalculator
+    ) {
         self.rootViewController = viewController
         self.navigator = navigator
         self.sessionManager = sessionManager
@@ -94,6 +96,7 @@ public class AppRootRouter: NSObject {
 
     public func start(launchOptions: LaunchOptions) {
         showInitial(launchOptions: launchOptions)
+        sessionManager.resolveAPIVersion()
     }
 
     public func openDeepLinkURL(_ deepLinkURL: URL) -> Bool {
@@ -102,8 +105,7 @@ public class AppRootRouter: NSObject {
 
     public func performQuickAction(for shortcutItem: UIApplicationShortcutItem,
                                    completionHandler: ((Bool) -> Void)?) {
-        quickActionsManager.performAction(for: shortcutItem,
-                                          completionHandler: completionHandler)
+        quickActionsManager.performAction(for: shortcutItem, completionHandler: completionHandler)
     }
 
     // MARK: - Private implementation
@@ -132,14 +134,15 @@ public class AppRootRouter: NSObject {
 
     private func setCallingSettings() {
         sessionManager.updateCallNotificationStyleFromSettings()
-        sessionManager.useConstantBitRateAudio = SecurityFlags.forceConstantBitRateCalls.isEnabled
-            ? true
-            : Settings.shared[.callingConstantBitRate] ?? false
+        sessionManager.updateMuteOtherCallsFromSettings()
+        sessionManager.usePackagingFeatureConfig = true
+        let useCBR = SecurityFlags.forceConstantBitRateCalls.isEnabled ? true : Settings.shared[.callingConstantBitRate] ?? false
+        sessionManager.useConstantBitRateAudio = useCBR
     }
 
     // MARK: - Transition
 
-    /// A queue on which we disspatch app state transitions.
+    /// A queue on which we dispatch app state transitions.
 
     private let appStateTransitionQueue = DispatchQueue(label: "AppRootRouter.appStateTransitionQueue")
 
@@ -190,8 +193,8 @@ extension AppRootRouter: AppStateCalculatorDelegate {
         }
 
         switch appState {
-        case .blacklisted:
-            showBlacklisted(completion: completionBlock)
+        case .blacklisted(reason: let reason):
+            showBlacklisted(reason: reason, completion: completionBlock)
         case .jailbroken:
             showJailbroken(completion: completionBlock)
         case .databaseFailure:
@@ -225,13 +228,14 @@ extension AppRootRouter: AppStateCalculatorDelegate {
     private func resetAuthenticationCoordinatorIfNeeded(for state: AppState) {
         switch state {
         case .authenticated:
+            authenticationCoordinator?.tearDown()
             authenticationCoordinator = nil
         default:
             break
         }
     }
 
-    func performWhenAuthenticated(_ block : @escaping () -> Void) {
+    func performWhenAuthenticated(_ block: @escaping () -> Void) {
         if case .authenticated = appStateCalculator.appState {
             block()
         } else {
@@ -260,8 +264,8 @@ extension AppRootRouter {
         }
     }
 
-    private func showBlacklisted(completion: @escaping () -> Void) {
-        let blockerViewController = BlockerViewController(context: .blacklist)
+    private func showBlacklisted(reason: BlacklistReason, completion: @escaping () -> Void) {
+        let blockerViewController = BlockerViewController(context: reason.blockerViewControllerContext)
         rootViewController.set(childViewController: blockerViewController,
                                completion: completion)
     }
@@ -273,17 +277,22 @@ extension AppRootRouter {
     }
 
     private func showDatabaseLoadingFailure(completion: @escaping () -> Void) {
-        let blockerViewController = BlockerViewController(context: .databaseFailure,
-                                                          sessionManager: sessionManager)
+        let blockerViewController = BlockerViewController(
+            context: .databaseFailure,
+            sessionManager: sessionManager
+        )
+
         rootViewController.set(childViewController: blockerViewController,
                                completion: completion)
     }
 
     private func showLaunchScreen(isLoading: Bool = false, completion: @escaping () -> Void) {
         let launchViewController = LaunchImageViewController()
-        isLoading
-            ? launchViewController.showLoadingScreen()
-            : ()
+
+        if isLoading {
+            launchViewController.showLoadingScreen()
+        }
+
         rootViewController.set(childViewController: launchViewController,
                                completion: completion)
     }
@@ -293,20 +302,27 @@ extension AppRootRouter {
         guard
             self.authenticationCoordinator == nil ||
                 error?.userSessionErrorCode == .addAccountRequested ||
-                error?.userSessionErrorCode == .accountDeleted,
+                error?.userSessionErrorCode == .accountDeleted ||
+                error?.userSessionErrorCode == .needsAuthenticationAfterMigration,
             let sessionManager = SessionManager.shared
         else {
             completion()
             return
         }
 
-        let navigationController = SpinnerCapableNavigationController(navigationBarClass: AuthenticationNavigationBar.self,
-                                                                      toolbarClass: nil)
+        let navigationController = SpinnerCapableNavigationController(
+            navigationBarClass: AuthenticationNavigationBar.self,
+            toolbarClass: nil
+        )
 
-        authenticationCoordinator = AuthenticationCoordinator(presenter: navigationController,
-                                                              sessionManager: sessionManager,
-                                                              featureProvider: BuildSettingAuthenticationFeatureProvider(),
-                                                              statusProvider: AuthenticationStatusProvider())
+        authenticationCoordinator?.tearDown()
+
+        authenticationCoordinator = AuthenticationCoordinator(
+            presenter: navigationController,
+            sessionManager: sessionManager,
+            featureProvider: BuildSettingAuthenticationFeatureProvider(),
+            statusProvider: AuthenticationStatusProvider()
+        )
 
         guard let authenticationCoordinator = authenticationCoordinator else {
             completion()
@@ -314,8 +330,10 @@ extension AppRootRouter {
         }
 
         authenticationCoordinator.delegate = appStateCalculator
-        authenticationCoordinator.startAuthentication(with: error,
-                                                      numberOfAccounts: SessionManager.numberOfAccounts)
+        authenticationCoordinator.startAuthentication(
+            with: error,
+            numberOfAccounts: SessionManager.numberOfAccounts
+        )
 
         rootViewController.set(childViewController: navigationController,
                                completion: completion)
@@ -376,14 +394,14 @@ extension AppRootRouter {
 
     private func buildAuthenticatedRouter(account: Account, isComingFromRegistration: Bool) -> AuthenticatedRouter? {
 
-        let needToShowDataUsagePermissionDialog = appStateCalculator.wasUnauthenticated
-                                                    && !SelfUser.current.isTeamMember
+        let needToShowDataUsagePermissionDialog = appStateCalculator.wasUnauthenticated && !SelfUser.current.isTeamMember
 
         return AuthenticatedRouter(rootViewController: rootViewController,
                                    account: account,
                                    selfUser: ZMUser.selfUser(),
                                    isComingFromRegistration: isComingFromRegistration,
-                                   needToShowDataUsagePermissionDialog: needToShowDataUsagePermissionDialog)
+                                   needToShowDataUsagePermissionDialog: needToShowDataUsagePermissionDialog,
+                                   featureServiceProvider: ZMUserSession.shared()!)
     }
 }
 
@@ -396,19 +414,33 @@ extension AppRootRouter {
     }
 
     private func applicationDidTransition(to appState: AppState) {
-        if case .unauthenticated(let error) = appState {
+        switch appState {
+        case .unauthenticated(error: let error):
             presentAlertForDeletedAccountIfNeeded(error)
-        }
-
-        if case .authenticated = appState {
+            sessionManager.processPendingURLActionDoesNotRequireAuthentication()
+        case .authenticated:
+            // This is needed to display an ongoing call when coming from the background.
             authenticatedRouter?.updateActiveCallPresentationState()
-
+            urlActionRouter.authenticatedRouter = authenticatedRouter
             ZClientViewController.shared?.legalHoldDisclosureController?.discloseCurrentState(cause: .appOpen)
+            sessionManager.processPendingURLActionRequiresAuthentication()
+            sessionManager.processPendingURLActionDoesNotRequireAuthentication()
+        default:
+            break
         }
 
+        urlActionRouter.performPendingActions()
         resetSelfUserProviderIfNeeded(for: appState)
-        urlActionRouter.openDeepLink(for: appState)
+        resetAuthenticatedRouterIfNeeded(for: appState)
         appStateTransitionGroup.leave()
+    }
+
+    private func resetAuthenticatedRouterIfNeeded(for appState: AppState) {
+        switch appState {
+        case .authenticated: break
+        default:
+            authenticatedRouter = nil
+        }
     }
 
     private func resetSelfUserProviderIfNeeded(for appState: AppState) {
@@ -433,6 +465,11 @@ extension AppRootRouter {
         let colorScheme = ColorScheme.default
         colorScheme.accentColor = .accent()
         colorScheme.variant = Settings.shared.colorSchemeVariant
+
+        UIApplication.shared.windows.forEach { window in
+            window.overrideUserInterfaceStyle = Settings.shared.colorScheme.userInterfaceStyle
+        }
+
     }
 
     private func presentAlertForDeletedAccountIfNeeded(_ error: NSError?) {
@@ -465,14 +502,27 @@ extension AppRootRouter {
     }
 }
 
-// MARK: - URLActionRouterDelegete
-extension AppRootRouter: URLActionRouterDelegete {
+// MARK: - URLActionRouterDelegate
+
+extension AppRootRouter: URLActionRouterDelegate {
+
     func urlActionRouterWillShowCompanyLoginError() {
         authenticationCoordinator?.cancelCompanyLogin()
     }
+
+    func urlActionRouterCanDisplayAlerts() -> Bool {
+        switch appStateCalculator.appState {
+        case .authenticated, .unauthenticated:
+            return true
+        default:
+            return false
+        }
+    }
+
 }
 
 // MARK: - ApplicationStateObserving
+
 extension AppRootRouter: ApplicationStateObserving {
     func addObserverToken(_ token: NSObjectProtocol) {
         observerTokens.append(token)
@@ -490,25 +540,28 @@ extension AppRootRouter: ApplicationStateObserving {
 
     func applicationWillEnterForeground() {
         updateOverlayWindowFrame()
+        sessionManager.resolveAPIVersion()
     }
 
     func updateOverlayWindowFrame(size: CGSize? = nil) {
         if let size = size {
             screenCurtain.frame.size = size
         } else {
-            screenCurtain.frame = UIApplication.shared.keyWindow?.frame ?? UIScreen.main.bounds
+            screenCurtain.frame = UIApplication.shared.firstKeyWindow?.frame ?? UIScreen.main.bounds
         }
     }
 }
 
 // MARK: - ContentSizeCategoryObserving
+
 extension AppRootRouter: ContentSizeCategoryObserving {
     func contentSizeCategoryDidChange() {
         NSAttributedString.invalidateParagraphStyle()
         NSAttributedString.invalidateMarkdownStyle()
         ConversationListCell.invalidateCachedCellSize()
-        defaultFontScheme = FontScheme(contentSizeCategory: UIApplication.shared.preferredContentSizeCategory)
+        FontScheme.configure(with: UIApplication.shared.preferredContentSizeCategory)
         AppRootRouter.configureAppearance()
+        rootViewController.redrawAllFonts()
     }
 
     public static func configureAppearance() {
@@ -523,8 +576,10 @@ extension AppRootRouter: ContentSizeCategoryObserving {
 }
 
 // MARK: - AudioPermissionsObserving
+
 extension AppRootRouter: AudioPermissionsObserving {
     func userDidGrantAudioPermissions() {
         sessionManager.updateCallNotificationStyleFromSettings()
+        sessionManager.updateMuteOtherCallsFromSettings()
     }
 }

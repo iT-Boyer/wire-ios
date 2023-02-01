@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireSyncEngine
 
@@ -35,7 +34,7 @@ fileprivate extension UIView {
 
 }
 
-protocol ChangeHandleTableViewCellDelegate: class {
+protocol ChangeHandleTableViewCellDelegate: AnyObject {
     func tableViewCell(cell: ChangeHandleTableViewCell, shouldAllowEditingText text: String) -> Bool
     func tableViewCellDidChangeText(cell: ChangeHandleTableViewCell, text: String)
 }
@@ -46,16 +45,26 @@ final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
     let prefixLabel: UILabel = {
         let label = UILabel()
         label.font = .normalSemiboldFont
-        label.textColor = UIColor.from(scheme: .textDimmed, variant: .dark)
+        label.textColor = SemanticColors.Label.textDefault
 
         return label
     }()
+
     let handleTextField: UITextField = {
         let textField = UITextField()
         textField.font = .normalFont
-        textField.textColor = .from(scheme: .textForeground, variant: .dark)
+        textField.textColor = SemanticColors.Label.textDefault
 
         return textField
+    }()
+
+    let domainLabel: UILabel = {
+        let label = UILabel()
+        label.font = .normalSemiboldFont
+        label.textColor = .gray
+        label.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        return label
     }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -70,6 +79,7 @@ final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
         backgroundColor = .clear
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -81,21 +91,27 @@ final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
         handleTextField.accessibilityLabel = "handleTextField"
         handleTextField.autocorrectionType = .no
         handleTextField.spellCheckingType = .no
+        handleTextField.textAlignment = .right
         prefixLabel.text = "@"
-        [prefixLabel, handleTextField].forEach(addSubview)
+        [prefixLabel, handleTextField, domainLabel].forEach(addSubview)
     }
 
-    func createConstraints() {
-        constrain(self, prefixLabel, handleTextField) { view, prefixLabel, textField in
-            prefixLabel.top == view.top
-            prefixLabel.width == 16
-            prefixLabel.bottom == view.bottom
-            prefixLabel.leading == view.leading + 16
-            prefixLabel.trailing == textField.leading - 4
-            textField.top == view.top
-            textField.bottom == view.bottom
-            textField.trailing == view.trailing - 16
-        }
+    private func createConstraints() {
+        [prefixLabel, handleTextField, domainLabel].prepareForLayout()
+
+        NSLayoutConstraint.activate([
+            prefixLabel.topAnchor.constraint(equalTo: topAnchor),
+            prefixLabel.widthAnchor.constraint(equalToConstant: 16),
+            prefixLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            prefixLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            prefixLabel.trailingAnchor.constraint(equalTo: handleTextField.leadingAnchor, constant: -4),
+            handleTextField.topAnchor.constraint(equalTo: topAnchor),
+            handleTextField.bottomAnchor.constraint(equalTo: bottomAnchor),
+            handleTextField.trailingAnchor.constraint(equalTo: domainLabel.leadingAnchor, constant: -4),
+            domainLabel.topAnchor.constraint(equalTo: topAnchor),
+            domainLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            domainLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -16)
+        ])
     }
 
     func performWiggleAnimation() {
@@ -127,7 +143,7 @@ final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
 
 /// This struct represents the current state of a handle
 /// change operation and performs necessary validation steps of
-/// a new handle. The `ChangeHandleViewController` uses this state 
+/// a new handle. The `ChangeHandleViewController` uses this state
 /// to layout its interface.
 struct HandleChangeState {
 
@@ -183,6 +199,7 @@ struct HandleChangeState {
 }
 
 final class ChangeHandleViewController: SettingsBaseTableViewController {
+    private typealias HandleChange = L10n.Localizable.Self.Settings.AccountSection.Handle.Change
 
     var footerFont: UIFont = .smallFont
     var state: HandleChangeState
@@ -190,6 +207,7 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
     fileprivate weak var userProfile = ZMUserSession.shared()?.userProfile
     private var observerToken: Any?
     var popOnSuccess = true
+    private var federationEnabled: Bool
 
     convenience init() {
         self.init(state: HandleChangeState(currentHandle: SelfUser.current.handle ?? nil, newHandle: nil, availability: .unknown))
@@ -202,13 +220,15 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
     }
 
     /// Used to inject a specific `HandleChangeState` in tests. See `ChangeHandleViewControllerTests`.
-    init(state: HandleChangeState) {
+    init(state: HandleChangeState, federationEnabled: Bool = BackendInfo.isFederationEnabled) {
         self.state = state
+        self.federationEnabled = federationEnabled
         super.init(style: .grouped)
 
         setupViews()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -225,23 +245,22 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
     }
 
     private func setupViews() {
-        title = "self.settings.account_section.handle.change.title".localized(uppercased: true)
+        navigationItem.setupNavigationBarTitle(title: HandleChange.title.capitalized)
         view.backgroundColor = .clear
         ChangeHandleTableViewCell.register(in: tableView)
         tableView.allowsSelection = false
         tableView.isScrollEnabled = false
         tableView.separatorStyle = .singleLine
-        tableView.separatorColor = UIColor(white: 1, alpha: 0.08)
+        tableView.separatorColor = SemanticColors.View.backgroundSeparatorCell
         footerLabel.numberOfLines = 0
         updateUI()
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "self.settings.account_section.handle.change.save".localized.localizedUppercase,
-            style: .plain,
-            target: self,
-            action: #selector(saveButtonTapped)
-        )
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.accent()
+        let saveButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(title: HandleChange.save.capitalized,
+                                                                                  systemImage: false,
+                                                                                  target: self,
+                                                                                  action: #selector(saveButtonTapped))
+        saveButtonItem.tintColor = .accent()
+        navigationItem.rightBarButtonItem = saveButtonItem
     }
 
     @objc func saveButtonTapped(sender: UIBarButtonItem) {
@@ -251,8 +270,8 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
     }
 
     fileprivate var attributedFooterTitle: NSAttributedString? {
-        let infoText = "self.settings.account_section.handle.change.footer".localized.attributedString && UIColor(white: 1, alpha: 0.4)
-        let alreadyTakenText = "self.settings.account_section.handle.change.footer.unavailable".localized && UIColor.vividRed
+        let infoText = HandleChange.footer.attributedString && SemanticColors.Label.textSectionFooter
+        let alreadyTakenText = HandleChange.Footer.unavailable && SemanticColors.Label.textErrorDefault
         let prefix = state.availability == .taken ? alreadyTakenText + "\n\n" : "\n\n".attributedString
         return (prefix + infoText) && footerFont
     }
@@ -288,6 +307,8 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
         cell.delegate = self
         cell.handleTextField.text = state.displayHandle
         cell.handleTextField.becomeFirstResponder()
+        cell.domainLabel.isHidden = !federationEnabled
+        cell.domainLabel.text = federationEnabled ? SelfUser.current.domainString : ""
         return cell
     }
 
@@ -300,8 +321,8 @@ extension ChangeHandleViewController: ChangeHandleTableViewCellDelegate {
 
     func tableViewCell(cell: ChangeHandleTableViewCell, shouldAllowEditingText text: String) -> Bool {
         do {
-            /// We validate the new handle and only allow the edit if
-            /// the new handle neither contains invalid characters nor is too long.
+            // We validate the new handle and only allow the edit if
+            // the new handle neither contains invalid characters nor is too long.
             try state.validate(text)
             return true
         } catch HandleChangeState.ValidationError.invalidCharacter {
@@ -366,12 +387,12 @@ extension ChangeHandleViewController: UserProfileUpdateObserver {
 
     private func presentFailureAlert() {
         let alert = UIAlertController(
-            title: "self.settings.account_section.handle.change.failure_alert.title".localized,
-            message: "self.settings.account_section.handle.change.failure_alert.message".localized,
+            title: HandleChange.FailureAlert.title,
+            message: HandleChange.FailureAlert.message,
             preferredStyle: .alert
         )
 
-        alert.addAction(.init(title: "general.ok".localized, style: .cancel, handler: nil))
+        alert.addAction(.init(title: L10n.Localizable.General.ok, style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
     }
 }

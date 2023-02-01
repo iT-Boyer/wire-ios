@@ -28,7 +28,7 @@ extension IconButton {
         return .init(
             icon: .phone,
             accessibilityId: "AcceptButton",
-            backgroundColor: [.normal: UIColor.strongLimeGreen],
+            backgroundColor: [.normal: SemanticColors.LegacyColors.strongLimeGreen],
             iconColor: [.normal: .white],
             width: IconButton.width
         )
@@ -39,7 +39,7 @@ extension IconButton {
             icon: .endCall,
             size: .small,
             accessibilityId: "LeaveCallButton",
-            backgroundColor: [.normal: UIColor.vividRed],
+            backgroundColor: [.normal: SemanticColors.LegacyColors.vividRed],
             iconColor: [.normal: .white],
             width: IconButton.width
         )
@@ -47,21 +47,18 @@ extension IconButton {
 
     static func sendButton() -> IconButton {
 
-        let sendButtonIconColor = UIColor.from(scheme: .background, variant: .light)
+        let sendButtonIconColor = SemanticColors.Icon.foregroundDefaultWhite
 
         let sendButton = IconButton(
             icon: .send,
             accessibilityId: "sendButton",
             backgroundColor: [.normal: UIColor.accent(),
-                              .highlighted: UIColor.accentDarken],
+                              .highlighted: UIColor.accentDarken,
+                              .disabled: SemanticColors.Button.backgroundSendDisabled],
             iconColor: [.normal: sendButtonIconColor,
                         .highlighted: sendButtonIconColor,
-                        .disabled: sendButtonIconColor,
-                        .selected: sendButtonIconColor]
+                        .disabled: sendButtonIconColor]
         )
-
-        sendButton.adjustsImageWhenHighlighted = false
-        sendButton.adjustBackgroundImageWhenHighlighted = true
 
         return sendButton
     }
@@ -73,11 +70,10 @@ extension IconButton {
         backgroundColor: [UIControl.State: UIColor],
         iconColor: [UIControl.State: UIColor],
         width: CGFloat? = nil
-        ) {
-        self.init()
+    ) {
+        self.init(fontSpec: .smallLightFont)
         circular = true
         setIcon(icon, size: size, for: .normal)
-        titleLabel?.font = FontSpec(.small, .light).font!
         accessibilityIdentifier = accessibilityId
         translatesAutoresizingMaskIntoConstraints = false
 
@@ -100,7 +96,7 @@ extension IconButton {
 }
 
 extension UIControl.State: Hashable {
-    public var hashValue: Int {
-        return Int(self.rawValue)
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.rawValue)
     }
 }

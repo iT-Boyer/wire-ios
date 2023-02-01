@@ -20,7 +20,7 @@ import SnapshotTesting
 import XCTest
 @testable import Wire
 
-final class ConversationCreationControllerSnapshotTests: XCTestCase {
+final class ConversationCreationControllerSnapshotTests: ZMSnapshotTestCase {
 
     var sut: ConversationCreationController!
 
@@ -57,9 +57,8 @@ final class ConversationCreationControllerSnapshotTests: XCTestCase {
     func testTeamGroupOptionsCollapsed_dark() {
         createSut(isTeamMember: true)
 
-        ColorScheme.default.variant = .dark
+        sut.overrideUserInterfaceStyle = .dark
 
-        sut.view.backgroundColor = .black
         verify(matching: sut)
     }
 

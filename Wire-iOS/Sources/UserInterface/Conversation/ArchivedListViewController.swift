@@ -17,12 +17,11 @@
 // 
 
 import UIKit
-import Cartography
 import WireDataModel
 
 // MARK: ArchivedListViewControllerDelegate
 
-protocol ArchivedListViewControllerDelegate: class {
+protocol ArchivedListViewControllerDelegate: AnyObject {
     func archivedListViewControllerWantsToDismiss(_ controller: ArchivedListViewController)
     func archivedListViewController(_ controller: ArchivedListViewController, didSelectConversation conversation: ZMConversation)
 }
@@ -31,10 +30,8 @@ protocol ArchivedListViewControllerDelegate: class {
 
 final class ArchivedListViewController: UIViewController {
 
-    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
-
     fileprivate var collectionView: UICollectionView!
-    fileprivate let archivedNavigationBar = ArchivedNavigationBar(title: "archived_list.title".localized(uppercased: true))
+    fileprivate let archivedNavigationBar = ArchivedNavigationBar(title: L10n.Localizable.ArchivedList.title.capitalized)
     fileprivate let cellReuseIdentifier = "ConversationListCellArchivedIdentifier"
     fileprivate let swipeIdentifier = "ArchivedList"
     fileprivate let viewModel = ArchivedListViewModel()
@@ -51,6 +48,7 @@ final class ArchivedListViewController: UIViewController {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -86,18 +84,20 @@ final class ArchivedListViewController: UIViewController {
         archivedNavigationBar.dismissButtonHandler = {
             self.delegate?.archivedListViewControllerWantsToDismiss(self)
         }
+        view.backgroundColor = SemanticColors.View.backgroundConversationList
     }
 
-    func createConstraints() {
-        constrain(view, archivedNavigationBar, collectionView) { view, navigationBar, collectionView in
-            navigationBar.top == view.top + UIScreen.safeArea.top
-            navigationBar.left == view.left
-            navigationBar.right == view.right
-            navigationBar.bottom == collectionView.top
-            collectionView.left == view.left
-            collectionView.bottom == view.bottom
-            collectionView.right == view.right
-        }
+    private func createConstraints() {
+        [archivedNavigationBar, collectionView].prepareForLayout()
+        NSLayoutConstraint.activate([
+            archivedNavigationBar.topAnchor.constraint(equalTo: view.topAnchor, constant: UIScreen.safeArea.top),
+            archivedNavigationBar.leftAnchor.constraint(equalTo: view.leftAnchor),
+            archivedNavigationBar.rightAnchor.constraint(equalTo: view.rightAnchor),
+            archivedNavigationBar.bottomAnchor.constraint(equalTo: collectionView.topAnchor),
+          collectionView.leftAnchor.constraint(equalTo: view.leftAnchor),
+          collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+          collectionView.rightAnchor.constraint(equalTo: view.rightAnchor)
+        ])
     }
 
     // MARK: - Accessibility
@@ -115,12 +115,6 @@ extension ArchivedListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let conversation = viewModel[indexPath.row] else { return }
         delegate?.archivedListViewController(self, didSelectConversation: conversation)
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let showSeparator = scrollView.contentOffset.y >= 16
-        guard showSeparator != archivedNavigationBar.showSeparator else { return }
-        archivedNavigationBar.showSeparator = showSeparator
     }
 }
 

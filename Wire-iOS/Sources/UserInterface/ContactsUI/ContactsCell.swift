@@ -17,15 +17,14 @@
 //
 
 import UIKit
-import Cartography
-import WireDataModel
 import WireSyncEngine
+import WireCommonComponents
 
 typealias ContactsCellActionButtonHandler = (UserType, ContactsCell.Action) -> Void
 
 /// A UITableViewCell version of UserCell, with simpler functionality for contact Screen with table view index bar
-class ContactsCell: UITableViewCell, SeparatorViewProtocol {
-    var user: UserType? = nil {
+final class ContactsCell: UITableViewCell, SeparatorViewProtocol {
+    var user: UserType? {
         didSet {
             avatar.user = user
             updateTitleLabel()
@@ -39,27 +38,13 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
         }
     }
 
-    var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
+    var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant
 
-    // if nil the background color is the default content background color for the theme
-    var contentBackgroundColor: UIColor? = nil {
-        didSet {
-            guard oldValue != contentBackgroundColor else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
+    static let boldFont: FontSpec = .smallRegularFont
+    static let lightFont: FontSpec = .smallLightFont
 
-    final func contentBackgroundColor(for colorSchemeVariant: ColorSchemeVariant) -> UIColor {
-        return contentBackgroundColor ?? UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
-    }
-
-    static let boldFont: UIFont = .smallRegularFont
-    static let lightFont: UIFont = .smallLightFont
+    typealias ViewColors = SemanticColors.View
+    typealias LabelColors = SemanticColors.Label
 
     let avatar: BadgeUserImageView = {
         let badgeUserImageView = BadgeUserImageView()
@@ -77,7 +62,7 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
     let titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .normalLightFont
+        label.font = FontSpec.normalLightFont.font!
         label.accessibilityIdentifier = "contact_cell.name"
 
         return label
@@ -86,7 +71,7 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
     let subtitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = .smallRegularFont
+        label.font = FontSpec.smallRegularFont.font!
         label.accessibilityIdentifier = "contact_cell.username"
 
         return label
@@ -98,7 +83,9 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
         }
     }
 
-    let actionButton: Button = Button(style: .full)
+    let actionButton: Button = Button(style: .accentColorTextButtonStyle,
+                                      cornerRadius: 4,
+                                      fontSpec: .mediumSemiboldFont)
 
     var actionButtonHandler: ContactsCellActionButtonHandler?
 
@@ -135,6 +122,7 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
         configureSubviews()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -174,10 +162,17 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
 
         createSeparatorConstraints()
 
-        applyColorScheme(ColorScheme.default.variant)
+        separator.backgroundColor = ViewColors.backgroundSeparatorCell
+
+        backgroundColor = ViewColors.backgroundUserCell
+
+        titleLabel.textColor = LabelColors.textDefault
+        subtitleLabel.textColor = LabelColors.textCellSubtitle
+
+        updateTitleLabel()
     }
 
-    func createConstraints() {
+    private func createConstraints() {
 
         let buttonMargin: CGFloat = 16
 
@@ -192,16 +187,17 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
             contentStackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -buttonMargin)
-            ])
+        ])
 
-        constrain(actionButton, buttonSpacer) { actionButton, buttonSpacer in
-            buttonSpacer.top == actionButton.top
-            buttonSpacer.bottom == actionButton.bottom
+        [actionButton, buttonSpacer].prepareForLayout()
+        NSLayoutConstraint.activate([
+            buttonSpacer.topAnchor.constraint(equalTo: actionButton.topAnchor),
+            buttonSpacer.bottomAnchor.constraint(equalTo: actionButton.bottomAnchor),
 
-            actionButton.width == actionButtonWidth
-            buttonSpacer.trailing == actionButton.trailing
-            buttonSpacer.leading == actionButton.leading - buttonMargin
-        }
+            actionButton.widthAnchor.constraint(equalToConstant: actionButtonWidth),
+            buttonSpacer.trailingAnchor.constraint(equalTo: actionButton.trailingAnchor),
+            buttonSpacer.leadingAnchor.constraint(equalTo: actionButton.leadingAnchor, constant: -buttonMargin)
+        ])
     }
 
     func actionButtonWidth(forTitles actionButtonTitles: [String], textTransform: TextTransform, contentInsets: UIEdgeInsets, textAttributes: [NSAttributedString.Key: Any]?) -> Float {
@@ -222,7 +218,7 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
             return
         }
 
-        titleLabel.attributedText = user.nameIncludingAvailability(color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant), selfUser: ZMUser.selfUser())
+        titleLabel.attributedText = user.nameIncludingAvailability(color: LabelColors.textDefault, selfUser: ZMUser.selfUser())
     }
 
     @objc func actionButtonPressed(sender: Any?) {
@@ -232,19 +228,10 @@ class ContactsCell: UITableViewCell, SeparatorViewProtocol {
     }
 }
 
+// TODO: [AGIS] Remove that extension and function as soon as we remove ColorSchemeVariant
+// from UserCellSubtitleProtocol
 extension ContactsCell: Themeable {
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        separator.backgroundColor = UIColor.from(scheme: .separator, variant: colorSchemeVariant)
-
-        let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-
-        titleLabel.textColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        subtitleLabel.textColor = sectionTextColor
-
-        updateTitleLabel()
-    }
-
+    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) { }
 }
 
 extension ContactsCell: UserCellSubtitleProtocol {
@@ -252,6 +239,8 @@ extension ContactsCell: UserCellSubtitleProtocol {
 }
 
 extension ContactsCell {
+
+    typealias ContactsUIActionButton = L10n.Localizable.ContactsUi.ActionButton
 
     enum Action {
 
@@ -261,9 +250,9 @@ extension ContactsCell {
         var localizedDescription: String {
             switch self {
             case .open:
-                return "contacts_ui.action_button.open".localized
+                return ContactsUIActionButton.open.capitalized
             case .invite:
-                return "contacts_ui.action_button.invite".localized
+                return ContactsUIActionButton.invite.capitalized
             }
         }
     }

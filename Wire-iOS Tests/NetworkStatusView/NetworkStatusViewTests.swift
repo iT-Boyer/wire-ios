@@ -30,7 +30,7 @@ class MockContainer: NetworkStatusViewDelegate {
     }
 }
 
-class NetworkStatusViewTests: XCTestCase {
+final class NetworkStatusViewTests: XCTestCase {
     var sut: NetworkStatusView!
     var mockApplication: MockApplication!
     var mockContainer: MockContainer!
@@ -56,18 +56,18 @@ class NetworkStatusViewTests: XCTestCase {
         // GIVEN
         mockApplication.applicationState = .active
         sut.state = .onlineSynchronizing
-        XCTAssertEqual(sut.connectingView.heightConstraint?.constant, CGFloat.SyncBar.height, "NetworkStatusView should not be zero height")
+        XCTAssertEqual(sut.connectingView.heightConstraint.constant, CGFloat.SyncBar.height, "NetworkStatusView should not be zero height")
 
         // WHEN
         mockApplication.applicationState = .background
         sut.state = .onlineSynchronizing
 
         // THEN
-        XCTAssertEqual(sut.connectingView.heightConstraint?.constant, 0, "NetworkStatusView should be zero height")
+        XCTAssertEqual(sut.connectingView.heightConstraint.constant, 0, "NetworkStatusView should be zero height")
     }
 }
 
-class NetworkStatusViewSnapShotTests: ZMSnapshotTestCase {
+final class NetworkStatusViewSnapShotTests: ZMSnapshotTestCase {
 
     var sut: NetworkStatusView!
     var mockContainer: MockContainer!
@@ -77,6 +77,8 @@ class NetworkStatusViewSnapShotTests: ZMSnapshotTestCase {
         accentColor = .violet
         mockContainer = MockContainer()
         sut = NetworkStatusView()
+        sut.overrideUserInterfaceStyle = .light
+        sut.backgroundColor = .clear
         sut.delegate = mockContainer
     }
 

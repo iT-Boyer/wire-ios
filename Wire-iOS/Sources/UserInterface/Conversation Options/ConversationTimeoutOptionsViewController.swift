@@ -30,10 +30,9 @@ extension ZMConversation {
     fileprivate var timeoutItems: [Item] {
         var newItems = MessageDestructionTimeoutValue.all.map(Item.supportedValue)
 
-        if let timeout = self.messageDestructionTimeout,
-            case .synced(let value) = timeout,
-            case .custom = value {
-            newItems.append(.unsupportedValue(value))
+        let groupTimeout = messageDestructionTimeoutValue(for: .groupConversation)
+        if case .custom = groupTimeout {
+            newItems.append(.unsupportedValue(groupTimeout))
         }
 
         if Bundle.developerModeEnabled {
@@ -70,6 +69,7 @@ final class ConversationTimeoutOptionsViewController: UIViewController, SpinnerC
         observerToken = ConversationChangeInfo.add(observer: self, for: conversation)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -78,9 +78,9 @@ final class ConversationTimeoutOptionsViewController: UIViewController, SpinnerC
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        title = "group_details.timeout_options_cell.title".localized(uppercased: true)
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.GroupDetails.TimeoutOptionsCell.title.capitalized)
         navigationItem.rightBarButtonItem = navigationController?.closeItem()
+        navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.SelfDeletingMessagesConversationSettings.CloseButton.description
 
         configureSubviews()
         configureConstraints()
@@ -94,7 +94,7 @@ final class ConversationTimeoutOptionsViewController: UIViewController, SpinnerC
 
         collectionView.dataSource = self
         collectionView.delegate = self
-        collectionView.backgroundColor = UIColor.from(scheme: .contentBackground)
+        collectionView.backgroundColor = SemanticColors.View.backgroundDefault
         collectionView.alwaysBounceVertical = true
 
         collectionViewLayout.minimumLineSpacing = 0
@@ -109,7 +109,7 @@ final class ConversationTimeoutOptionsViewController: UIViewController, SpinnerC
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
 
-        collectionView.fitInSuperview()
+        collectionView.fitIn(view: view)
     }
 
 }
@@ -139,13 +139,7 @@ extension ConversationTimeoutOptionsViewController: UICollectionViewDelegateFlow
         func configure(_ cell: CheckmarkCell, for value: MessageDestructionTimeoutValue, disabled: Bool) {
             cell.title = value.displayString
             cell.disabled = disabled
-
-            switch conversation.messageDestructionTimeout {
-            case .synced(let currentValue)?:
-                cell.showCheckmark = value == currentValue
-            default:
-                cell.showCheckmark = value == 0
-            }
+            cell.showCheckmark = conversation.messageDestructionTimeoutValue(for: .groupConversation) == value
         }
 
         switch item {
@@ -211,15 +205,7 @@ extension ConversationTimeoutOptionsViewController: UICollectionViewDelegateFlow
     // MARK: Saving Changes
 
     private func canSelectItem(with value: MessageDestructionTimeoutValue) -> Bool {
-
-        guard let currentTimeout = conversation.messageDestructionTimeout else {
-            return value != .none
-        }
-
-        guard case .synced(let currentValue) = currentTimeout else {
-            return value != .none
-        }
-
+        let currentValue = conversation.messageDestructionTimeoutValue(for: .groupConversation)
         return value != currentValue
 
     }

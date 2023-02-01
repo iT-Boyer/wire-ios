@@ -50,6 +50,10 @@ final class ColorSchemeController: NSObject {
 
     @objc
     private func settingsColorSchemeDidChange() {
+        UIApplication.shared.windows.forEach { window in
+            window.overrideUserInterfaceStyle = Settings.shared.colorScheme.userInterfaceStyle
+        }
+
         ColorScheme.default.variant = Settings.shared.colorSchemeVariant
 
         NSAttributedString.invalidateMarkdownStyle()

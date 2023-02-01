@@ -16,34 +16,29 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import WireCommonComponents
 
 import AppCenter
 import AppCenterAnalytics
-import AppCenterCrashes
 import AppCenterDistribute
-
 
 /// Flag to determine if the App Center SDK has already been initialized
 private var didSetupAppCenter = false
-
 
 /// Helper to setup crash reporting in the share extension
 final class CrashReporter {
 
     static func setupAppCenterIfNeeded() {
-        guard !didSetupAppCenter, appCenterEnabled, let _ = Bundle.appCenterAppId else { return }
+        guard !didSetupAppCenter, appCenterEnabled, Bundle.appCenterAppId != nil else { return }
         didSetupAppCenter = true
 
         UserDefaults.standard.set(true, forKey: "kBITExcludeApplicationSupportFromBackup")
 
-        
-        //Enable after securing app extensions from App Center
-        MSAppCenter.setTrackingEnabled(!ExtensionSettings.shared.disableCrashSharing)
-        MSAppCenter.configure(withAppSecret: Bundle.appCenterAppId)
-        MSAppCenter.start()
- 
+        // Enable after securing app extensions from App Center
+        AppCenter.setTrackingEnabled(!ExtensionSettings.shared.disableCrashSharing)
+        AppCenter.configure(withAppSecret: Bundle.appCenterAppId)
+        AppCenter.start()
+
     }
 
     private static var appCenterEnabled: Bool {
@@ -55,4 +50,3 @@ final class CrashReporter {
             && !settingsDisableCrashAndAnalyticsSharing
     }
 }
-

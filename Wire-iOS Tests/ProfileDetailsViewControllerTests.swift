@@ -20,7 +20,7 @@ import SnapshotTesting
 import XCTest
 @testable import Wire
 
-final class ProfileDetailsViewControllerTests: XCTestCase {
+final class ProfileDetailsViewControllerTests: ZMSnapshotTestCase {
 
     var selfUserTeam: UUID!
     var selfUser: MockUserType!
@@ -575,7 +575,8 @@ final class ProfileDetailsViewControllerTests: XCTestCase {
         verifyContents(user: otherUser, viewer: selfUser, conversation: group, expectedContents: [])
     }
 
-    func test_Group_SelfUser_SCIM() {/// FIXME: can self user disable myself as admin? In this test since self user.isConnected == false we do not show it.
+    // FIXME: can self user disable myself as admin? In this test since self user.isConnected == false we do not show it.
+    func test_Group_SelfUser_SCIM() {
         // GIVEN
         selfUser.availability = .busy
         selfUser.readReceiptsEnabled = true
@@ -1031,6 +1032,44 @@ final class ProfileDetailsViewControllerTests: XCTestCase {
                        expectedContents: [richProfileItemWithEmailAndDefaultData(for: otherUser)])
     }
 
+    func test_Group_ViewIsNotAdmin_OtherIsFederated() {
+        // GIVEN
+        selfUser.isGroupAdminInConversation = true
+        selfUser.canModifyOtherMemberInConversation = true
+
+        let otherUser = MockUserType.createConnectedUser(name: "Catherine Jackson", inTeam: selfUserTeam)
+        otherUser.isGroupAdminInConversation = false
+        otherUser.isFederated = true
+        otherUser.availability = .busy
+        otherUser.richProfile = defaultRichProfile
+
+        let group = MockConversation.groupConversation()
+        group.activeParticipants = [selfUser, otherUser]
+
+        // THEN
+        verifyProfile(user: otherUser, viewer: selfUser, conversation: group, context: .groupConversation)
+        verifyContents(user: otherUser, viewer: selfUser, conversation: group, expectedContents: [richProfileItemWithEmailAndDefaultData(for: otherUser)])
+    }
+
+    func test_Group_ViewIsAdmin_OtherIsFederated() {
+        // GIVEN
+        selfUser.isGroupAdminInConversation = true
+        selfUser.canModifyOtherMemberInConversation = true
+
+        let otherUser = MockUserType.createConnectedUser(name: "Catherine Jackson", inTeam: selfUserTeam)
+        otherUser.isGroupAdminInConversation = true
+        otherUser.isFederated = true
+        otherUser.availability = .busy
+        otherUser.richProfile = defaultRichProfile
+
+        let group = MockConversation.groupConversation()
+        group.activeParticipants = [selfUser, otherUser]
+
+        // THEN
+        verifyProfile(user: otherUser, viewer: selfUser, conversation: group, context: .groupConversation)
+        verifyContents(user: otherUser, viewer: selfUser, conversation: group, expectedContents: [richProfileItemWithEmailAndDefaultData(for: otherUser)])
+    }
+
     // MARK: - Pending Connection
 
     func test_Group_ConnectionRequest() {
@@ -1049,12 +1088,32 @@ final class ProfileDetailsViewControllerTests: XCTestCase {
         verifyContents(user: otherUser, viewer: selfUser, conversation: conversation, expectedContents: [])
     }
 
+    // MARK: - Blocking Connection
+
+    func test_Group_BlockingConnectionRequest_MissingLegalHoldConsent1() {
+        // GIVEN
+        let otherUser = MockUserType.createConnectedUser(name: "Catherine Jackson", inTeam: nil)
+        otherUser.isConnected = false
+        otherUser.readReceiptsEnabled = true
+        otherUser.isGuestInConversation = true
+        otherUser.richProfile = defaultRichProfile
+        otherUser.isBlocked = true
+        otherUser.blockState = .blockedMissingLegalholdConsent
+
+        let conversation = MockConversation.groupConversation()
+        conversation.activeParticipants = [selfUser, otherUser]
+
+        // THEN
+        verifyProfile(user: otherUser, viewer: selfUser, conversation: conversation, context: .groupConversation)
+        verifyContents(user: otherUser, viewer: selfUser, conversation: conversation, expectedContents: [.blockingReason])
+    }
+
     // MARK: Deep Link
 
     func test_ProfileViewer_OtherUserIsGuest() {
         // GIVEN
         let guest = MockUserType.createConnectedUser(name: "Catherine Jackson", inTeam: nil)
-        /// Notice: rich profile is not visible in this case
+        // Notice: rich profile is not visible in this case
         guest.richProfile = defaultRichProfile
 
         // THEN

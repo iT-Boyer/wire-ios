@@ -17,19 +17,19 @@
 //
 
 import UIKit
-import Cartography
- import WireDataModel
+import WireDataModel
+import WireCommonComponents
 
-private let smallLightFont = FontSpec(.small, .light).font!
-private let smallBoldFont = FontSpec(.small, .medium).font!
-private let normalBoldFont = FontSpec(.normal, .medium).font!
+private let smallLightFont = FontSpec(.small, .light)
+private let smallBoldFont = FontSpec(.small, .medium)
+private let normalBoldFont = FontSpec(.normal, .medium)
 
 final class AddressBookCorrelationFormatter: NSObject {
 
-    let lightFont, boldFont: UIFont
+    let lightFont, boldFont: FontSpec
     let color: UIColor
 
-    init(lightFont: UIFont, boldFont: UIFont, color: UIColor) {
+    init(lightFont: FontSpec, boldFont: FontSpec, color: UIColor) {
         self.lightFont = lightFont
         self.boldFont = boldFont
         self.color = color
@@ -37,12 +37,12 @@ final class AddressBookCorrelationFormatter: NSObject {
 
     private func addressBookText(for user: UserType, with addressBookName: String) -> NSAttributedString? {
         guard !user.isSelfUser, let userName = user.name else { return nil }
-        let suffix = "conversation.connection_view.in_address_book".localized && lightFont && color
+        let suffix = "conversation.connection_view.in_address_book".localized && lightFont.font! && color
         if addressBookName.lowercased() == userName.lowercased() {
             return suffix
         }
 
-        let contactName = addressBookName && boldFont && color
+        let contactName = addressBookName && boldFont.font! && color
         return contactName + " " + suffix
     }
 
@@ -88,7 +88,9 @@ final class UserNameDetailViewModel: NSObject {
     }
 
     static var formatter: AddressBookCorrelationFormatter = {
-        AddressBookCorrelationFormatter(lightFont: smallLightFont, boldFont: smallBoldFont, color: UIColor.from(scheme: .textDimmed))
+        AddressBookCorrelationFormatter(lightFont: smallLightFont,
+                                        boldFont: smallBoldFont,
+                                        color: SemanticColors.Label.textDefault)
     }()
 
     init(user: UserType?, fallbackName fallback: String, addressBookName: String?) {
@@ -98,12 +100,12 @@ final class UserNameDetailViewModel: NSObject {
     }
 
     static func attributedTitle(for user: UserType?, fallback: String) -> NSAttributedString {
-        return (user?.name ?? fallback) && normalBoldFont && UIColor.from(scheme: .textForeground)
+        return (user?.name ?? fallback) && normalBoldFont.font! && SemanticColors.Label.textDefault
     }
 
     static func attributedSubtitle(for user: UserType?) -> NSAttributedString? {
-        guard let handle = user?.handle, handle.count > 0 else { return nil }
-        return ("@" + handle) && smallBoldFont && UIColor.from(scheme: .textDimmed)
+        guard let user = user, let handle = user.handleDisplayString(withDomain: user.isFederated) else { return nil }
+        return handle && smallBoldFont.font! && SemanticColors.Label.textDefault
     }
 
     static func attributedCorrelationText(for user: UserType?, addressBookName: String?) -> NSAttributedString? {
@@ -112,22 +114,30 @@ final class UserNameDetailViewModel: NSObject {
     }
 }
 
-final class UserNameDetailView: UIView {
+// MARK: - UserNameDetailView
+final class UserNameDetailView: UIView, DynamicTypeCapable {
+
+    // MARK: - Properties
+    private var model: UserNameDetailViewModel?
 
     let subtitleLabel = UILabel()
     let correlationLabel = UILabel()
 
+    // MARK: - Initialization
     init() {
         super.init(frame: .zero)
         setupViews()
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Configure
     func configure(with model: UserNameDetailViewModel) {
+        self.model = model
         subtitleLabel.attributedText = model.firstSubtitle
         correlationLabel.attributedText = model.secondSubtitle
 
@@ -135,8 +145,10 @@ final class UserNameDetailView: UIView {
         correlationLabel.accessibilityIdentifier = model.secondAccessibilityIdentifier
     }
 
+    // MARK: - Layout - Private Methods
     private func setupViews() {
         translatesAutoresizingMaskIntoConstraints = false
+        backgroundColor = SemanticColors.View.backgroundDefault
 
         [subtitleLabel, correlationLabel].forEach {
             $0.textAlignment = .center
@@ -146,16 +158,23 @@ final class UserNameDetailView: UIView {
     }
 
     private func createConstraints() {
-        constrain(self, subtitleLabel, correlationLabel) { view, subtitle, correlation in
-            subtitle.top == view.top
-            subtitle.centerX == view.centerX
-            subtitle.height == 16
+        [subtitleLabel, correlationLabel].prepareForLayout()
+        NSLayoutConstraint.activate([
+            subtitleLabel.topAnchor.constraint(equalTo: topAnchor),
+            subtitleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            subtitleLabel.heightAnchor.constraint(equalToConstant: 16),
 
-            correlation.top == subtitle.bottom
-            correlation.centerX == view.centerX
-            correlation.height == 16
-            correlation.bottom == view.bottom
-        }
+            correlationLabel.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor),
+            correlationLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            correlationLabel.heightAnchor.constraint(equalToConstant: 16),
+            correlationLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+
+    func redrawFont() {
+        guard let model = model else { return }
+        subtitleLabel.attributedText = model.firstSubtitle
+        correlationLabel.attributedText = model.secondSubtitle
     }
 
 }

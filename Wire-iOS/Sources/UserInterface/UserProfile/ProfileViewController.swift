@@ -18,6 +18,7 @@
 
 import UIKit
 import WireDataModel
+import WireSyncEngine
 
 private let zmLog = ZMSLog(tag: "ProfileViewController")
 
@@ -26,12 +27,12 @@ enum ProfileViewControllerTabBarIndex: Int {
     case devices
 }
 
-protocol ProfileViewControllerDelegate: class {
+protocol ProfileViewControllerDelegate: AnyObject {
     func profileViewController(_ controller: ProfileViewController?, wantsToNavigateTo conversation: ZMConversation)
     func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: String?, users: UserSet)
 }
 
-protocol BackButtonTitleDelegate: class {
+protocol BackButtonTitleDelegate: AnyObject {
     func suggestedBackButtonTitle(for controller: ProfileViewController?) -> String?
 }
 
@@ -53,6 +54,7 @@ final class ProfileViewController: UIViewController {
     private let profileFooterView: ProfileFooterView = ProfileFooterView()
     private let incomingRequestFooter: IncomingRequestFooterView = IncomingRequestFooterView()
     private let usernameDetailsView: UserNameDetailView = UserNameDetailView()
+    private let securityLevelView = SecurityLevelView()
 
     private let profileTitleView: ProfileTitleView = ProfileTitleView()
 
@@ -73,6 +75,7 @@ final class ProfileViewController: UIViewController {
                      viewer: UserType,
                      conversation: ZMConversation? = nil,
                      context: ProfileViewControllerContext? = nil,
+                     classificationProvider: ClassificationProviding? = ZMUserSession.shared(),
                      viewControllerDismisser: ViewControllerDismisser? = nil) {
         let profileViewControllerContext: ProfileViewControllerContext
 
@@ -85,7 +88,8 @@ final class ProfileViewController: UIViewController {
         let viewModel = ProfileViewControllerViewModel(user: user,
                                                        conversation: conversation,
                                                        viewer: viewer,
-                                                       context: profileViewControllerContext)
+                                                       context: profileViewControllerContext,
+                                                       classificationProvider: classificationProvider)
 
         self.init(viewModel: viewModel)
 
@@ -120,16 +124,12 @@ final class ProfileViewController: UIViewController {
         updateTitleView()
 
         profileTitleView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11, *) {
-            navigationItem.titleView = profileTitleView
-        } else {
-            profileTitleView.setNeedsLayout()
-            profileTitleView.layoutIfNeeded()
-            profileTitleView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            profileTitleView.translatesAutoresizingMaskIntoConstraints = true
-        }
+        navigationItem.titleView = profileTitleView
 
         navigationItem.titleView = profileTitleView
+
+        securityLevelView.configure(with: viewModel.classification)
+        view.addSubview(securityLevelView)
     }
 
     // MARK: - Actions
@@ -138,7 +138,7 @@ final class ProfileViewController: UIViewController {
         let controller = ConversationCreationController(preSelectedParticipants: viewModel.userSet, selfUser: ZMUser.selfUser())
         controller.delegate = self
 
-        let wrappedController = controller.wrapInNavigationController()
+        let wrappedController = controller.wrapInNavigationController(setBackgroundColor: true)
         wrappedController.modalPresentationStyle = .formSheet
         present(wrappedController, animated: true)
     }
@@ -173,7 +173,7 @@ final class ProfileViewController: UIViewController {
         view.addSubview(profileFooterView)
         view.addSubview(incomingRequestFooter)
 
-        view.backgroundColor = UIColor.from(scheme: .barBackground)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         setupHeader()
         setupTabsController()
@@ -208,7 +208,7 @@ final class ProfileViewController: UIViewController {
     }
 
     private func setupProfileDetailsViewController() -> ProfileDetailsViewController {
-        /// TODO: pass the whole view Model/stuct/context
+        // TODO: Pass the whole view Model/stuct/context
         let profileDetailsViewController = ProfileDetailsViewController(user: viewModel.user,
                                                                         viewer: viewModel.viewer,
                                                                         conversation: viewModel.conversation,
@@ -237,6 +237,9 @@ final class ProfileViewController: UIViewController {
         }
 
         addToSelf(tabsController!)
+
+        tabsController?.isTabBarHidden = viewControllers.count < 2
+        tabsController?.view.backgroundColor = SemanticColors.View.backgroundDefault
     }
 
     // MARK: - Constraints
@@ -244,17 +247,21 @@ final class ProfileViewController: UIViewController {
     private func setupConstraints() {
         guard let tabsView = tabsController?.view else { fatal("Tabs view is not created") }
 
-        usernameDetailsView.translatesAutoresizingMaskIntoConstraints = false
-        tabsView.translatesAutoresizingMaskIntoConstraints = false
-        profileFooterView.translatesAutoresizingMaskIntoConstraints = false
-        incomingRequestFooter.translatesAutoresizingMaskIntoConstraints = false
+        let securityBannerHeight: CGFloat = securityLevelView.isHidden ? 0 : 24
+
+        [usernameDetailsView, securityLevelView, tabsView, profileFooterView, incomingRequestFooter].prepareForLayout()
 
         NSLayoutConstraint.activate([
             usernameDetailsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             usernameDetailsView.topAnchor.constraint(equalTo: view.topAnchor),
             usernameDetailsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            tabsView.topAnchor.constraint(equalTo: usernameDetailsView.bottomAnchor),
+            securityLevelView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            securityLevelView.topAnchor.constraint(equalTo: usernameDetailsView.bottomAnchor),
+            securityLevelView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            securityLevelView.heightAnchor.constraint(equalToConstant: securityBannerHeight),
+
+            tabsView.topAnchor.constraint(equalTo: securityLevelView.bottomAnchor),
 
             tabsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tabsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -310,7 +317,7 @@ extension ProfileViewController: ProfileFooterViewDelegate, IncomingRequestFoote
                                     footerView: ProfileFooterView) -> UIAlertAction {
         return UIAlertAction(title: action.buttonText,
                              style: .default) { _ in
-                                self.performAction(action, targetView: footerView)
+            self.performAction(action, targetView: footerView)
         }
     }
 
@@ -327,9 +334,11 @@ extension ProfileViewController: ProfileFooterViewDelegate, IncomingRequestFoote
         case .deleteContents:
             presentDeleteConfirmationPrompt(from: targetView)
         case let .block(isBlocked):
-            isBlocked
-                ? handleBlockAndUnblock()
-                : presentBlockActionSheet(from: targetView)
+            if isBlocked {
+                handleBlockAndUnblock()
+            } else {
+                presentBlockActionSheet(from: targetView)
+            }
         case .openOneToOne:
             viewModel.openOneToOneConversation()
         case .removeFromGroup:
@@ -344,7 +353,7 @@ extension ProfileViewController: ProfileFooterViewDelegate, IncomingRequestFoote
     }
 
     private func openSelfProfile() {
-        /// do not reveal list view for iPad regular mode
+        // Do not reveal list view for iPad regular mode
         let leftViewControllerRevealed: Bool
         if let presentingViewController = presentingViewController {
             leftViewControllerRevealed = !presentingViewController.isIPadRegular(device: UIDevice.current)
@@ -372,7 +381,7 @@ extension ProfileViewController: ProfileFooterViewDelegate, IncomingRequestFoote
     private var legalholdItem: UIBarButtonItem {
         let item = UIBarButtonItem(icon: .legalholdactive, target: self, action: #selector(presentLegalHoldDetails))
         item.setLegalHoldAccessibility()
-        item.tintColor = .vividRed
+        item.tintColor = SemanticColors.Icon.foregroundDefaultRed
         return item
     }
 
@@ -467,6 +476,7 @@ extension ProfileViewController: ConversationCreationControllerDelegate {
                                         didSelectName name: String,
                                         participants: UserSet,
                                         allowGuests: Bool,
+                                        allowServices: Bool,
                                         enableReceipts: Bool) {
         controller.dismiss(animated: true) { [weak self] in
             self?.delegate?.profileViewController(self,
@@ -484,7 +494,7 @@ extension ProfileViewController: TabBarControllerDelegate {
 
 extension ProfileViewController: ProfileViewControllerViewModelDelegate {
     func updateTitleView() {
-        profileTitleView.configure(with: viewModel.user, variant: ColorScheme.default.variant)
+        profileTitleView.configure(with: viewModel.user)
     }
 
     func updateShowVerifiedShield() {
@@ -500,6 +510,8 @@ extension ProfileViewController: ProfileViewControllerViewModelDelegate {
         } else {
             navigationItem.rightBarButtonItem = legalHoldItem
         }
+        navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.Profile.CloseButton.description
+        navigationItem.backBarButtonItem?.accessibilityLabel = L10n.Accessibility.DeviceDetails.BackButton.description
     }
 
     func updateFooterViews() {
@@ -524,5 +536,9 @@ extension ProfileViewController: ProfileViewControllerViewModelDelegate {
         } else {
             self.dismiss(animated: true, completion: nil)
         }
+    }
+
+    func presentError(_ error: LocalizedError) {
+        presentLocalizedErrorAlert(error)
     }
 }

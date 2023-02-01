@@ -36,22 +36,20 @@ final class ConversationImageMessageCell: UIView,
     private lazy var imageResourceView: ImageResourceView = {
         let view = ImageResourceView()
 
-        // allow iOS 13 context menu
-        if #available(iOS 13.0, *) {
-            view.delegate = self
-            view.isUserInteractionEnabled = true
-        }
+        view.delegate = self
+        view.isUserInteractionEnabled = true
 
         return view
     }()
 
     private let obfuscationView = ObfuscationView(icon: .photo)
+    private let restrictionView = ImageMessageRestrictionView()
 
     private var aspectConstraint: NSLayoutConstraint?
     private var widthConstraint: NSLayoutConstraint?
     private var heightConstraint: NSLayoutConstraint?
 
-    var containerColor: UIColor? = .from(scheme: .placeholderBackground)
+    var containerColor: UIColor? =  SemanticColors.View.backgroundCollectionCell
     var containerHeightConstraint: NSLayoutConstraint!
 
     weak var message: ZMConversationMessage?
@@ -65,7 +63,7 @@ final class ConversationImageMessageCell: UIView,
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configureViews()
+        configureView()
         createConstraints()
     }
 
@@ -74,25 +72,20 @@ final class ConversationImageMessageCell: UIView,
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func configureViews() {
+    private func configureView() {
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.backgroundColor = .from(scheme: .placeholderBackground)
-        imageResourceView.contentMode = .scaleAspectFill
-        imageResourceView.layer.borderColor = UIColor.from(scheme: .cellSeparator).cgColor
+
+        containerView.layer.cornerRadius = 12
+        containerView.layer.borderWidth = 1
+        containerView.layer.masksToBounds = true
+        containerView.backgroundColor = SemanticColors.View.backgroundCollectionCell
+        containerView.layer.borderColor = SemanticColors.View.backgroundSeparatorCell.cgColor
 
         addSubview(containerView)
-
-        [imageResourceView, obfuscationView].forEach(containerView.addSubview)
-        obfuscationView.isHidden = true
     }
 
     private func createConstraints() {
         containerView.translatesAutoresizingMaskIntoConstraints = false
-        obfuscationView.translatesAutoresizingMaskIntoConstraints = false
-        imageResourceView.translatesAutoresizingMaskIntoConstraints = false
-
-        obfuscationView.fitInSuperview()
-        imageResourceView.fitInSuperview()
 
         let leading = containerView.leadingAnchor.constraint(equalTo: leadingAnchor)
         let trailing = containerView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor)
@@ -115,40 +108,62 @@ final class ConversationImageMessageCell: UIView,
     }
 
     func configure(with object: Configuration, animated: Bool) {
-        obfuscationView.isHidden = !object.isObfuscated
-        imageResourceView.isHidden = object.isObfuscated
-
         let scaleFactor: CGFloat = object.image.isAnimatedGIF ? 1 : 0.5
         let imageSize = object.image.originalSize.applying(CGAffineTransform.init(scaleX: scaleFactor, y: scaleFactor))
         let imageAspectRatio = imageSize.width > 0 ? imageSize.height / imageSize.width : 1.0
 
         aspectConstraint.apply({ containerView.removeConstraint($0) })
-        aspectConstraint = containerView.heightAnchor.constraint(equalTo: containerView.widthAnchor, multiplier: imageAspectRatio)
+        let isRestricted = (!object.message.canBeShared && !object.isObfuscated)
+        aspectConstraint = containerView.heightAnchor.constraint(equalTo: containerView.widthAnchor,
+                                                                 multiplier: !isRestricted ? imageAspectRatio : 9/16)
         aspectConstraint?.isActive = true
         widthConstraint?.constant = imageSize.width
         heightConstraint?.constant = imageSize.height
 
-        containerView.backgroundColor = UIColor.from(scheme: .placeholderBackground)
-        imageResourceView.layer.borderWidth = 0
+        containerView.backgroundColor = SemanticColors.View.backgroundCollectionCell
 
-        let imageResource = object.isObfuscated ? nil : object.image.image
+        if object.isObfuscated {
+            setup(obfuscationView)
+        } else if !object.message.canBeShared {
+            setup(restrictionView)
+            restrictionView.configure()
+        } else {
+            setup(imageResourceView)
+            imageResourceView.contentMode = .scaleAspectFill
+            imageResourceView.layer.borderColor = SemanticColors.View.backgroundSeparatorCell.cgColor
+            imageResourceView.layer.borderWidth = 0
 
-        imageResourceView.setImageResource(imageResource) { [weak self] in
-            self?.updateImageContainerAppearance()
-            _ = object.message.startSelfDestructionIfNeeded()
+            let imageResource = object.isObfuscated ? nil : object.image.image
+
+            imageResourceView.setImageResource(imageResource) { [weak self] in
+                self?.updateImageContainerAppearance()
+                _ = object.message.startSelfDestructionIfNeeded()
+            }
         }
     }
 
-    func updateImageContainerAppearance() {
+    private func setup(_ view: UIView) {
+        containerView.removeSubviews()
+        containerView.addSubview(view)
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            view.topAnchor.constraint(equalTo: containerView.topAnchor),
+            view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
+        ])
+    }
+
+    private func updateImageContainerAppearance() {
         if imageResourceView.image?.isTransparent == true {
             containerView.backgroundColor = UIColor.clear
             imageResourceView.layer.borderWidth = 0
         } else {
-            containerView.backgroundColor = UIColor.from(scheme: .placeholderBackground)
+            containerView.backgroundColor = SemanticColors.View.backgroundCollectionCell
             imageResourceView.layer.borderWidth = UIScreen.hairline
         }
     }
-
 }
 
 final class ConversationImageMessageCellDescription: ConversationMessageCellDescription {
@@ -171,11 +186,12 @@ final class ConversationImageMessageCellDescription: ConversationMessageCellDesc
         return configuration.isObfuscated ? "ObfuscatedImageCell" : "ImageCell"
     }
 
-    let accessibilityLabel: String? = nil
+    let accessibilityLabel: String?
 
     init(message: ZMConversationMessage, image: ZMImageMessageData) {
         self.message = message
         self.configuration = View.Configuration(image: image, message: message)
+        accessibilityLabel = L10n.Accessibility.ConversationSearch.ImageMessage.description
     }
 
 }

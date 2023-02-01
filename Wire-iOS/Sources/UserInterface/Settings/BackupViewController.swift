@@ -19,9 +19,20 @@
 import UIKit
 import Foundation
 import WireSyncEngine
+import WireCommonComponents
+
+private typealias LabelColors = SemanticColors.Label
+private typealias HistoryBackup = L10n.Localizable.Self.Settings.HistoryBackup
 
 final class BackupStatusCell: UITableViewCell {
-    let descriptionLabel = UILabel()
+
+    let descriptionLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(fontSpec: .normalRegularFont,
+                                     color: LabelColors.textDefault)
+        label.textAlignment = .left
+        label.numberOfLines = 0
+        return label
+    }()
     let iconView = UIImageView()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -31,15 +42,13 @@ final class BackupStatusCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
 
-        let color = UIColor.from(scheme: .textForeground, variant: .dark)
-
-        iconView.setIcon(.restore, size: .large, color: color)
+        iconView.setTemplateIcon(.restore, size: .large)
+        iconView.tintColor = LabelColors.textDefault
         iconView.contentMode = .center
         iconView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(iconView)
 
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        descriptionLabel.numberOfLines = 0
         contentView.addSubview(descriptionLabel)
 
         NSLayoutConstraint.activate([
@@ -53,38 +62,44 @@ final class BackupStatusCell: UITableViewCell {
             descriptionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
 
-        descriptionLabel.attributedText = "self.settings.history_backup.description".localized && .paragraphSpacing(2)
-        descriptionLabel.font = .systemFont(ofSize: 14)
-        descriptionLabel.textColor = color
+        descriptionLabel.attributedText = HistoryBackup.description && .paragraphSpacing(2)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 final class BackupActionCell: UITableViewCell {
-    let actionTitleLabel = UILabel()
+    let actionTitleLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: HistoryBackup.action,
+                                     fontSpec: .normalRegularFont,
+                                     color: LabelColors.textDefault)
+        label.textAlignment = .left
+        return label
+    }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-
         selectionStyle = .none
-        backgroundColor = .clear
+        backgroundColor = SemanticColors.View.backgroundUserCell
+        accessibilityTraits = .button
         contentView.backgroundColor = .clear
 
-        actionTitleLabel.textAlignment = .left
         actionTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(actionTitleLabel)
-        actionTitleLabel.fitInSuperview(with: EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
-
+        NSLayoutConstraint.activate([
+            actionTitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
+            actionTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
+            actionTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+            actionTitleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
+        ])
         actionTitleLabel.heightAnchor.constraint(equalToConstant: 44).isActive = true
-
-        actionTitleLabel.text = "self.settings.history_backup.action".localized
-        actionTitleLabel.font = FontSpec(.normal, .regular).font
-        actionTitleLabel.textColor = UIColor.from(scheme: .textForeground, variant: .dark)
+        addBorder(for: .bottom)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -112,19 +127,16 @@ final class BackupViewController: UIViewController, SpinnerCapable {
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "self.settings.history_backup.title".localized(uppercased: true)
+        setupNavigationTitle()
         setupViews()
         setupLayout()
-    }
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
     }
 
     private func setupViews() {
@@ -150,7 +162,11 @@ final class BackupViewController: UIViewController, SpinnerCapable {
     }
 
     private func setupLayout() {
-        tableView.fitInSuperview()
+        tableView.fitIn(view: view)
+    }
+
+    private func setupNavigationTitle() {
+        navigationItem.setupNavigationBarTitle(title: HistoryBackup.title.capitalized)
     }
 
     var loadingHostController: SpinnerCapableViewController {
@@ -205,7 +221,7 @@ fileprivate extension BackupViewController {
 
     private func presentAlert(for error: Error) {
         let alert = UIAlertController(
-            title: "self.settings.history_backup.error.title".localized,
+            title: HistoryBackup.Error.title,
             message: error.localizedDescription,
             alertAction: .ok(style: .cancel))
         present(alert, animated: true)

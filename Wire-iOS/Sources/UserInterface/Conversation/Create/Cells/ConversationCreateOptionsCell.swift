@@ -25,36 +25,76 @@ final class ConversationCreateOptionsCell: RightIconDetailsCell {
         didSet { applyColorScheme(colorSchemeVariant) }
     }
 
+    override var accessibilityLabel: String? {
+        get {
+            return title
+        }
+
+        set {
+            super.accessibilityLabel = newValue
+        }
+    }
+
+    override var accessibilityValue: String? {
+        get {
+            return status
+        }
+
+        set {
+            super.accessibilityValue = newValue
+        }
+    }
+
+    override var accessibilityHint: String? {
+        get {
+            typealias CreateConversation = L10n.Accessibility.CreateConversation
+            return expanded ? CreateConversation.HideSettings.hint : CreateConversation.OpenSettings.hint
+        }
+
+        set {
+            super.accessibilityHint = newValue
+        }
+    }
+
     override func setUp() {
         super.setUp()
-        accessibilityIdentifier = "cell.groupdetails.options"
-        title = "conversation.create.options.title".localized
+
+        title = L10n.Localizable.Conversation.Create.Options.title
         icon = nil
         showSeparator = false
         contentLeadingOffset = 16
+
+        setupAccessibility()
     }
 
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
-        backgroundColor = .from(scheme: .sectionBackgroundHighlighted, variant: colorSchemeVariant)
 
-        let color = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        let image = StyleKitIcon.downArrow.makeImage(size: .tiny, color: color)
+        let color = SemanticColors.Icon.foregroundPlainDownArrow
+        let image = StyleKitIcon.downArrow.makeImage(size: .tiny, color: color).withRenderingMode(.alwaysTemplate)
 
         // flip upside down if necessary
         if let cgImage = image.cgImage, expanded {
-            accessory = UIImage(cgImage: cgImage, scale: image.scale, orientation: .downMirrored)
+            accessory = UIImage(cgImage: cgImage, scale: image.scale, orientation: .downMirrored).withRenderingMode(.alwaysTemplate)
         } else {
-            accessory = StyleKitIcon.downArrow.makeImage(size: .tiny, color: color)
+            accessory = image
         }
+        accessoryColor = color
+    }
+
+    private func setupAccessibility() {
+        accessibilityIdentifier = "cell.groupdetails.options"
+        isAccessibilityElement = true
+        accessibilityTraits = .button
     }
 }
 
 extension ConversationCreateOptionsCell: ConversationCreationValuesConfigurable {
     func configure(with values: ConversationCreationValues) {
         let guests = values.allowGuests.localized.localizedUppercase
+        let services = values.allowServices.localized.localizedUppercase
         let receipts = values.enableReceipts.localized.localizedUppercase
-        status = "conversation.create.options.subtitle".localized(args: guests, receipts)
+        status = L10n.Localizable.Conversation.Create.Options.subtitle(guests, services, receipts)
     }
 }
 

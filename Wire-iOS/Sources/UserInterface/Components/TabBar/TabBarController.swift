@@ -17,9 +17,8 @@
 //
 
 import UIKit
-import Cartography
 
-protocol TabBarControllerDelegate: class {
+protocol TabBarControllerDelegate: AnyObject {
     func tabBarController(_ controller: TabBarController, tabBarDidSelectIndex: Int)
 }
 
@@ -74,12 +73,6 @@ final class TabBarController: UIViewController, UIPageViewControllerDelegate, UI
         }
     }
 
-    var style: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            tabBar?.style = style
-        }
-    }
-
     var isEnabled = true {
         didSet {
             tabBar?.isUserInteractionEnabled = isEnabled
@@ -102,6 +95,7 @@ final class TabBarController: UIViewController, UIPageViewControllerDelegate, UI
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -126,7 +120,7 @@ final class TabBarController: UIViewController, UIPageViewControllerDelegate, UI
         }
 
         let items = self.viewControllers.map { $0.tabBarItem! }
-        self.tabBar = TabBar(items: items, style: self.style, selectedIndex: selectedIndex)
+        self.tabBar = TabBar(items: items, selectedIndex: selectedIndex)
         tabBar?.animatesTransition = isInteractive
         tabBar?.isHidden = isTabBarHidden
         self.tabBar?.delegate = self
@@ -142,7 +136,7 @@ final class TabBarController: UIViewController, UIPageViewControllerDelegate, UI
         tabBarHeight = tabBar.heightAnchor.constraint(equalToConstant: 0)
         tabBarHeight?.isActive = isTabBarHidden
 
-        pageViewController.view.fitInSuperview()
+        pageViewController.view.fitIn(view: contentView)
 
         NSLayoutConstraint.activate([
             // tabBar

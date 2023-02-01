@@ -92,6 +92,14 @@ enum DebugActions {
         }
     }
 
+    static func deleteInvalidConversations(_ type: SettingsCellDescriptorType) {
+        guard let context = ZMUserSession.shared()?.managedObjectContext else { return }
+
+        let predicate = NSPredicate(format: "domain = ''")
+        try? context.batchDeleteEntities(named: ZMConversation.entityName(), matching: predicate)
+        context.saveOrRollback()
+    }
+
     /// Sends a message that will fail to decode on every other device, on the first conversation of the list
     static func sendBrokenMessage(_ type: SettingsCellDescriptorType) {
         guard
@@ -162,8 +170,29 @@ enum DebugActions {
         controller.present(alert, animated: true)
     }
 
+    static func showAPIVersionInfo(_ type: SettingsCellDescriptorType) {
+        guard let controller = UIApplication.shared.topmostViewController(onlyFullScreen: false) else {
+            return
+        }
+
+        let message = """
+        Max supported version: \((APIVersion.allCases.max()?.rawValue).description(else: "None"))
+        Currently selected version: \((BackendInfo.apiVersion?.rawValue).description(else: "None"))
+        Local domain: \(BackendInfo.domain.description(else: "None"))
+        Is federation enabled: \(BackendInfo.isFederationEnabled)
+        """
+
+        let alert = UIAlertController(
+            title: "API Version info",
+            message: message,
+            alertAction: .ok(style: .cancel)
+        )
+
+        controller.present(alert, animated: true)
+    }
+
     static func generateTestCrash(_ type: SettingsCellDescriptorType) {
-        MSCrashes.generateTestCrash()
+        Crashes.generateTestCrash()
     }
 
     static func reloadUserInterface(_ type: SettingsCellDescriptorType) {
@@ -188,8 +217,36 @@ enum DebugActions {
 
     /// Accepts a debug command
     static func enterDebugCommand(_ type: SettingsCellDescriptorType) {
-        askString(title: "Debug command") { _ in
-            alert("Command not recognized")
+        askString(title: "Debug command") { string in
+            guard let command = DebugCommand(string: string) else {
+                alert("Command not recognized")
+                return
+            }
+
+            switch command {
+            case .repairInvalidAccessRoles:
+                DebugActions.updateInvalidAccessRoles()
+            }
+
+        }
+    }
+
+    static func updateInvalidAccessRoles() {
+        guard let userSession = ZMUserSession.shared() else { return }
+        let predicate = NSPredicate(format: "\(TeamKey) == nil AND \(AccessRoleStringsKeyV2) == %@",
+                                    [ConversationAccessRoleV2.teamMember.rawValue])
+        let request = NSFetchRequest<ZMConversation>(entityName: ZMConversation.entityName())
+        request.predicate = predicate
+
+        let syncContext = userSession.syncManagedObjectContext
+        syncContext.performGroupedBlock {
+            let conversations = try? syncContext.fetch(request)
+            conversations?.forEach {
+                let action = UpdateAccessRolesAction(conversation: $0,
+                                                     accessMode: ConversationAccessMode.value(forAllowGuests: true),
+                                                     accessRoles: ConversationAccessRoleV2.fromLegacyAccessRole(.nonActivated))
+                action.send(in: syncContext.notificationContext)
+            }
         }
     }
 
@@ -295,4 +352,13 @@ enum DebugActions {
         }
         while (currentCount > 0)
     }
+}
+
+private extension Optional {
+
+    func description(else defaultDescription: String) -> String {
+        guard let value = self else { return defaultDescription }
+        return String(describing: value)
+    }
+
 }

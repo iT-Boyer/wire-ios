@@ -38,6 +38,7 @@ final class ZClientViewController: UIViewController {
     var legalHoldDisclosureController: LegalHoldDisclosureController?
 
     var userObserverToken: Any?
+    var conferenceCallingUnavailableObserverToken: Any?
 
     private let topOverlayContainer: UIView = UIView()
     private var topOverlayViewController: UIViewController?
@@ -88,6 +89,20 @@ final class ZClientViewController: UIViewController {
 
         NotificationCenter.default.addObserver(self, selector: #selector(contentSizeCategoryDidChange(_:)), name: UIContentSizeCategory.didChangeNotification, object: nil)
 
+        NotificationCenter.default.addObserver(forName: .featureDidChangeNotification, object: nil, queue: .main) { [weak self] (note) in
+            guard let change = note.object as? FeatureService.FeatureChange else { return }
+
+            switch change {
+            case .conferenceCallingIsAvailable:
+                guard let session = SessionManager.shared,
+                      session.usePackagingFeatureConfig else { break }
+                self?.presentConferenceCallingAvailableAlert()
+
+            default:
+                break
+            }
+        }
+
         setupAppearance()
 
         createLegalHoldDisclosureController()
@@ -136,7 +151,7 @@ final class ZClientViewController: UIViewController {
 
         pendingInitialStateRestore = true
 
-        view.backgroundColor = .black
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         wireSplitViewController.delegate = self
         addToSelf(wireSplitViewController)
@@ -163,6 +178,28 @@ final class ZClientViewController: UIViewController {
         }
 
         setupUserChangeInfoObserver()
+        setUpConferenceCallingUnavailableObserver()
+    }
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return wr_supportedInterfaceOrientations
+    }
+
+    override var shouldAutorotate: Bool {
+        return presentedViewController?.shouldAutorotate ?? true
+    }
+
+    // MARK: keyboard shortcut
+    override var keyCommands: [UIKeyCommand]? {
+        return [
+            UIKeyCommand(action: #selector(openStartUI(_:)),
+                         input: "n", modifierFlags: [.command],
+                         discoverabilityTitle: L10n.Localizable.Keyboardshortcut.openPeople)]
+    }
+
+    @objc
+    private func openStartUI(_ sender: Any?) {
+        conversationListViewController.delegate?.didChangeTab(with: .startUI)
     }
 
     private func createBackgroundViewController() {
@@ -174,28 +211,9 @@ final class ZClientViewController: UIViewController {
         wireSplitViewController.leftViewController = backgroundViewController
     }
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return wr_supportedInterfaceOrientations
-    }
-
-    override var shouldAutorotate: Bool {
-        return presentedViewController?.shouldAutorotate ?? true
-    }
-
     // MARK: Status bar
     private var child: UIViewController? {
-        // for iOS 13, only child of this VC can be use for childForStatusBar
-        if #available(iOS 13.0, *) {
-            return topOverlayViewController ?? wireSplitViewController
-        } else {
-            if nil != topOverlayViewController {
-                return topOverlayViewController
-            } else if traitCollection.horizontalSizeClass == .compact {
-                return presentedViewController ?? wireSplitViewController
-            }
-        }
-
-        return nil
+        return topOverlayViewController ?? wireSplitViewController
     }
 
     private var childForStatusBar: UIViewController? {
@@ -212,7 +230,7 @@ final class ZClientViewController: UIViewController {
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+        return .default
     }
 
     // MARK: trait
@@ -321,7 +339,7 @@ final class ZClientViewController: UIViewController {
         currentConversation = nil
 
         let inbox = ConnectRequestsViewController()
-        pushContentViewController(inbox, focusOnView: focus, animated: animated)
+        pushContentViewController(inbox.wrapInNavigationController(setBackgroundColor: true), focusOnView: focus, animated: animated)
     }
 
     /// Open the user clients detail screen
@@ -466,21 +484,9 @@ final class ZClientViewController: UIViewController {
     }
 
     private func setupAppearance() {
-        GuestIndicator.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        UserCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        UserCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
-        SectionHeader.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        GroupConversationCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        GroupConversationCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
-        OpenServicesAdminCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        OpenServicesAdminCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
 
         let labelColor: UIColor
-        if #available(iOS 13.0, *) {
-            labelColor = .label
-        } else {
-            labelColor = ColorScheme.default.color(named: .textForeground, variant: .light)
-        }
+        labelColor = .label
 
         UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = labelColor
     }
@@ -521,7 +527,7 @@ final class ZClientViewController: UIViewController {
                            to: viewController,
                            duration: 0.5,
                            options: .transitionCrossDissolve,
-                           animations: { viewController.view.fitInSuperview() },
+                           animations: { viewController.view.fitIn(view: self.view) },
                            completion: { _ in
                             viewController.didMove(toParent: self)
                             previousViewController.removeFromParent()
@@ -530,7 +536,7 @@ final class ZClientViewController: UIViewController {
                             })
             } else {
                 topOverlayContainer.addSubview(viewController.view)
-                viewController.view.fitInSuperview()
+                viewController.view.fitIn(view: topOverlayContainer)
                 viewController.didMove(toParent: self)
                 topOverlayViewController = viewController
                 updateSplitViewTopConstraint()
@@ -544,14 +550,14 @@ final class ZClientViewController: UIViewController {
 
                     self.view.setNeedsLayout()
                     self.view.layoutIfNeeded()
-                }) { _ in
+                }, completion: { _ in
                     heightConstraint.isActive = false
 
                     self.topOverlayViewController?.removeFromParent()
                     previousViewController.view.removeFromSuperview()
                     self.topOverlayViewController = nil
                     self.updateSplitViewTopConstraint()
-                }
+                })
             } else {
                 self.topOverlayViewController?.removeFromParent()
                 previousViewController.view.removeFromSuperview()
@@ -563,7 +569,7 @@ final class ZClientViewController: UIViewController {
             viewController.view.frame = topOverlayContainer.bounds
             viewController.view.translatesAutoresizingMaskIntoConstraints = false
             topOverlayContainer.addSubview(viewController.view)
-            viewController.view.fitInSuperview()
+            viewController.view.fitIn(view: topOverlayContainer)
 
             viewController.didMove(toParent: self)
 
@@ -580,8 +586,7 @@ final class ZClientViewController: UIViewController {
                     heightConstraint.isActive = false
                     self.view.layoutIfNeeded()
                 })
-            }
-            else {
+            } else {
                 topOverlayViewController = viewController
                 updateSplitViewTopConstraint()
             }
@@ -638,7 +643,7 @@ final class ZClientViewController: UIViewController {
         var viewController: UIViewController?
 
         if user.isSelfUser, let clients = user.allClients as? [UserClient] {
-            let clientListViewController = ClientListViewController(clientsList: clients, credentials: nil, detailedView: true, showTemporary: true, variant: ColorScheme.default.variant)
+            let clientListViewController = ClientListViewController(clientsList: clients, credentials: nil, detailedView: true, showTemporary: true)
             clientListViewController.navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissClientListController(_:)))
             viewController = clientListViewController
         } else {
@@ -675,6 +680,12 @@ final class ZClientViewController: UIViewController {
                 animated: Bool,
                 completion: Completion? = nil) {
         dismissAllModalControllers(callback: { [weak self] in
+            guard
+                !conversation.isDeleted,
+                conversation.managedObjectContext != nil
+            else {
+                return
+            }
             self?.conversationListViewController.viewModel.select(conversation: conversation, scrollTo: message, focusOnView: focus, animated: animated, completion: completion)
         })
     }

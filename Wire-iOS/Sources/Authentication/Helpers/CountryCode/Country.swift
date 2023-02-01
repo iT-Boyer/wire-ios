@@ -65,13 +65,7 @@ final class Country: NSObject {
     }
 
     class func detectCountry(withMatcher matcher: @escaping (Country?) -> Bool) -> Country? {
-        var matches: [Country] = []
-        let allCountries = self.allCountries
-        for country in allCountries ?? [] {
-            if matcher(country) {
-                matches.append(country)
-            }
-        }
+        let matches = allCountries?.filter(matcher) ?? []
 
         // One or no matches is trivial case
         if matches.count <= 1 {
@@ -87,14 +81,10 @@ final class Country: NSObject {
         // List to prioritize main countries with shared prefixes (e.g., USA with "+1")
         let priorityList = ["us", "it", "fi", "tz", "uk", "no", "ru"]
 
-        for country in matches {
-            if priorityList.contains(country.iso) {
-                return country
-            }
+        return matches.first {
+            priorityList.contains($0.iso)
         }
 
-        // Feel free to add more smart heuristics here:
-        return matches.first
     }
 
     class var allCountries: [Country]? {
@@ -165,12 +155,8 @@ final class Country: NSObject {
         let networkInfo = CTTelephonyNetworkInfo()
 
         let carrier: CTCarrier?
-        if #available(iOS 12, *) {
             /// Get the carrier from first cellular provider which has isoCountryCode
-            carrier = networkInfo.serviceSubscriberCellularProviders?.values.first(where: { $0.isoCountryCode != nil })
-        } else {
-            carrier = networkInfo.subscriberCellularProvider
-        }
+        carrier = networkInfo.serviceSubscriberCellularProviders?.values.first(where: { $0.isoCountryCode != nil })
 
         if let isoCountryCode = carrier?.isoCountryCode {
             return Country.country(with: isoCountryCode)

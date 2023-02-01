@@ -39,6 +39,10 @@ final class ConversationListContentController: UICollectionViewController, Popov
     private let selectionFeedbackGenerator = UISelectionFeedbackGenerator()
     private var token: NSObjectProtocol?
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     init() {
         let flowLayout = BoundsAwareFlowLayout()
         flowLayout.minimumLineSpacing = 0
@@ -48,6 +52,8 @@ final class ConversationListContentController: UICollectionViewController, Popov
         super.init(collectionViewLayout: flowLayout)
 
         registerSectionHeader()
+
+        NotificationCenter.default.addObserver(self, selector: #selector(showErrorAlertForConversationRequest), name: ZMConversation.missingLegalHoldConsentNotificationName, object: nil)
     }
 
     @available(*, unavailable)
@@ -62,13 +68,6 @@ final class ConversationListContentController: UICollectionViewController, Popov
 
         setupViews()
 
-        if #available(iOS 13, *) {
-            // handle Context menu in collection view delegate
-        } else {
-            if traitCollection.forceTouchCapability == .available {
-                registerForPreviewing(with: self, sourceView: collectionView)
-            }
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -94,6 +93,12 @@ final class ConversationListContentController: UICollectionViewController, Popov
             NotificationCenter.default.removeObserver(token)
             self.token = nil
         }
+    }
+
+    @objc
+    func showErrorAlertForConversationRequest() {
+        typealias ConversationError = L10n.Localizable.Error.Conversation
+        UIAlertController.showErrorAlert(title: ConversationError.title, message: ConversationError.missingLegalholdConsent)
     }
 
     private func activeMediaPlayerChanged() {
@@ -123,7 +128,7 @@ final class ConversationListContentController: UICollectionViewController, Popov
         collectionView.register(ConnectRequestsCell.self, forCellWithReuseIdentifier: CellReuseIdConnectionRequests)
         collectionView.register(ConversationListCell.self, forCellWithReuseIdentifier: CellReuseIdConversation)
 
-        collectionView.backgroundColor = UIColor.clear
+        collectionView.backgroundColor = SemanticColors.View.backgroundConversationList
         collectionView.alwaysBounceVertical = true
         collectionView.allowsSelection = true
         collectionView.allowsMultipleSelection = false
@@ -257,7 +262,6 @@ final class ConversationListContentController: UICollectionViewController, Popov
     }
 
     // MARK: context menu
-    @available(iOS 13.0, *)
     override func collectionView(_ collectionView: UICollectionView,
                                  willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration,
                                  animator: UIContextMenuInteractionCommitAnimating) {
@@ -268,7 +272,6 @@ final class ConversationListContentController: UICollectionViewController, Popov
         }
     }
 
-    @available(iOS 13.0, *)
     override func collectionView(_ collectionView: UICollectionView,
                                  contextMenuConfigurationForItemAt indexPath: IndexPath,
                                  point: CGPoint) -> UIContextMenuConfiguration? {
@@ -347,7 +350,7 @@ extension ConversationListContentController: UICollectionViewDelegateFlowLayout 
     }
 
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: section == 0 ? 12 : 0, left: 0, bottom: 0, right: 0)
+        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     }
 }
 
@@ -417,9 +420,7 @@ extension ConversationListContentController: ConversationListViewModelDelegate {
         }
     }
 
-    func listViewModel(_ model: ConversationListViewModel?, didChangeFolderEnabled folderEnabled: Bool) {
-        collectionView.accessibilityValue = folderEnabled ? "folders" : "recent"
-    }
+    func listViewModel(_ model: ConversationListViewModel?, didChangeFolderEnabled folderEnabled: Bool) {}
 
     func reload<C>(
         using stagedChangeset: StagedChangeset<C>,

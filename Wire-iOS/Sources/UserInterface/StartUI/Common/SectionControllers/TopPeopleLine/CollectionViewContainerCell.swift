@@ -26,7 +26,7 @@ final class CollectionViewContainerCell: UICollectionViewCell {
             contentView.addSubview(collectionView)
 
             collectionView.translatesAutoresizingMaskIntoConstraints = false
-            collectionView.fitInSuperview()
+            collectionView.fitIn(view: contentView)
         }
     }
 
@@ -35,6 +35,7 @@ final class CollectionViewContainerCell: UICollectionViewCell {
         accessibilityIdentifier = "topPeopleSection"
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

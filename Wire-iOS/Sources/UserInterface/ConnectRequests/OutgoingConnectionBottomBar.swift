@@ -17,7 +17,7 @@
 //
 
 import UIKit
-import Cartography
+import WireCommonComponents
 
 enum OutgoingConnectionBottomBarAction: UInt {
     case cancel, archive
@@ -25,8 +25,10 @@ enum OutgoingConnectionBottomBarAction: UInt {
 
 final class OutgoingConnectionViewController: UIViewController {
 
-    private let cancelButton = IconButton(style: .default)
-    private let archiveButton = IconButton(style: .default)
+    typealias Connection = L10n.Accessibility.Connection
+
+    private let cancelButton = IconButton()
+    private let archiveButton = IconButton()
 
     var buttonCallback: ((OutgoingConnectionBottomBarAction) -> Void)?
 
@@ -36,40 +38,47 @@ final class OutgoingConnectionViewController: UIViewController {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     private func setupViews() {
+        self.view.backgroundColor = SemanticColors.View.backgroundConversationView
         setupCancelButton()
         setupArchiveButton()
         [cancelButton, archiveButton].forEach(view.addSubview)
     }
 
     private func setupCancelButton() {
-        cancelButton.accessibilityLabel = "cancel connection"
+        cancelButton.accessibilityLabel = Connection.CancelButton.description
         cancelButton.setIcon(.undo, size: .tiny, for: .normal)
-        cancelButton.setTitle("profile.cancel_connection_button_title".localized(uppercased: true), for: .normal)
-        cancelButton.titleLabel?.font = FontSpec(.small, .light).font!
-        cancelButton.setTitleColor(UIColor.from(scheme: .textForeground), for: .normal)
+        cancelButton.setIconColor(SemanticColors.Icon.foregroundDefault, for: .normal)
+        cancelButton.setIconColor(SemanticColors.Icon.foregroundDefault.withAlphaComponent(0.4), for: .highlighted)
+        cancelButton.setTitle("profile.cancel_connection_button_title".localized, for: .normal)
+        cancelButton.titleLabel?.font = FontSpec.normalSemiboldFont.font!
+        cancelButton.setTitleColor(SemanticColors.Label.textDefault, for: .normal)
         cancelButton.setTitleImageSpacing(24)
         cancelButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
     }
 
     private func setupArchiveButton() {
-        archiveButton.accessibilityLabel = "archive connection"
+        archiveButton.accessibilityLabel = Connection.ArchiveButton.description
         archiveButton.setIcon(.archive, size: .tiny, for: .normal)
+        archiveButton.setIconColor(SemanticColors.Icon.foregroundDefault, for: .normal)
+        archiveButton.setIconColor(SemanticColors.Icon.foregroundDefault.withAlphaComponent(0.4), for: .highlighted)
         archiveButton.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
     }
 
     private func createConstraints() {
-        constrain(view, cancelButton, archiveButton) { view, cancelButton, archiveButton in
-            cancelButton.leading == view.leading + 24
-            cancelButton.top == view.top + 12
-            cancelButton.bottom == view.bottom - 24
-            archiveButton.centerY == cancelButton.centerY
-            archiveButton.trailing == view.trailing - 24
-        }
+        [cancelButton, archiveButton].prepareForLayout()
+        NSLayoutConstraint.activate([
+          cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+          cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 12),
+          cancelButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -24),
+          archiveButton.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
+          archiveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24)
+        ])
     }
 
     @objc private func buttonTapped(sender: IconButton) {

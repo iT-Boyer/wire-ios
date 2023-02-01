@@ -18,6 +18,7 @@
 import Foundation
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 final class ConnectRequestsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     var connectionRequests: [ConversationLike] = []
@@ -26,6 +27,8 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
     private var pendingConnectionsListObserverToken: Any?
     private let tableView: UITableView = UITableView(frame: .zero)
     private var lastLayoutBounds = CGRect.zero
+    private var isAccepting = false
+    private var isIgnoring = false
 
     override func loadView() {
         view = tableView
@@ -51,13 +54,19 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
 
         reload()
 
-        tableView.backgroundColor = UIColor.from(scheme: .background)
+        tableView.backgroundColor = SemanticColors.View.backgroundDefault
         tableView.separatorStyle = .singleLine
-        tableView.separatorColor = UIColor.from(scheme: .separator)
+        tableView.separatorColor = SemanticColors.View.backgroundSeparatorCell
 
         tableView.estimatedRowHeight = 0
         tableView.estimatedSectionHeaderHeight = 0
         tableView.estimatedSectionFooterHeight = 0
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        setupNavigationBar()
     }
 
     override var prefersStatusBarHidden: Bool {
@@ -76,10 +85,16 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { _ in
             self.tableView.reloadData()
-        }) { _ in
-        }
+        }, completion: nil)
 
         super.viewWillTransition(to: size, with: coordinator)
+    }
+
+    private func setupNavigationBar() {
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Inbox.title.capitalized)
+        let button = AuthenticationNavigationBar.makeBackButton()
+        button.addTarget(self, action: #selector(onBackButtonPressed), for: .touchUpInside)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: button)
     }
 
     // MARK: - UITableViewDataSource
@@ -96,7 +111,7 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
 
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        /// if there are more than one request, reduce the cell height to give user a hint
+        // If there are more than one request, reduce the cell height to give user a hint
 
         let inset: CGFloat = connectionRequests.count > 1 ? 48 : 0
 
@@ -104,8 +119,14 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
     }
 
     // MARK: - Helpers
+
+    @objc
+    func onBackButtonPressed() {
+        ZClientViewController.shared?.showConversationList()
+    }
+
     private func configureCell(_ cell: ConnectRequestCell, for indexPath: IndexPath) {
-        /// get the user in reversed order, newer request is shown on top
+        // Get the user in reversed order, newer request is shown on top
         let request = connectionRequests[(connectionRequests.count - 1) - (indexPath.row)]
 
         let user = request.connectedUserType
@@ -116,19 +137,43 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
         cell.layoutMargins = UIEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
 
         cell.acceptBlock = { [weak self] in
-            guard self?.connectionRequests.isEmpty == true else { return }
-
-            ZClientViewController.shared?.hideIncomingContactRequests {
-                if let oneToOneConversation = user?.oneToOneConversation {
-                    ZClientViewController.shared?.select(conversation: oneToOneConversation, focusOnView: true, animated: true)
-                }
-            }
+            self?.acceptConnectionRequest(from: cell.user)
         }
 
         cell.ignoreBlock = { [weak self] in
-            self?.hideRequestsOrShowNextRequest()
+            self?.ignoreConnectionRequest(from: cell.user)
         }
 
+    }
+
+    private func acceptConnectionRequest(from user: UserType) {
+        isAccepting = true
+        user.accept { [weak self] error in
+            self?.isAccepting = false
+            if let error = error as? LocalizedError {
+                self?.presentLocalizedErrorAlert(error)
+            } else {
+                guard self?.connectionRequests.isEmpty == true else { return }
+
+                ZClientViewController.shared?.hideIncomingContactRequests {
+                    if let oneToOneConversation = user.oneToOneConversation {
+                        ZClientViewController.shared?.select(conversation: oneToOneConversation, focusOnView: true, animated: true)
+                    }
+                }
+            }
+        }
+    }
+
+    private func ignoreConnectionRequest(from user: UserType) {
+        isIgnoring = true
+        user.ignore { [weak self] error in
+            self?.isIgnoring = false
+            if let error = error as? LocalizedError {
+                self?.presentLocalizedErrorAlert(error)
+            } else {
+                self?.hideRequestsOrShowNextRequest()
+            }
+        }
     }
 
     private func hideRequestsOrShowNextRequest(animated: Bool = true) {
@@ -136,7 +181,8 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
             ZClientViewController.shared?.hideIncomingContactRequests()
         } else {
             // scroll to bottom to show the next request
-            tableView.setContentOffset(CGPoint(x: 0, y: CGFloat.greatestFiniteMagnitude), animated: animated)
+            let indexPath = IndexPath(row: connectionRequests.count - 1, section: 0)
+            tableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
         }
     }
 
@@ -148,7 +194,10 @@ final class ConnectRequestsViewController: UIViewController, UITableViewDataSour
         }
 
         tableView.reloadData()
-        hideRequestsOrShowNextRequest()
+
+        if !isAccepting && !isIgnoring {
+            hideRequestsOrShowNextRequest()
+        }
     }
 }
 

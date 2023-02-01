@@ -79,8 +79,7 @@ extension StartUIViewController: SearchResultsViewControllerDelegate {
                                      didTapOnSeviceUser user: ServiceUser) {
 
         let detail = ServiceDetailViewController(serviceUser: user,
-                                                 actionType: .openConversation,
-                                                 variant: ServiceDetailVariant(colorScheme: .dark, opaque: false)) { [weak self] result in
+                                                 actionType: .openConversation) { [weak self] result in
             guard let weakSelf = self else { return }
 
             if let result = result {
@@ -114,11 +113,11 @@ extension StartUIViewController: SearchResultsViewControllerDelegate {
 
         if self.traitCollection.horizontalSizeClass == .compact {
             let avoiding = KeyboardAvoidingViewController(viewController: controller)
+            navigationItem.backBarButtonItem?.accessibilityLabel = L10n.Accessibility.CreateConversation.BackButton.description
             self.navigationController?.pushViewController(avoiding, animated: true) {
             }
-        }
-        else {
-            let embeddedNavigationController = controller.wrapInNavigationController()
+        } else {
+            let embeddedNavigationController = controller.wrapInNavigationController(setBackgroundColor: true)
             embeddedNavigationController.modalPresentationStyle = .formSheet
             self.present(embeddedNavigationController, animated: true)
         }
@@ -159,6 +158,7 @@ extension StartUIViewController: ConversationCreationControllerDelegate {
                                         didSelectName name: String,
                                         participants: UserSet,
                                         allowGuests: Bool,
+                                        allowServices: Bool,
                                         enableReceipts: Bool) {
         dismiss(controller: controller) { [weak self] in
             guard let weakSelf = self else { return }
@@ -167,6 +167,7 @@ extension StartUIViewController: ConversationCreationControllerDelegate {
                                        createConversationWith: participants,
                                        name: name,
                                        allowGuests: allowGuests,
+                                       allowServices: allowServices,
                                        enableReceipts: enableReceipts)
         }
     }

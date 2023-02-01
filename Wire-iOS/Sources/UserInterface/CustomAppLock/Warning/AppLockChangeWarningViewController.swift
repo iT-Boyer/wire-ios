@@ -21,7 +21,7 @@ import UIKit
 import WireSyncEngine
 import WireCommonComponents
 
-protocol AppLockChangeWarningViewControllerDelegate: class {
+protocol AppLockChangeWarningViewControllerDelegate: AnyObject {
 
     func appLockChangeWarningViewControllerDidDismiss()
 
@@ -38,10 +38,9 @@ final class AppLockChangeWarningViewController: UIViewController {
     private let contentView: UIView = UIView()
 
     private lazy var confirmButton: Button = {
-        let button = Button(style: .full, titleLabelFont: .smallSemiboldFont)
-        button.setBackgroundImageColor(.strongBlue, for: .normal)
+        let button = Button(style: .primaryTextButtonStyle, cornerRadius: 16, fontSpec: .mediumSemiboldFont)
         button.accessibilityIdentifier = "warning_screen.button.confirm"
-        button.setTitle("general.confirm".localized(uppercased: true), for: .normal)
+        button.setTitle("general.confirm".localized, for: .normal)
         button.addTarget(self, action: #selector(confirmButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -53,9 +52,8 @@ final class AppLockChangeWarningViewController: UIViewController {
         return label
     }()
 
-    private lazy var messageLabel: UILabel = {
-        let label = UILabel(size: .normal, weight: .regular, color: .landingScreen)
-        label.text = messageLabelText
+    private lazy var messageLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: messageLabelText, fontSpec: .normalRegularFont, color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -91,7 +89,7 @@ final class AppLockChangeWarningViewController: UIViewController {
     // MARK: - Helpers
 
     private func setupViews() {
-        view.backgroundColor = ColorScheme.default.color(named: .contentBackground)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         view.addSubview(contentView)
 
@@ -106,7 +104,7 @@ final class AppLockChangeWarningViewController: UIViewController {
         [contentView,
          titleLabel,
          confirmButton,
-         messageLabel].disableAutoresizingMaskTranslation()
+         messageLabel].prepareForLayout()
 
         let contentPadding: CGFloat = 24
 

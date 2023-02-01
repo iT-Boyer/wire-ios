@@ -17,13 +17,12 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireSyncEngine
 
 typealias NetworkStatusBarDelegate = NetworkStatusViewControllerDelegate & NetworkStatusViewDelegate
 
-protocol NetworkStatusViewControllerDelegate: class {
+protocol NetworkStatusViewControllerDelegate: AnyObject {
 
     ///  return false if NetworkStatusViewController will not disapper in iPad regular mode with specific orientation.
     ///
@@ -65,9 +64,24 @@ final class NetworkStatusViewController: UIViewController {
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(updateStateForIPad), name: UIApplication.didChangeStatusBarOrientationNotification, object: .none)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateStateForIPad), name: UIDevice.orientationDidChangeNotification, object: .none)
+
+        view.addSubview(networkStatusView)
+
+        createConstraints()
     }
 
+    private func createConstraints() {
+        networkStatusView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            networkStatusView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            networkStatusView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            networkStatusView.topAnchor.constraint(equalTo: view.topAnchor),
+            networkStatusView.heightAnchor.constraint(equalTo: view.heightAnchor)
+        ])
+    }
+
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -79,18 +93,10 @@ final class NetworkStatusViewController: UIViewController {
     override func loadView() {
         let passthroughTouchesView = PassthroughTouchesView()
         passthroughTouchesView.clipsToBounds = true
-        self.view = passthroughTouchesView
+        view = passthroughTouchesView
     }
 
     override func viewDidLoad() {
-        view.addSubview(networkStatusView)
-
-        constrain(self.view, networkStatusView) { containerView, networkStatusView in
-            networkStatusView.leading == containerView.leading
-            networkStatusView.trailing == containerView.trailing
-            networkStatusView.top == containerView.top
-            networkStatusView.height == containerView.height
-        }
 
         if let userSession = ZMUserSession.shared() {
             enqueue(state: viewState(from: userSession.networkState))
@@ -115,8 +121,8 @@ final class NetworkStatusViewController: UIViewController {
 
     func showOfflineAlert() {
         let offlineAlert = UIAlertController(title: "system_status_bar.no_internet.title".localized,
-                                                  message: "system_status_bar.no_internet.explanation".localized,
-                                                  alertAction: .confirm())
+                                             message: "system_status_bar.no_internet.explanation".localized,
+                                             alertAction: .confirm())
         offlineAlert.presentTopmost()
     }
 
@@ -129,7 +135,7 @@ final class NetworkStatusViewController: UIViewController {
         case .onlineSynchronizing:
             return .onlineSynchronizing
         @unknown default:
-            /// TODO: ZMNetworkState change to NS_CLOSED_ENUM 
+            // TODO: ZMNetworkState change to NS_CLOSED_ENUM
             fatalError()
         }
     }
@@ -178,7 +184,7 @@ extension NetworkStatusViewController: ZMNetworkAvailabilityObserver {
 extension NetworkStatusViewController {
     func shouldShowOnIPad() -> Bool {
         guard isIPadRegular(device: device) else { return true }
-        guard let delegate = self.delegate else { return true }
+        guard let delegate = delegate else { return true }
 
         let newOrientation = application.statusBarOrientation
 
@@ -188,12 +194,12 @@ extension NetworkStatusViewController {
     @objc func updateStateForIPad() {
         guard device.userInterfaceIdiom == .pad else { return }
 
-        switch self.traitCollection.horizontalSizeClass {
+        switch traitCollection.horizontalSizeClass {
         case .regular:
             if shouldShowOnIPad() {
                 networkStatusView.update(state: state, animated: false)
             } else {
-                /// when size class changes and delegate view controller disabled to show networkStatusView, hide the networkStatusView
+                // When size class changes and delegate view controller disabled to show networkStatusView, hide the networkStatusView
                 networkStatusView.update(state: .online, animated: false)
             }
         case .compact, .unspecified:
@@ -205,7 +211,6 @@ extension NetworkStatusViewController {
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-
         updateStateForIPad()
     }
 }

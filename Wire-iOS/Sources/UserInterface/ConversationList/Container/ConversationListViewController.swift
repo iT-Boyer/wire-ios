@@ -18,6 +18,7 @@
 import Foundation
 import UIKit
 import WireDataModel
+import WireSyncEngine
 
 enum ConversationListState {
     case conversationList
@@ -26,6 +27,9 @@ enum ConversationListState {
 }
 
 final class ConversationListViewController: UIViewController {
+
+    weak var delegate: ConversationListTabBarControllerDelegate?
+
     let viewModel: ViewModel
     /// internal View Model
     var state: ConversationListState = .conversationList
@@ -53,7 +57,7 @@ final class ConversationListViewController: UIViewController {
 
     let contentContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = .clear
+        view.backgroundColor = SemanticColors.View.backgroundConversationListTableViewCell
 
         return view
     }()
@@ -65,11 +69,11 @@ final class ConversationListViewController: UIViewController {
         return conversationListContentController
     }()
 
-    let bottomBarController: ConversationListBottomBarController = {
-        let conversationListBottomBarController = ConversationListBottomBarController()
-        conversationListBottomBarController.showArchived = true
+    let tabBar: ConversationListTabBar = {
+        let conversationListTabBar = ConversationListTabBar()
+        conversationListTabBar.showArchived = true
 
-        return conversationListBottomBarController
+        return conversationListTabBar
     }()
 
     let topBarViewController: ConversationListTopBarViewController
@@ -78,7 +82,7 @@ final class ConversationListViewController: UIViewController {
         return viewController
     }()
 
-    fileprivate let onboardingHint: ConversationListOnboardingHint = {
+    let onboardingHint: ConversationListOnboardingHint = {
         let conversationListOnboardingHint = ConversationListOnboardingHint()
         return conversationListOnboardingHint
     }()
@@ -89,6 +93,10 @@ final class ConversationListViewController: UIViewController {
         self.init(viewModel: viewModel)
 
         viewModel.viewController = self
+
+        delegate = self
+
+        onboardingHint.arrowPointToView = tabBar
     }
 
     required init(viewModel: ViewModel) {
@@ -104,17 +112,16 @@ final class ConversationListViewController: UIViewController {
 
         /// setup UI
         view.addSubview(contentContainer)
+        self.view.backgroundColor = SemanticColors.View.backgroundConversationList
 
         setupTopBar()
         setupListContentController()
-        setupBottomBarController()
+        setupTabBar()
         setupNoConversationLabel()
         setupOnboardingHint()
         setupNetworkStatusBar()
 
         createViewConstraints()
-
-        onboardingHint.arrowPointToView = bottomBarController.startUIButton
     }
 
     @available(*, unavailable)
@@ -130,10 +137,10 @@ final class ConversationListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        /// update
+        // Update
         hideNoContactLabel(animated: false)
 
-        viewModel.setupObservers()
+        setupObservers()
 
         listContentController.collectionView.scrollRectToVisible(CGRect(x: 0, y: 0, width: view.bounds.size.width, height: 1), animated: false)
     }
@@ -153,8 +160,8 @@ final class ConversationListViewController: UIViewController {
         }
 
         state = .conversationList
+        tabBar.selectedTab = listContentController.listViewModel.folderEnabled ? .folder : .list
 
-        updateBottomBarSeparatorVisibility(with: listContentController)
         closePushPermissionDialogIfNotNeeded()
 
         shouldAnimateNetworkStatusView = true
@@ -170,10 +177,6 @@ final class ConversationListViewController: UIViewController {
 
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         coordinator.animate(alongsideTransition: { _ in
             // we reload on rotation to make sure that the list cells lay themselves out correctly for the new
@@ -182,6 +185,15 @@ final class ConversationListViewController: UIViewController {
         })
 
         super.viewWillTransition(to: size, with: coordinator)
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        self.tabBar.subviews.forEach { (barButton) in
+            if let label = barButton.subviews[1] as? UILabel {
+                label.sizeToFit()
+            }
+        }
     }
 
     override var shouldAutorotate: Bool {
@@ -193,6 +205,10 @@ final class ConversationListViewController: UIViewController {
     }
 
     // MARK: - setup UI
+
+    private func setupObservers() {
+        viewModel.setupObservers()
+    }
 
     private func setupTopBar() {
         add(topBarViewController, to: contentContainer)
@@ -211,10 +227,11 @@ final class ConversationListViewController: UIViewController {
         contentContainer.addSubview(onboardingHint)
     }
 
-    private func setupBottomBarController() {
-        bottomBarController.delegate = self
-        add(bottomBarController, to: contentContainer)
-        listContentController.listViewModel.restorationDelegate = bottomBarController
+    private func setupTabBar() {
+        tabBar.delegate = self
+        contentContainer.addSubview(tabBar)
+        listContentController.listViewModel.restorationDelegate = tabBar
+        tabBar.unselectedItemTintColor = SemanticColors.Label.textTabBar
     }
 
     private func setupNetworkStatusBar() {
@@ -225,7 +242,6 @@ final class ConversationListViewController: UIViewController {
     private func createViewConstraints() {
         guard
             let topBarView = topBarViewController.view,
-            let bottomBar = bottomBarController.view,
             let conversationList = listContentController.view
         else {
             return
@@ -234,7 +250,7 @@ final class ConversationListViewController: UIViewController {
         [contentContainer,
         topBarView,
         conversationList,
-        bottomBar,
+        tabBar,
         noConversationLabel,
         onboardingHint,
         networkStatusViewController.view].forEach {
@@ -258,15 +274,15 @@ final class ConversationListViewController: UIViewController {
             conversationList.topAnchor.constraint(equalTo: topBarView.bottomAnchor),
             conversationList.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
             conversationList.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
-            conversationList.bottomAnchor.constraint(equalTo: bottomBar.topAnchor),
+            conversationList.bottomAnchor.constraint(equalTo: tabBar.topAnchor),
 
-            onboardingHint.bottomAnchor.constraint(equalTo: bottomBar.topAnchor),
+            onboardingHint.bottomAnchor.constraint(equalTo: tabBar.topAnchor),
             onboardingHint.leftAnchor.constraint(equalTo: contentContainer.leftAnchor),
             onboardingHint.rightAnchor.constraint(equalTo: contentContainer.rightAnchor),
 
-            bottomBar.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
-            bottomBar.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
-            bottomBar.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor),
+            tabBar.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+            tabBar.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor),
+            tabBar.bottomAnchor.constraint(equalTo: contentContainer.safeBottomAnchor),
 
             noConversationLabel.centerXAnchor.constraint(equalTo: contentContainer.centerXAnchor),
             noConversationLabel.centerYAnchor.constraint(equalTo: contentContainer.centerYAnchor),
@@ -305,17 +321,6 @@ final class ConversationListViewController: UIViewController {
         })
     }
 
-    func updateBottomBarSeparatorVisibility(with controller: ConversationListContentController) {
-        let controllerHeight = controller.view.bounds.height
-        let contentHeight = controller.collectionView.contentSize.height
-        let offsetY = controller.collectionView.contentOffset.y
-        let showSeparator = contentHeight - offsetY + ConversationListViewController.contentControllerBottomInset > controllerHeight
-
-        if bottomBarController.showSeparator != showSeparator {
-            bottomBarController.showSeparator = showSeparator
-        }
-    }
-
     func scrollViewDidScroll(scrollView: UIScrollView!) {
         topBarViewController.scrollViewDidScroll(scrollView: scrollView)
     }
@@ -334,17 +339,10 @@ final class ConversationListViewController: UIViewController {
     }
 
     func updateArchiveButtonVisibilityIfNeeded(showArchived: Bool) {
-        if showArchived == bottomBarController.showArchived {
+        guard showArchived != tabBar.showArchived else {
             return
         }
-
-        UIView.performWithoutAnimation {
-            self.bottomBarController.showArchived = showArchived
-
-            UIView.transition(with: bottomBarController.view, duration: 0.35, options: .transitionCrossDissolve, animations: {
-                self.bottomBarController.view.layoutIfNeeded()
-            })
-        }
+        tabBar.showArchived = showArchived
     }
 
     func hideArchivedConversations() {
@@ -366,6 +364,28 @@ final class ConversationListViewController: UIViewController {
     var hasUsernameTakeoverViewController: Bool {
         return usernameTakeoverViewController != nil
     }
+
+}
+
+// MARK: - UITabBarDelegate
+
+extension ConversationListViewController: UITabBarDelegate {
+
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        guard let type = item.type else {
+            return
+        }
+        delegate?.didChangeTab(with: type)
+    }
+
+}
+
+private extension UITabBarItem {
+
+    var type: TabBarItemType? {
+        return TabBarItemType.allCases.first(where: { $0.rawValue == self.tag })
+    }
+
 }
 
 fileprivate extension NSAttributedString {
@@ -389,5 +409,16 @@ fileprivate extension NSAttributedString {
         let attributedString = NSAttributedString(string: titleString.uppercased(), attributes: titleAttributes)
 
         return attributedString
+    }
+}
+
+extension UITabBar {
+    // Workaround for new UITabBar behavior where on iPad,
+    // the UITabBar shows the UITabBarItem icon next to the text
+    override open var traitCollection: UITraitCollection {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return UITraitCollection(traitsFrom: [super.traitCollection, UITraitCollection(horizontalSizeClass: .compact)])
+        }
+        return super.traitCollection
     }
 }

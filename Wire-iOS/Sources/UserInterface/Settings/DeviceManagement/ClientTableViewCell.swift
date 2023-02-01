@@ -17,198 +17,195 @@
 //
 
 import UIKit
-import Cartography
 import CoreLocation
 import Contacts
 import WireDataModel
+import WireCommonComponents
 
-class ClientTableViewCell: UITableViewCell {
+class ClientTableViewCell: UITableViewCell, DynamicTypeCapable {
 
-    let nameLabel = UILabel(frame: CGRect.zero)
-    let labelLabel = UILabel(frame: CGRect.zero)
+    // MARK: - Properties
+    typealias LabelColors = SemanticColors.Label
+
+    let nameLabel = DynamicFontLabel(fontSpec: .normalSemiboldFont,
+                                     color: LabelColors.textDefault)
+    let labelLabel = DynamicFontLabel(fontSpec: .smallSemiboldFont,
+                                      color: LabelColors.textDefault)
     let activationLabel = UILabel(frame: CGRect.zero)
     let fingerprintLabel = UILabel(frame: CGRect.zero)
-    let verifiedLabel = UILabel(frame: CGRect.zero)
+    let verifiedLabel = DynamicFontLabel(fontSpec: .smallFont,
+                                         color: LabelColors.textDefault)
 
-    private let activationLabelFont = UIFont.smallLightFont
-    private let activationLabelDateFont = UIFont.smallSemiboldFont
+    private let activationLabelFont = FontSpec.smallLightFont
+    private let activationLabelDateFont = FontSpec.smallSemiboldFont
 
     var showVerified: Bool = false {
         didSet {
-            self.updateVerifiedLabel()
+            updateVerifiedLabel()
         }
     }
 
     var showLabel: Bool = false {
         didSet {
-            self.updateLabel()
+            updateLabel()
         }
     }
 
-    var fingerprintLabelFont: UIFont? {
+    var fingerprintLabelFont: FontSpec? {
         didSet {
-            self.updateFingerprint()
+            updateFingerprint()
         }
     }
-    var fingerprintLabelBoldFont: UIFont? {
+    var fingerprintLabelBoldFont: FontSpec? {
         didSet {
-            self.updateFingerprint()
+            updateFingerprint()
         }
     }
     var fingerprintTextColor: UIColor? {
         didSet {
-            self.updateFingerprint()
+            updateFingerprint()
         }
     }
 
     var userClient: UserClient? {
         didSet {
-            guard let userClient = self.userClient else { return }
+            guard let userClient = userClient else { return }
             if let userClientModel = userClient.model {
                 nameLabel.text = userClientModel
             } else if userClient.isLegalHoldDevice {
-                nameLabel.text = "device.class.legalhold".localized
+                nameLabel.text = L10n.Localizable.Device.Class.legalhold
             }
 
-            self.updateLabel()
+            updateLabel()
 
-            self.activationLabel.text = ""
+            activationLabel.text = ""
             if let date = userClient.activationDate?.formattedDate {
-                let text = "registration.devices.activated".localized(args: date)
-                var attrText = NSAttributedString(string: text) && activationLabelFont
-                attrText = attrText.adding(font: activationLabelDateFont, to: date)
-                self.activationLabel.attributedText = attrText
+                let text = L10n.Localizable.Registration.Devices.activated(date)
+                var attrText = NSAttributedString(string: text) && activationLabelFont.font
+                attrText = attrText.adding(font: activationLabelDateFont.font!, to: date)
+                activationLabel.attributedText = attrText
             }
 
-            self.updateFingerprint()
-            self.updateVerifiedLabel()
+            updateFingerprint()
+            updateVerifiedLabel()
         }
     }
 
     var wr_editable: Bool
 
-    var variant: ColorSchemeVariant? {
-        didSet {
-            switch variant {
-            case .dark?, .none:
-                self.verifiedLabel.textColor = UIColor(white: 1, alpha: 0.4)
-                fingerprintTextColor = .white
-                nameLabel.textColor = .white
-                labelLabel.textColor = .white
-                activationLabel.textColor = .white
-            case .light?:
-                let textColor = UIColor.from(scheme: .textForeground, variant: .light)
-                self.verifiedLabel.textColor = textColor
-                fingerprintTextColor = textColor
-                nameLabel.textColor = textColor
-                labelLabel.textColor = textColor
-                activationLabel.textColor = textColor
-            }
+    var variant: ColorSchemeVariant?
+
+    // MARK: - Initialization
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        wr_editable = true
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+
+        createConstraints()
+        setupStyle()
+    }
+
+    @available(*, unavailable)
+    required init(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Override method
+    override func setEditing(_ editing: Bool, animated: Bool) {
+        if wr_editable {
+            super.setEditing(editing, animated: animated)
         }
     }
 
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        self.wr_editable = true
-
+    // MARK: - Methods
+    func setupStyle() {
+        let textColor = SemanticColors.Label.textDefault
         nameLabel.accessibilityIdentifier = "device name"
         labelLabel.accessibilityIdentifier = "device label"
         activationLabel.accessibilityIdentifier = "device activation date"
         fingerprintLabel.accessibilityIdentifier = "device fingerprint"
         verifiedLabel.accessibilityIdentifier = "device verification status"
-        verifiedLabel.isAccessibilityElement = true
 
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        activationLabel.numberOfLines = 0
+        activationLabel.textColor = textColor
 
-        [self.nameLabel, self.labelLabel, self.activationLabel, self.fingerprintLabel, self.verifiedLabel].forEach(self.contentView.addSubview)
-
-        constrain(self.contentView, self.nameLabel, self.labelLabel) { contentView, nameLabel, labelLabel in
-            nameLabel.top == contentView.top + 16
-            nameLabel.left == contentView.left + 16
-            nameLabel.right <= contentView.right - 16
-
-            labelLabel.top == nameLabel.bottom + 2
-            labelLabel.left == contentView.left + 16
-            labelLabel.right <= contentView.right - 16
-        }
-
-        constrain(self.contentView, self.labelLabel, self.activationLabel, self.fingerprintLabel, self.verifiedLabel) { contentView, labelLabel, activationLabel, fingerprintLabel, verifiedLabel in
-
-            fingerprintLabel.top == labelLabel.bottom + 4
-            fingerprintLabel.left == contentView.left + 16
-            fingerprintLabel.right <= contentView.right - 16
-            fingerprintLabel.height == 16
-
-            activationLabel.top == fingerprintLabel.bottom + 8
-            activationLabel.left == contentView.left + 16
-            activationLabel.right <= contentView.right - 16
-
-            verifiedLabel.top == activationLabel.bottom + 4
-            verifiedLabel.left == contentView.left + 16
-            verifiedLabel.right <= contentView.right - 16
-            verifiedLabel.bottom == contentView.bottom - 16
-        }
-
-        self.backgroundColor = UIColor.clear
-        self.backgroundView = UIView()
-        self.selectedBackgroundView = UIView()
-
-        setupStyle()
-    }
-
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func setEditing(_ editing: Bool, animated: Bool) {
-        if self.wr_editable {
-            super.setEditing(editing, animated: animated)
-        }
-    }
-
-    func setupStyle() {
-        nameLabel.font = .normalSemiboldFont
-        labelLabel.font = .smallSemiboldFont
-        verifiedLabel.font = .smallFont
         fingerprintLabelFont = .smallLightFont
         fingerprintLabelBoldFont = .smallSemiboldFont
+        fingerprintTextColor = textColor
+
+        backgroundColor = SemanticColors.View.backgroundUserCell
+
+        addBorder(for: .bottom)
     }
 
-    func updateVerifiedLabel() {
-        if let userClient = self.userClient,
-            self.showVerified {
+    private func createConstraints() {
+        [nameLabel, labelLabel, activationLabel, fingerprintLabel, verifiedLabel].forEach(contentView.addSubview)
+
+        [nameLabel, labelLabel, activationLabel, fingerprintLabel, verifiedLabel].prepareForLayout()
+
+        // Setting the constraints for the view
+        NSLayoutConstraint.activate([
+            nameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            nameLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            nameLabel.rightAnchor.constraint(lessThanOrEqualTo: contentView.rightAnchor, constant: -16),
+
+            labelLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 2),
+            labelLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            labelLabel.rightAnchor.constraint(lessThanOrEqualTo: contentView.rightAnchor, constant: -16),
+
+            fingerprintLabel.topAnchor.constraint(equalTo: labelLabel.bottomAnchor, constant: 4),
+            fingerprintLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            fingerprintLabel.rightAnchor.constraint(lessThanOrEqualTo: contentView.rightAnchor, constant: -16),
+            fingerprintLabel.heightAnchor.constraint(equalToConstant: 16),
+
+            activationLabel.topAnchor.constraint(equalTo: fingerprintLabel.bottomAnchor, constant: 8),
+            activationLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            activationLabel.rightAnchor.constraint(lessThanOrEqualTo: contentView.rightAnchor, constant: -16),
+
+            verifiedLabel.topAnchor.constraint(equalTo: activationLabel.bottomAnchor, constant: 4),
+            verifiedLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+            verifiedLabel.rightAnchor.constraint(lessThanOrEqualTo: contentView.rightAnchor, constant: -16),
+            verifiedLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
+        ])
+    }
+
+    private func updateVerifiedLabel() {
+        if let userClient = userClient,
+           showVerified {
 
             if userClient.verified {
-                self.verifiedLabel.text = NSLocalizedString("device.verified", comment: "")
+                verifiedLabel.text = L10n.Localizable.Device.verified.capitalized
+            } else {
+                verifiedLabel.text = L10n.Localizable.Device.notVerified.capitalized
             }
-            else {
-                self.verifiedLabel.text = NSLocalizedString("device.not_verified", comment: "")
-            }
-        }
-        else {
-            self.verifiedLabel.text = ""
+        } else {
+            verifiedLabel.text = ""
         }
     }
 
-    func updateFingerprint() {
-        if let fingerprintLabelBoldMonoFont = self.fingerprintLabelBoldFont?.monospaced(),
-            let fingerprintLabelMonoFont = self.fingerprintLabelFont?.monospaced(),
-            let fingerprintLabelTextColor = self.fingerprintTextColor,
-            let userClient = self.userClient, userClient.remoteIdentifier != nil {
+    private func updateFingerprint() {
+        if let fingerprintLabelBoldMonoFont = fingerprintLabelBoldFont?.font?.monospaced(),
+           let fingerprintLabelMonoFont = fingerprintLabelFont?.font?.monospaced(),
+           let fingerprintLabelTextColor = fingerprintTextColor,
+           let userClient = userClient, userClient.remoteIdentifier != nil {
 
-                self.fingerprintLabel.attributedText =  userClient.attributedRemoteIdentifier(
-                    [.font: fingerprintLabelMonoFont, .foregroundColor: fingerprintLabelTextColor],
-                    boldAttributes: [.font: fingerprintLabelBoldMonoFont, .foregroundColor: fingerprintLabelTextColor],
-                    uppercase: true
-                )
+            fingerprintLabel.attributedText =  userClient.attributedRemoteIdentifier(
+                [.font: fingerprintLabelMonoFont, .foregroundColor: fingerprintLabelTextColor],
+                boldAttributes: [.font: fingerprintLabelBoldMonoFont, .foregroundColor: fingerprintLabelTextColor],
+                uppercase: true
+            )
         }
     }
 
-    func updateLabel() {
-        if let userClientLabel = self.userClient?.label, self.showLabel {
-            self.labelLabel.text = userClientLabel
+    private func updateLabel() {
+        if let userClientLabel = userClient?.label, showLabel {
+            labelLabel.text = userClientLabel
+        } else {
+            labelLabel.text = ""
         }
-        else {
-            self.labelLabel.text = ""
-        }
+    }
+
+    func redrawFont() {
+        updateFingerprint()
+        updateLabel()
     }
 }

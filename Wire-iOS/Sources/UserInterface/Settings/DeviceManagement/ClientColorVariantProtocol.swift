@@ -19,45 +19,22 @@
 import Foundation
 import UIKit
 
-protocol ClientListViewControllerDelegate: class {
+protocol ClientListViewControllerDelegate: AnyObject {
     func finishedDeleting(_ clientListViewController: ClientListViewController)
 }
 
 protocol ClientColorVariantProtocol {
-    var variant: ColorSchemeVariant? { get set }
     var headerFooterViewTextColor: UIColor { get }
-    var separatorColor: UIColor { get }
-    func setColor(for variant: ColorSchemeVariant?)
+    func setColor()
 }
 
 extension ClientColorVariantProtocol where Self: UIViewController {
 
     var headerFooterViewTextColor: UIColor {
-        switch variant {
-        case .none, .dark?:
-            return UIColor(white: 1, alpha: 0.4)
-        case .light?:
-            return UIColor.from(scheme: .textForeground, variant: .light)
-        }
+        return SemanticColors.Label.textSectionFooter
     }
 
-    var separatorColor: UIColor {
-        switch variant {
-        case .none, .dark?:
-            return UIColor(white: 1, alpha: 0.1)
-        case .light?:
-            return UIColor.from(scheme: .separator, variant: .light)
-        }
-    }
-
-    func setColor(for variant: ColorSchemeVariant?) {
-        switch variant {
-        case .none:
-            view.backgroundColor = .clear
-        case .dark?:
-            view.backgroundColor = .black
-        case .light?:
-            view.backgroundColor = .white
-        }
+    func setColor() {
+        view.backgroundColor = SemanticColors.View.backgroundDefault
     }
 }

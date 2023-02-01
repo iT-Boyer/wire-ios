@@ -279,8 +279,7 @@ final class ConversationTableViewDataSource: NSObject {
     func index(of message: ZMConversationMessage) -> Int? {
         if let indexPath = fetchController?.indexPath(forObject: message as! ZMMessage) {
             return indexPath.row
-        }
-        else {
+        } else {
             return nil
         }
     }
@@ -352,7 +351,10 @@ extension ConversationTableViewDataSource: NSFetchedResultsControllerDelegate {
                     at indexPath: IndexPath?,
                     for changeType: NSFetchedResultsChangeType,
                     newIndexPath: IndexPath?) {
-        // no-op
+        if let message = anObject as? ZMConversationMessage, changeType == .insert {
+            /// VoiceOver will output the announcement string from the message
+            message.postAnnouncementIfNeeded()
+        }
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
@@ -475,7 +477,8 @@ extension ConversationTableViewDataSource {
                  at index: Int,
                  firstUnreadMessage: ZMConversationMessage?,
                  searchQueries: [String]) -> ConversationMessageContext {
-        let significantTimeInterval: TimeInterval = 60 * 45; // 45 minutes
+        // 45 minutes
+        let significantTimeInterval: TimeInterval = 60 * 45
         let isTimeIntervalSinceLastMessageSignificant: Bool
         let previousMessage = messagePrevious(to: message, at: index)
 

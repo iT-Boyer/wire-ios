@@ -19,6 +19,7 @@
 import Foundation
 import UIKit
 import WireDataModel
+import WireCommonComponents
 
 class CustomMessageView: UIView {
     public var isSelected: Bool = false
@@ -33,7 +34,8 @@ class CustomMessageView: UIView {
         }
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -55,7 +57,7 @@ class CustomMessageView: UIView {
         ])
 
         messageLabel.font = FontSpec(.small, .light).font
-        messageLabel.textColor = UIColor.from(scheme: .textForeground)
+        messageLabel.textColor = SemanticColors.Label.textDefault
     }
 }
 

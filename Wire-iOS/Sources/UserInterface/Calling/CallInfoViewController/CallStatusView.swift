@@ -17,34 +17,7 @@
 //
 
 import UIKit
-
-protocol CallStatusViewInputType: CallTypeProvider, ColorVariantProvider, CBRSettingProvider {
-    var state: CallStatusViewState { get }
-    var isConstantBitRate: Bool { get }
-    var title: String { get }
-}
-
-protocol CallTypeProvider {
-    var isVideoCall: Bool { get }
-}
-
-protocol ColorVariantProvider {
-    var variant: ColorSchemeVariant { get }
-}
-
-protocol CBRSettingProvider {
-    var userEnabledCBR: Bool { get }
-}
-
-extension CallStatusViewInputType {
-    var overlayBackgroundColor: UIColor {
-        switch (isVideoCall, state) {
-        case (false, _): return variant == .light ? UIColor.from(scheme: .background, variant: .light) : .black
-        case (true, .ringingOutgoing), (true, .ringingIncoming): return UIColor.black.withAlphaComponent(0.4)
-        case (true, _): return UIColor.black.withAlphaComponent(0.64)
-        }
-    }
-}
+import WireCommonComponents
 
 enum CallStatusViewState: Equatable {
     case none
@@ -60,7 +33,7 @@ final class CallStatusView: UIView {
 
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    private let bitrateLabel = BitRateLabel()
+    private let bitrateLabel = BitRateLabel(fontSpec: .smallSemiboldFont, color: SemanticColors.Label.textDefaultWhite)
     private let stackView = UIStackView(axis: .vertical)
 
     var configuration: CallStatusViewInputType {
@@ -121,7 +94,7 @@ final class CallStatusView: UIView {
     private func updateConfiguration() {
         titleLabel.text = configuration.title
         subtitleLabel.text = configuration.displayString
-        bitrateLabel.isHidden = !configuration.userEnabledCBR
+        bitrateLabel.isHidden = !configuration.shouldShowBitrateLabel
         bitrateLabel.bitRateStatus = BitRateStatus(configuration.isConstantBitRate)
 
         [titleLabel, subtitleLabel, bitrateLabel].forEach {
@@ -141,7 +114,6 @@ private let callDurationFormatter: DateComponentsFormatter = {
 }()
 
 extension CallStatusViewInputType {
-
     var displayString: String {
         switch state {
         case .none: return ""
@@ -154,10 +126,4 @@ extension CallStatusViewInputType {
         case .terminating: return "call.status.terminating".localized
         }
     }
-
-    var effectiveColorVariant: ColorSchemeVariant {
-        guard !isVideoCall else { return .dark }
-        return variant
-    }
-
 }

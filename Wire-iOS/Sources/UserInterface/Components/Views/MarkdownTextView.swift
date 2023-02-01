@@ -1,6 +1,6 @@
 ////
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ import MobileCoreServices
 import Down
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 extension Notification.Name {
     static let MarkdownTextViewDidChangeActiveMarkdown = Notification.Name("MarkdownTextViewDidChangeActiveMarkdown")
@@ -61,13 +62,13 @@ final class MarkdownTextView: NextResponderTextView {
 
     override func canPerformAction(_ action: Selector,
                                    withSender sender: Any?) -> Bool {
-        switch action {
-        case #selector(UIResponderStandardEditActions.paste(_:)),
-             #selector(UIResponderStandardEditActions.cut(_:)),
-             #selector(UIResponderStandardEditActions.copy(_:)):
-            guard SecurityFlags.clipboard.isEnabled else { return false }
-            fallthrough
-        default:
+        if !MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).canUseClipboard {
+            let validActions = [
+                #selector(UIResponderStandardEditActions.select(_:)),
+                #selector(UIResponderStandardEditActions.selectAll(_:))
+            ]
+            return text.isEmpty ? false: validActions.contains(action)
+        } else {
             return super.canPerformAction(action, withSender: sender)
         }
     }
@@ -205,6 +206,7 @@ final class MarkdownTextView: NextResponderTextView {
         setupGestureRecognizer()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -213,7 +215,7 @@ final class MarkdownTextView: NextResponderTextView {
 
     /// Updates the color of the text.
     func updateTextColor(base: UIColor?) {
-        let baseColor = base ?? UIColor.from(scheme: .textForeground)
+        let baseColor = base ?? SemanticColors.Label.textDefault
         self.textColor = baseColor
         self.style.baseFontColor = baseColor
     }
@@ -627,7 +629,7 @@ extension DownStyle {
     static var systemMessage: DownStyle = {
         let style = DownStyle()
         style.baseFont = FontSpec(.medium, .none).font!
-        style.baseFontColor = UIColor.from(scheme: .textForeground)
+        style.baseFontColor = SemanticColors.Label.textDefault
         style.codeFont = UIFont(name: "Menlo", size: style.baseFont.pointSize) ?? style.baseFont
         style.baseParagraphStyle = ParagraphStyleDescriptor.paragraphSpacing(CGFloat.MessageCell.paragraphSpacing).style
         style.listItemPrefixSpacing = 8
@@ -638,8 +640,8 @@ extension DownStyle {
     /// The style used within the conversation message cells.
     static var normal: DownStyle = {
         let style = DownStyle()
-        style.baseFont = FontSpec(.normal, .light).font!
-        style.baseFontColor = UIColor.from(scheme: .textForeground)
+        style.baseFont = FontSpec.normalLightFont.font!
+        style.baseFontColor = SemanticColors.Label.textDefault
         style.codeFont = UIFont(name: "Menlo", size: style.baseFont.pointSize) ?? style.baseFont
         style.baseParagraphStyle = NSParagraphStyle.default
         style.listItemPrefixSpacing = 8
@@ -649,8 +651,8 @@ extension DownStyle {
     /// The style used within search components.
     static var search: DownStyle = {
         let style = DownStyle()
-        style.baseFont = FontSpec(.normal, .light).font!
-        style.baseFontColor = UIColor.from(scheme: .textForeground, variant: .dark)
+        style.baseFont = FontSpec.normalLightFont.font!
+        style.baseFontColor = SemanticColors.Label.textDefault
         style.codeFont = UIFont(name: "Menlo", size: style.baseFont.pointSize) ?? style.baseFont
         style.baseParagraphStyle = NSParagraphStyle.default
         style.listItemPrefixSpacing = 8
@@ -660,8 +662,8 @@ extension DownStyle {
     /// The style used within the input bar.
     static var compact: DownStyle = {
         let style = DownStyle()
-        style.baseFont = FontSpec(.normal, .light).font!
-        style.baseFontColor = UIColor.from(scheme: .textForeground)
+        style.baseFont = FontSpec.normalLightFont.font!
+        style.baseFontColor = SemanticColors.Label.textDefault
         style.codeFont = UIFont(name: "Menlo", size: style.baseFont.pointSize) ?? style.baseFont
         style.baseParagraphStyle = NSParagraphStyle.default
         style.listItemPrefixSpacing = 8
@@ -677,7 +679,7 @@ extension DownStyle {
     static var preview: DownStyle = {
         let style = DownStyle()
         style.baseFont = UIFont.systemFont(ofSize: 14, contentSizeCategory: .medium, weight: .light)
-        style.baseFontColor = UIColor.from(scheme: .textForeground)
+        style.baseFontColor = SemanticColors.Label.textDefault
         style.codeFont = UIFont(name: "Menlo", size: style.baseFont.pointSize) ?? style.baseFont
         style.baseParagraphStyle = NSParagraphStyle.default
         style.listItemPrefixSpacing = 8
@@ -703,4 +705,13 @@ private extension NSRange {
 
         return range
     }
+}
+
+private extension UIPasteboard {
+
+    var hasText: Bool {
+        /// Image copied from browser can be both NSString and UIImage
+        return hasStrings && !hasImages
+    }
+
 }

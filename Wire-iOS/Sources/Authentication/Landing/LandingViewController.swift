@@ -20,47 +20,43 @@ import UIKit
 import WireSystem
 import WireTransport
 import WireSyncEngine
+import WireCommonComponents
 
 protocol LandingViewControllerDelegate {
     func landingViewControllerDidChooseCreateAccount()
-    func landingViewControllerDidChooseCreateTeam()
     func landingViewControllerDidChooseLogin()
     func landingViewControllerDidChooseEnterpriseLogin()
-    func landingViewControllerDidChooseSSOLogin()
+    func landingViewControllerDidChooseSSOLogin() // to remove ?
+    func landingViewControllerDidChooseInfoBackend()
 }
 
 /// Landing screen for choosing how to authenticate.
 final class LandingViewController: AuthenticationStepViewController {
 
+    var backendEnvironmentProvider: () -> BackendEnvironmentProvider
+
+    var backendEnvironment: BackendEnvironmentProvider {
+        return backendEnvironmentProvider()
+    }
+
+    init(backendEnvironmentProvider: @escaping () -> BackendEnvironmentProvider = { BackendEnvironment.shared }) {
+        self.backendEnvironmentProvider = backendEnvironmentProvider
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: - State
 
     weak var authenticationCoordinator: AuthenticationCoordinator?
 
+    typealias Landing = L10n.Localizable.Landing
+
     var delegate: LandingViewControllerDelegate? {
         return authenticationCoordinator
     }
-
-    // MARK: - UI Styles
-
-    static let semiboldFont = FontSpec(.large, .semibold).font!
-
-    static let buttonTitleAttribute: [NSAttributedString.Key: AnyObject] = {
-        let alignCenterStyle = NSMutableParagraphStyle()
-        alignCenterStyle.alignment = .center
-
-        return [.foregroundColor: UIColor.Team.textColor, .paragraphStyle: alignCenterStyle, .font: semiboldFont]
-    }()
-
-    static let buttonSubtitleAttribute: [NSAttributedString.Key: AnyObject] = {
-        let alignCenterStyle = NSMutableParagraphStyle()
-        alignCenterStyle.alignment = .center
-        alignCenterStyle.paragraphSpacingBefore = 4
-        alignCenterStyle.lineSpacing = 4
-
-        let lightFont = FontSpec(.normal, .light).font!
-
-        return [.foregroundColor: UIColor.Team.textColor, .paragraphStyle: alignCenterStyle, .font: lightFont]
-    }()
 
     // MARK: - UI Elements
 
@@ -80,18 +76,18 @@ final class LandingViewController: AuthenticationStepViewController {
         let imageView = UIImageView(image: image)
         imageView.accessibilityIdentifier = "WireLogo"
         imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = UIColor.Team.textColor
+
+        imageView.tintColor = SemanticColors.Icon.foregroundDefault
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
 
         return imageView
     }()
 
-    private let messageLabel: UILabel = {
-        let label = UILabel(key: "landing.welcome_message".localized,
-                            size: .normal,
-                            weight: .bold,
-                            color: .landingScreen,
-                            variant: .light)
+    private let messageLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: Landing.welcomeMessage,
+                                     fontSpec: .bodyTwoSemibold,
+                                     color: SemanticColors.Label.textDefault)
+
         label.textAlignment = .center
         label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -99,12 +95,10 @@ final class LandingViewController: AuthenticationStepViewController {
         return label
     }()
 
-    private let subMessageLabel: UILabel = {
-        let label = UILabel(key: "landing.welcome_submessage".localized,
-                            size: .normal,
-                            weight: .regular,
-                            color: .landingScreen,
-                            variant: .light)
+    private let subMessageLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: Landing.welcomeSubmessage,
+                                     fontSpec: .mediumRegularFont,
+                                     color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -112,7 +106,7 @@ final class LandingViewController: AuthenticationStepViewController {
         return label
     }()
 
-    private let buttonStackView: UIStackView = {
+    private lazy var buttonStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.distribution = .fillEqually
         stackView.axis = .vertical
@@ -124,10 +118,12 @@ final class LandingViewController: AuthenticationStepViewController {
         return stackView
     }()
 
-    private let loginButton: Button = {
-        let button = Button(style: .full, variant: .light, titleLabelFont: .smallSemiboldFont)
+    private lazy var loginButton: Button = {
+        let button = Button(style: .primaryTextButtonStyle,
+                            cornerRadius: 16,
+                            fontSpec: .buttonBigSemibold)
         button.accessibilityIdentifier = "Login"
-        button.setTitle("landing.login.button.title".localized, for: .normal)
+        button.setTitle(Landing.Login.Button.title, for: .normal)
         button.addTarget(self,
                          action: #selector(loginButtonTapped(_:)),
                          for: .touchUpInside)
@@ -135,12 +131,13 @@ final class LandingViewController: AuthenticationStepViewController {
         return button
     }()
 
-    private let enterpriseLoginButton: Button = {
-        let button = Button(style: .empty,
-                            variant: .light,
-                            titleLabelFont: .smallSemiboldFont)
+    private lazy var enterpriseLoginButton: Button = {
+        let button = Button(style: .secondaryTextButtonStyle,
+                            cornerRadius: 16,
+                            fontSpec: .buttonBigSemibold)
         button.accessibilityIdentifier = "Enterprise Login"
-        button.setTitle("landing.login.enterprise.button.title".localized, for: .normal)
+        button.accessibilityLabel = L10n.Accessibility.Landing.LoginEnterpriseButton.description
+        button.setTitle(Landing.Login.Enterprise.Button.title, for: .normal)
         button.addTarget(self,
                          action: #selector(enterpriseLoginButtonTapped(_:)),
                          for: .touchUpInside)
@@ -148,10 +145,12 @@ final class LandingViewController: AuthenticationStepViewController {
         return button
     }()
 
-    private let loginWithEmailButton: Button = {
-        let button = Button(style: .full, variant: .light, titleLabelFont: .smallSemiboldFont)
+    private lazy var loginWithEmailButton: Button = {
+        let button = Button(style: .primaryTextButtonStyle,
+                            cornerRadius: 16,
+                            fontSpec: .buttonBigSemibold)
         button.accessibilityIdentifier = "Login with email"
-        button.setTitle("landing.login.email.button.title".localized, for: .normal)
+        button.setTitle(Landing.Login.Email.Button.title, for: .normal)
         button.addTarget(self,
                          action: #selector(loginButtonTapped(_:)),
                          for: .touchUpInside)
@@ -159,23 +158,10 @@ final class LandingViewController: AuthenticationStepViewController {
         return button
     }()
 
-    private let loginWithSSOButton: Button = {
-        let button = Button(style: .empty, variant: .light, titleLabelFont: .smallSemiboldFont)
-        button.accessibilityIdentifier = "Log in with SSO"
-        button.setTitle("landing.login.sso.button.title".localized, for: .normal)
-        button.addTarget(self,
-                         action: #selector(ssoLoginButtonTapped(_:)),
-                         for: .touchUpInside)
-
-        return button
-    }()
-
-    private let createAccoutInfoLabel: UILabel = {
-        let label = UILabel(key: "landing.create_account.infotitle".localized,
-                            size: .small,
-                            weight: .regular,
-                            color: .landingScreen,
-                            variant: .light)
+    private let createAccountInfoLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: Landing.CreateAccount.infotitle,
+                                     fontSpec: .mediumRegularFont,
+                                     color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.required, for: .horizontal)
@@ -183,14 +169,12 @@ final class LandingViewController: AuthenticationStepViewController {
         return label
     }()
 
-    private let createAccountButton: Button = {
-        let button = Button(style: .empty,
-                            variant: .light,
-                            titleLabelFont: .smallSemiboldFont)
-        button.setBorderColor(UIColor(white: 1.0, alpha: 0.0), for: .normal)
-        button.setBorderColor(UIColor(white: 1.0, alpha: 0.0), for: .highlighted)
+    private lazy var createAccountButton: Button = {
+        let button = Button(style: .secondaryTextButtonStyle,
+                            cornerRadius: 12,
+                            fontSpec: .buttonSmallBold)
         button.accessibilityIdentifier = "Create An Account"
-        button.setTitle("landing.create_account.title".localized, for: .normal)
+        button.setTitle(Landing.CreateAccount.title, for: .normal)
         button.addTarget(self,
                          action: #selector(createAccountButtonTapped(_:)),
                          for: .touchUpInside)
@@ -209,6 +193,19 @@ final class LandingViewController: AuthenticationStepViewController {
 
         return stackView
     }()
+
+    lazy var customBackendView: CustomBackendView = {
+        let view = CustomBackendView()
+        let tap = UITapGestureRecognizer(target: self, action: #selector(customBackendInfoViewTapped(_:)))
+        view.addGestureRecognizer(tap)
+        view.accessibilityIdentifier = "Custom backend information"
+        return view
+    }()
+
+    @objc
+    func customBackendInfoViewTapped(_: UIGestureRecognizer) {
+        delegate?.landingViewControllerDidChooseInfoBackend()
+    }
 
     // MARK: - Constraints
 
@@ -232,14 +229,14 @@ final class LandingViewController: AuthenticationStepViewController {
         return traitCollection.horizontalSizeClass == .compact ? 0.0 : 24.0
     }
 
-    var createAccoutInfoLabelTopConstraint = NSLayoutConstraint()
-    var createAccoutButtomBottomConstraint = NSLayoutConstraint()
+    var createAccountInfoLabelTopConstraint = NSLayoutConstraint()
+    var createAccountButtomBottomConstraint = NSLayoutConstraint()
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.Team.background
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         configureSubviews()
         configureConstraints()
@@ -248,31 +245,25 @@ final class LandingViewController: AuthenticationStepViewController {
 
         updateBarButtonItem()
         disableTrackingIfNeeded()
-        updateButtons()
         updateCustomBackendLabels()
 
         NotificationCenter.default.addObserver(forName: AccountManagerDidUpdateAccountsNotificationName,
                                                object: SessionManager.shared?.accountManager,
                                                queue: .main) { _ in
-                self.updateBarButtonItem()
-                self.disableTrackingIfNeeded()
+            self.updateBarButtonItem()
+            self.disableTrackingIfNeeded()
         }
 
         NotificationCenter.default.addObserver(forName: BackendEnvironment.backendSwitchNotification,
                                                object: nil,
-                                               queue: .main) { _ in
-            self.updateCustomBackendLabels()
-            self.updateButtons()
+                                               queue: .main) { [weak self] _ in
+            self?.updateCustomBackendLabels()
         }
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         UIAccessibility.post(notification: .screenChanged, argument: logoView)
-    }
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .compatibleDarkContent
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -286,9 +277,7 @@ final class LandingViewController: AuthenticationStepViewController {
     }
 
     private func configureSubviews() {
-        if #available(iOS 11, *) {
-            additionalSafeAreaInsets.top = -44
-        }
+        additionalSafeAreaInsets.top = -44
 
         topStack.addArrangedSubview(logoView)
 
@@ -296,13 +285,13 @@ final class LandingViewController: AuthenticationStepViewController {
 
         contentView.addSubview(messageLabel)
         contentView.addSubview(subMessageLabel)
+
+        buttonStackView.addArrangedSubview(customBackendView)
         buttonStackView.addArrangedSubview(loginButton)
         buttonStackView.addArrangedSubview(enterpriseLoginButton)
-        buttonStackView.addArrangedSubview(loginWithEmailButton)
-        buttonStackView.addArrangedSubview(loginWithSSOButton)
         contentView.addSubview(buttonStackView)
 
-        view.addSubview(createAccoutInfoLabel)
+        view.addSubview(createAccountInfoLabel)
         view.addSubview(createAccountButton)
         view.addSubview(contentView)
     }
@@ -316,14 +305,14 @@ final class LandingViewController: AuthenticationStepViewController {
     private func activateRightConstraint() {
         [contentViewLeadingConstraint,
          contentViewTrailingConstraint,
-         createAccoutButtomBottomConstraint].forEach {
+         createAccountButtomBottomConstraint].forEach {
             $0.isActive = traitCollection.horizontalSizeClass == .compact
         }
 
         [contentViewWidthConstraint,
-         createAccoutInfoLabelTopConstraint].forEach {
-             $0.isActive = traitCollection.horizontalSizeClass != .compact
-         }
+         createAccountInfoLabelTopConstraint].forEach {
+            $0.isActive = traitCollection.horizontalSizeClass != .compact
+        }
     }
 
     private func setConstraintsConstants() {
@@ -342,8 +331,8 @@ final class LandingViewController: AuthenticationStepViewController {
             createAccountButton,
             messageLabel,
             subMessageLabel,
-            createAccoutInfoLabel
-            ].disableAutoresizingMaskTranslation()
+            createAccountInfoLabel
+        ].prepareForLayout()
     }
 
     private func createAndAddConstraints() {
@@ -367,10 +356,10 @@ final class LandingViewController: AuthenticationStepViewController {
         subMessageLabelTrailingConstraint = subMessageLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor,
                                                                                       constant: subMessageLabelConstraintsConstant)
 
-        createAccoutInfoLabelTopConstraint = createAccoutInfoLabel.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor,
+        createAccountInfoLabelTopConstraint = createAccountInfoLabel.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor,
                                                                                         constant: 98)
 
-        createAccoutButtomBottomConstraint = createAccountButton.bottomAnchor.constraint(equalTo: view.safeBottomAnchor,
+        createAccountButtomBottomConstraint = createAccountButton.bottomAnchor.constraint(equalTo: view.safeBottomAnchor,
                                                                                          constant: -35)
 
         NSLayoutConstraint.activate([
@@ -398,7 +387,7 @@ final class LandingViewController: AuthenticationStepViewController {
 
             subMessageLabelLeadingConstraint,
             subMessageLabelTrailingConstraint,
-            subMessageLabel.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -48),
+            subMessageLabel.bottomAnchor.constraint(equalTo: buttonStackView.topAnchor, constant: -32),
 
             // buttons stack view
             buttonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -407,39 +396,26 @@ final class LandingViewController: AuthenticationStepViewController {
 
             enterpriseLoginButton.heightAnchor.constraint(equalToConstant: 48),
             loginButton.heightAnchor.constraint(equalToConstant: 48),
-            loginWithEmailButton.heightAnchor.constraint(equalToConstant: 48),
-            loginWithSSOButton.heightAnchor.constraint(equalToConstant: 48),
 
             // create an label
-            createAccoutInfoLabelTopConstraint, // iPad
-            createAccoutInfoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            createAccoutInfoLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            createAccoutInfoLabel.bottomAnchor.constraint(equalTo: createAccountButton.topAnchor),
+            createAccountInfoLabelTopConstraint, // iPad
+            createAccountInfoLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 5),
+            createAccountInfoLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -5),
+            createAccountInfoLabel.bottomAnchor.constraint(equalTo: createAccountButton.topAnchor, constant: -8),
 
             // create an button
-            createAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            createAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            createAccountButton.heightAnchor.constraint(equalToConstant: 24),
-            createAccoutButtomBottomConstraint // iPhone
+            createAccountButton.leadingAnchor.constraint(equalTo: buttonStackView.leadingAnchor),
+            createAccountButton.trailingAnchor.constraint(equalTo: buttonStackView.trailingAnchor),
+            createAccountButton.heightAnchor.constraint(equalToConstant: 32),
+            createAccountButtomBottomConstraint // iPhone
         ])
-    }
-
-    private func configureRegularSizeClassFont() {
-        messageLabel.font = UIFont.boldSystemFont(ofSize: 24)
-        subMessageLabel.font = FontSpec(.normal, .regular).font
-        createAccoutInfoLabel.font = UIFont.systemFont(ofSize: 14)
-        createAccountButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
     }
 
     // MARK: - Adaptivity Events
 
-    private func updateLogoView() {
-        logoView.isHidden = isCustomBackend
-    }
-
     var isCustomBackend: Bool {
-        switch BackendEnvironment.shared.environmentType.value {
-        case .production, .staging, .qaDemo, .qaDemo2:
+        switch backendEnvironment.environmentType.value {
+        case .production, .staging, .qaDemo, .qaDemo2, .anta, .bella, .chala:
             return false
         case .custom:
             return true
@@ -456,8 +432,6 @@ final class LandingViewController: AuthenticationStepViewController {
         } else {
             topStack.spacing = view.frame.height / 6
         }
-
-        updateLogoView()
     }
 
     private func updateBarButtonItem() {
@@ -466,7 +440,7 @@ final class LandingViewController: AuthenticationStepViewController {
         } else {
             let cancelItem = UIBarButtonItem(icon: .cross, target: self, action: #selector(cancelButtonTapped))
             cancelItem.accessibilityIdentifier = "CancelButton"
-            cancelItem.accessibilityLabel = "general.cancel".localized
+            cancelItem.accessibilityLabel = L10n.Localizable.General.cancel
             navigationItem.rightBarButtonItem = cancelItem
         }
     }
@@ -479,27 +453,19 @@ final class LandingViewController: AuthenticationStepViewController {
     }
 
     private func updateCustomBackendLabels() {
-        switch BackendEnvironment.shared.environmentType.value {
-        case .production, .staging, .qaDemo, .qaDemo2:
-            messageLabel.text = "landing.welcome_message".localized
-            subMessageLabel.text = "landing.welcome_submessage".localized
-        case .custom(url: let url):
+        messageLabel.text = Landing.welcomeMessage
+        subMessageLabel.text = Landing.welcomeSubmessage
+
+        switch backendEnvironment.environmentType.value {
+        case .custom(let url):
             guard SecurityFlags.customBackend.isEnabled else {
                 return
             }
-            messageLabel.text = "landing.custom_backend.title".localized(args: BackendEnvironment.shared.title)
-            subMessageLabel.text = url.absoluteString
+            customBackendView.isHidden = false
+            customBackendView.setBackendUrl(url)
+        default:
+            customBackendView.isHidden = true
         }
-        updateLogoView()
-    }
-
-    private func updateButtons() {
-        enterpriseLoginButton.isHidden = isCustomBackend
-        loginButton.isHidden = isCustomBackend
-        createAccoutInfoLabel.isHidden = isCustomBackend
-        createAccountButton.isHidden = isCustomBackend
-        loginWithSSOButton.isHidden = !isCustomBackend
-        loginWithEmailButton.isHidden = !isCustomBackend
     }
 
     private func disableTrackingIfNeeded() {
@@ -513,7 +479,7 @@ final class LandingViewController: AuthenticationStepViewController {
 
     private func configureAccessibilityElements() {
         logoView.isAccessibilityElement = true
-        logoView.accessibilityLabel = "landing.header".localized
+        logoView.accessibilityLabel = Landing.header
         logoView.accessibilityTraits.insert(.header)
     }
 
@@ -534,11 +500,6 @@ final class LandingViewController: AuthenticationStepViewController {
     }
 
     @objc
-    private func createTeamButtonTapped(_ sender: AnyObject!) {
-        delegate?.landingViewControllerDidChooseCreateTeam()
-    }
-
-    @objc
     private func loginButtonTapped(_ sender: AnyObject!) {
         delegate?.landingViewControllerDidChooseLogin()
     }
@@ -546,11 +507,6 @@ final class LandingViewController: AuthenticationStepViewController {
     @objc
     private func enterpriseLoginButtonTapped(_ sender: AnyObject!) {
         delegate?.landingViewControllerDidChooseEnterpriseLogin()
-    }
-
-    @objc
-    private func ssoLoginButtonTapped(_ sender: AnyObject!) {
-        delegate?.landingViewControllerDidChooseSSOLogin()
     }
 
     @objc

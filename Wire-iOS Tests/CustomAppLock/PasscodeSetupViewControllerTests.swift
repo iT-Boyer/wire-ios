@@ -19,8 +19,14 @@ import XCTest
 @testable import Wire
 import SnapshotTesting
 
-final class PasscodeSetupViewControllerTests: XCTestCase {
+final class PasscodeSetupViewControllerTests: ZMSnapshotTestCase {
     var sut: PasscodeSetupViewController!
+
+    override func setUp() {
+        super.setUp()
+
+        accentColor = .strongBlue
+    }
 
     override func tearDown() {
         sut = nil
@@ -50,16 +56,18 @@ final class PasscodeSetupViewControllerTests: XCTestCase {
     }
 
     func testForInitStateInDarkTheme() {
-        sut = PasscodeSetupViewController(variant: .dark, useCompactLayout: false,
+        sut = PasscodeSetupViewController(useCompactLayout: false,
                                           context: .createPasscode,
                                           callback: nil)
+        sut.overrideUserInterfaceStyle = .dark
         verify(matching: sut)
     }
 
     func testForInitStateInDarkTheme_ifForcedApplock() {
-        sut = PasscodeSetupViewController(variant: .dark, useCompactLayout: false,
+        sut = PasscodeSetupViewController(useCompactLayout: false,
                                           context: .forcedForTeam,
                                           callback: nil)
+        sut.overrideUserInterfaceStyle = .dark
         verify(matching: sut)
     }
 

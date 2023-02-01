@@ -94,6 +94,8 @@ final class ConversationListCell: SwipeMenuCollectionCell,
         setNeedsUpdateConstraints()
 
         AVSMediaManagerClientChangeNotification.add(self)
+        backgroundColor = SemanticColors.View.backgroundConversationListTableViewCell
+        addBorder(for: .bottom)
     }
 
     override func drawerScrollingEnded(withOffset offset: CGFloat) {
@@ -161,7 +163,7 @@ final class ConversationListCell: SwipeMenuCollectionCell,
 
         [itemView, menuDotsView, menuView].prepareForLayout()
 
-        itemView.fitInSuperview()
+        itemView.fitIn(view: swipeView)
 
         if let superview = menuDotsView.superview {
             let menuDotsViewEdges = [

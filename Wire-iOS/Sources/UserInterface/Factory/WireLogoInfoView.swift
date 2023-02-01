@@ -17,13 +17,14 @@
 
 import Foundation
 import UIKit
+import WireCommonComponents
 
 final class WireLogoInfoView: UIView {
     let contentView = UIView()
 
     let headerView: UIView = {
         let view = UIView()
-        view.backgroundColor = .black
+        view.backgroundColor = SemanticColors.View.backgroundDefault
         return view
     }()
 
@@ -46,21 +47,19 @@ final class WireLogoInfoView: UIView {
     }()
 
     let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = FontSpec(.large, .semibold).font!
+        let label = DynamicFontLabel(fontSpec: .largeSemiboldFont,
+                                     color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.accessibilityValue = label.text
-        label.textColor = .black
         return label
     }()
 
     let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.font = FontSpec(.normal, .regular).font!
+        let label = DynamicFontLabel(fontSpec: .normalRegularFont,
+                                     color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.accessibilityValue = label.text
-        label.textColor = .black
         return label
     }()
 
@@ -97,7 +96,7 @@ final class WireLogoInfoView: UIView {
          progressContainerView,
          wireLogo,
          titleLabel,
-         subtitleLabel].disableAutoresizingMaskTranslation()
+         subtitleLabel].prepareForLayout()
 
         NSLayoutConstraint.activate([
             // header view

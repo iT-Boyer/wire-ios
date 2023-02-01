@@ -22,6 +22,10 @@ import WireDataModel
 
 extension ZMConversationMessage {
 
+    var mediaShareRestrictionManager: MediaShareRestrictionManager {
+        return MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared())
+    }
+
     /// Whether the message can be digitally signed in.
     var canBeDigitallySigned: Bool {
         guard
@@ -37,9 +41,12 @@ extension ZMConversationMessage {
 
     /// Whether the message can be copied.
     var canBeCopied: Bool {
-        return SecurityFlags.clipboard.isEnabled
-            && !isEphemeral
-            && (isText || isImage || isLocation)
+        guard canBeShared else {
+            return false
+        }
+        return mediaShareRestrictionManager.canUseClipboard &&
+               !isEphemeral &&
+               (isText || isImage || isLocation)
     }
 
     /// Whether the message can be edited.
@@ -104,12 +111,14 @@ extension ZMConversationMessage {
         return isSentBySelfUser
     }
 
-    /// Wether it is possible to download the message content.
+    /// Whether it is possible to download the message content.
     var canBeDownloaded: Bool {
-        guard let fileMessageData = self.fileMessageData else {
+        guard let fileMessageData = self.fileMessageData,
+              canBeShared,
+              mediaShareRestrictionManager.canDownloadMedia else {
             return false
         }
-        return isFile && fileMessageData.transferState == .uploaded && fileMessageData.downloadState == .remote
+        return isFile && fileMessageData.transferState == .uploaded
     }
 
     var canCancelDownload: Bool {
@@ -119,44 +128,43 @@ extension ZMConversationMessage {
         return isFile && fileMessageData.downloadState == .downloading
     }
 
-    /// Wether the content of the message can be saved to the disk.
+    /// Whether the content of the message can be saved to the disk.
     var canBeSaved: Bool {
-        if isEphemeral || !SecurityFlags.saveMessage.isEnabled {
-            return false
-        }
+        guard canBeShared,
+              !isEphemeral,
+              mediaShareRestrictionManager.canDownloadMedia else {
+                  return false
+              }
 
         if isImage {
             return true
-        }
-        else if isVideo {
+        } else if isVideo {
             return videoCanBeSavedToCameraRoll()
-        }
-        else if isAudio {
+        } else if isAudio {
             return audioCanBeSaved()
-        }
-        else if isFile, let fileMessageData = self.fileMessageData {
+        } else if isFile, let fileMessageData = self.fileMessageData {
             return fileMessageData.fileURL != nil
-        }
-        else {
+        } else {
             return false
         }
     }
 
-    /// Wether it should be possible to forward given message to another conversation.
+    /// Whether it should be possible to forward given message to another conversation.
     var canBeForwarded: Bool {
-        if isEphemeral {
-            return false
-        }
+        guard !isEphemeral,
+              canBeShared,
+              mediaShareRestrictionManager.canUseClipboard else {
+                  return false
+              }
 
         if isFile, let fileMessageData = self.fileMessageData {
             return fileMessageData.fileURL != nil
-        }
-        else {
+        } else {
             return (isText || isImage || isLocation || isFile)
         }
     }
 
-    /// Wether the message sending failed in the past and we can attempt to resend the message.
+    /// Whether the message sending failed in the past and we can attempt to resend the message.
     var canBeResent: Bool {
         guard let conversation = conversationLike,
               let sender = senderUser else {
@@ -168,4 +176,10 @@ extension ZMConversationMessage {
                (isText || isImage || isLocation || isFile) &&
                deliveryState == .failedToSend
     }
+
+    /// Whether the message can be sent or received.
+    var canBeShared: Bool {
+        return !isRestricted
+    }
+
 }

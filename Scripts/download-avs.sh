@@ -24,7 +24,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $DIR/..
 
 source avs-versions
-AVS_FRAMEWORK_NAME="avs.framework"
+AVS_FRAMEWORK_NAME="avs.xcframework"
 
 
 ##################################
@@ -50,7 +50,7 @@ fi
 if [ -z "${AVS_VERSION}" ]; then
 	LATEST_VERSION_PATH="https://api.github.com/repos/${AVS_REPO}/releases/latest"
 	# need to get tag of last version
-	AVS_VERSION=`curl -sLJ -u "${CREDENTIALS}" "${LATEST_VERSION_PATH}" | python -c 'import json; import sys; print json.load(sys.stdin)["tag_name"]'`
+	AVS_VERSION=`curl -sLJ -u "${CREDENTIALS}" "${LATEST_VERSION_PATH}" | python3 -c 'import json; import sys; print(json.load(sys.stdin)["tag_name"])'`
 	if [ -z "${AVS_VERSION}" ]; then
 		echo "❌  Can't find latest version for ${LATEST_VERSION_PATH} ⚠️"
 		exit 1
@@ -61,11 +61,13 @@ fi
 AVS_FILENAME="${AVS_FRAMEWORK_NAME}-${AVS_VERSION}.zip"
 AVS_RELEASE_TAG_PATH="https://api.github.com/repos/${AVS_REPO}/releases/tags/${AVS_VERSION}"
 
+echo "ℹ️  going to download file and save to AVS_FILENAME: ${AVS_FILENAME}"
+
 ##################################
 # SET UP FOLDERS
 ##################################
 LIBS_PATH=./Libraries
-CARTHAGE_BUILD_PATH=./Carthage/Build/iOS
+CARTHAGE_BUILD_PATH=./Carthage/Build
 
 pushd $CARTHAGE_BUILD_PATH > /dev/null
 
@@ -109,7 +111,7 @@ else
 	# Get tag json: need to parse json to get assed URL
 	TEMP_FILE=`mktemp`
 	curl -sLJ -u "${CREDENTIALS}" "${AVS_RELEASE_TAG_PATH}" -o "${TEMP_FILE}"
-	ASSET_URL=`cat ${TEMP_FILE} | python -c 'import json; import sys; print json.load(sys.stdin)["assets"][0]["url"]'`
+	ASSET_URL=`cat ${TEMP_FILE} | python3 -c 'import json; import sys; print(json.load(sys.stdin)["assets"][0]["url"])'`
 	rm "${TEMP_FILE}"
 	if [ -z "${ASSET_URL}" ]; then
 		echo "❌  Can't fetch release ${AVS_VERSION} ⚠️"
@@ -132,23 +134,11 @@ fi
 echo "ℹ️  Installing in ${CARTHAGE_BUILD_PATH}/${AVS_FRAMEWORK_NAME}..."
 mkdir "${AVS_FRAMEWORK_NAME}"
 
-if ! unzip "${AVS_FILENAME}" "Carthage/Build/iOS/*" > /dev/null; then
-	rm -fr "${AVS_FILENAME}"
+if ! unzip "${AVS_FILENAME}" > /dev/null; then
 	echo "❌  Failed to install, is the downloaded file valid? ⚠️"
 	exit 1
 fi
 
-if ! mv "${CARTHAGE_BUILD_PATH}/${AVS_FRAMEWORK_NAME}" .; then
-	rm -rf "Carthage"
-	echo "❌  Failed to unpack framework, is the downloaded file valid? ⚠️"
-	exit 1
-fi
-
-if ! mv "${CARTHAGE_BUILD_PATH}/${AVS_FRAMEWORK_NAME}.dSYM" .; then
-	echo "ℹ️  Debug symbols not found, crash reports will have to be symbolicated manually! ⚠️"
-fi
-
-rm -rf "Carthage"
 
 echo "✅  Done"
 

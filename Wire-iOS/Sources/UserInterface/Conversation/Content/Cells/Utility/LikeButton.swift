@@ -17,17 +17,21 @@
 //
 
 import Foundation
-import Cartography
+import UIKit
 
 final class LikeButton: IconButton {
+    // MARK: Properties
+    typealias LikeButtonColors = SemanticColors.Button
+
     static var normalColor: UIColor {
-        return UIColor.from(scheme: .textDimmed)
+        return LikeButtonColors.backgroundLikeEnabled
     }
 
     static var selectedColor: UIColor {
-        return UIColor(for: .vividRed)
+        return LikeButtonColors.backgroundLikeHighlighted
     }
 
+    // MARK: Configuration
     func setSelected(_ selected: Bool, animated: Bool) {
         // Do not animate changes if the state does not change
         guard selected != self.isSelected else {
@@ -42,8 +46,7 @@ final class LikeButton: IconButton {
             let prevState: UIControl.State
             if self.isSelected {
                 prevState = .selected
-            }
-            else {
+            } else {
                 prevState = []
             }
 
@@ -77,8 +80,7 @@ final class LikeButton: IconButton {
                         imageView.alpha = 1
                         self.isSelected = selected
                     })
-            }
-            else {
+            } else {
 
                 UIView.animate(easing: .easeInExpo, duration: 0.35, animations: {
                     animationImageView.transform = CGAffineTransform(scaleX: 6.3, y: 6.3)
@@ -95,8 +97,7 @@ final class LikeButton: IconButton {
             }
 
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
-        else {
+        } else {
             self.isSelected = selected
         }
     }

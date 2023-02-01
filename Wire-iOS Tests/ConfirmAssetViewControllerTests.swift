@@ -20,13 +20,12 @@ import XCTest
 import FLAnimatedImage
 @testable import Wire
 
-final class ConfirmAssetViewControllerTests: XCTestCase {
+final class ConfirmAssetViewControllerTests: ZMSnapshotTestCase {
 
     var sut: ConfirmAssetViewController!
 
     override func setUp() {
         super.setUp()
-        ColorScheme.default.variant = .light
     }
 
     override func tearDown() {

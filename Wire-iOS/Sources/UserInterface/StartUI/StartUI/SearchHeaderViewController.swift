@@ -17,68 +17,61 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireDataModel
 
-protocol SearchHeaderViewControllerDelegate: class {
+protocol SearchHeaderViewControllerDelegate: AnyObject {
     func searchHeaderViewController(_ searchHeaderViewController: SearchHeaderViewController, updatedSearchQuery query: String)
     func searchHeaderViewControllerDidConfirmAction(_ searchHeaderViewController: SearchHeaderViewController)
 }
 
-class SearchHeaderViewController: UIViewController {
+final class SearchHeaderViewController: UIViewController {
 
     let tokenFieldContainer = UIView()
     let tokenField = TokenField()
     let searchIcon = UIImageView()
     let clearButton: IconButton
     let userSelection: UserSelection
-    let colorSchemeVariant: ColorSchemeVariant
     var allowsMultipleSelection: Bool = true
 
     weak var delegate: SearchHeaderViewControllerDelegate?
-
     var query: String {
         return tokenField.filterText
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    init(userSelection: UserSelection, variant: ColorSchemeVariant) {
+    init(userSelection: UserSelection) {
         self.userSelection = userSelection
-        self.colorSchemeVariant = variant
-        self.clearButton = IconButton(style: .default, variant: variant)
+        clearButton = IconButton(style: .default)
 
         super.init(nibName: nil, bundle: nil)
 
         userSelection.add(observer: self)
+        tokenField.tokenTitleColor = SemanticColors.SearchBar.textInputView.resolvedColor(with: traitCollection)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
-        searchIcon.setIcon(.search, size: .tiny, color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant))
+        searchIcon.setTemplateIcon(.search, size: .tiny)
+        searchIcon.tintColor = SemanticColors.SearchBar.backgroundButton
 
-        clearButton.accessibilityLabel = "clear"
+        clearButton.accessibilityLabel = L10n.Accessibility.SearchView.ClearButton.description
         clearButton.setIcon(.clearInput, size: .tiny, for: .normal)
         clearButton.addTarget(self, action: #selector(onClearButtonPressed), for: .touchUpInside)
-        clearButton.alpha = 0.4
         clearButton.isHidden = true
+        clearButton.setIconColor(SemanticColors.SearchBar.backgroundButton, for: .normal)
 
-        tokenField.layer.cornerRadius = 4
-        tokenField.textColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        tokenField.tokenTitleColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        tokenField.tokenSelectedTitleColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        tokenField.clipsToBounds = true
-        tokenField.textView.placeholderTextColor = UIColor.from(scheme: .tokenFieldTextPlaceHolder, variant: colorSchemeVariant)
-        tokenField.textView.backgroundColor = UIColor.from(scheme: .tokenFieldBackground, variant: colorSchemeVariant)
         tokenField.textView.accessibilityIdentifier = "textViewSearch"
-        tokenField.textView.placeholder = "peoplepicker.search_placeholder".localized(uppercased: true)
-        tokenField.textView.keyboardAppearance = ColorScheme.keyboardAppearance(for: colorSchemeVariant)
+        tokenField.tokenTitleColor = SemanticColors.SearchBar.textInputView.resolvedColor(with: traitCollection)
+        tokenField.textView.placeholder = L10n.Localizable.Peoplepicker.searchPlaceholder.capitalized
+        tokenField.textView.keyboardAppearance = .default
         tokenField.textView.returnKeyType = .done
         tokenField.textView.autocorrectionType = .no
         tokenField.textView.textContainerInset = UIEdgeInsets(top: 9, left: 40, bottom: 11, right: 32)
@@ -91,40 +84,36 @@ class SearchHeaderViewController: UIViewController {
     }
 
     private func createConstraints() {
-        constrain(tokenFieldContainer, tokenField, searchIcon, clearButton) { container, tokenField, searchIcon, clearButton in
-            searchIcon.centerY == tokenField.centerY
-            searchIcon.leading == tokenField.leading + 8
+        [tokenFieldContainer, tokenField, searchIcon, clearButton, tokenFieldContainer].prepareForLayout()
+        NSLayoutConstraint.activate([
+          searchIcon.centerYAnchor.constraint(equalTo: tokenField.centerYAnchor),
+          searchIcon.leadingAnchor.constraint(equalTo: tokenField.leadingAnchor, constant: 16),
 
-            clearButton.width == 32
-            clearButton.height == clearButton.width
-            clearButton.centerY == tokenField.centerY
-            clearButton.trailing == tokenField.trailing
+          clearButton.widthAnchor.constraint(equalToConstant: 16),
+          clearButton.heightAnchor.constraint(equalTo: clearButton.widthAnchor),
+          clearButton.centerYAnchor.constraint(equalTo: tokenField.centerYAnchor),
+          clearButton.trailingAnchor.constraint(equalTo: tokenField.trailingAnchor, constant: -16),
 
-            tokenField.height >= 40
-            tokenField.top >= container.top + 8
-            tokenField.bottom <= container.bottom - 8
-            tokenField.leading == container.leading + 8
-            tokenField.trailing == container.trailing - 8
-            tokenField.centerY == container.centerY
-        }
+          tokenField.heightAnchor.constraint(greaterThanOrEqualToConstant: 40),
+          tokenField.topAnchor.constraint(greaterThanOrEqualTo: tokenFieldContainer.topAnchor, constant: 8),
+          tokenField.bottomAnchor.constraint(lessThanOrEqualTo: tokenFieldContainer.bottomAnchor, constant: -8),
+          tokenField.leadingAnchor.constraint(equalTo: tokenFieldContainer.leadingAnchor, constant: 8),
+          tokenField.trailingAnchor.constraint(equalTo: tokenFieldContainer.trailingAnchor, constant: -8),
+          tokenField.centerYAnchor.constraint(equalTo: tokenFieldContainer.centerYAnchor),
 
         // pin to the bottom of the navigation bar
 
-        if #available(iOS 11.0, *) {
-            tokenFieldContainer.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-        } else {
-            tokenFieldContainer.topAnchor.constraint(equalTo: self.topLayoutGuide.bottomAnchor).isActive = true
-        }
+        tokenFieldContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 
-        constrain(view, tokenFieldContainer) { view, tokenFieldContainer in
-            tokenFieldContainer.bottom == view.bottom
-            tokenFieldContainer.leading == view.leading
-            tokenFieldContainer.trailing == view.trailing
-            tokenFieldContainer.height == 56
-        }
+          tokenFieldContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+          tokenFieldContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+          tokenFieldContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+          tokenFieldContainer.heightAnchor.constraint(equalToConstant: 56)
+        ])
     }
 
-    @objc private dynamic func onClearButtonPressed() {
+    @objc
+    private func onClearButtonPressed() {
         tokenField.clearFilterText()
         tokenField.removeAllTokens()
         resetQuery()

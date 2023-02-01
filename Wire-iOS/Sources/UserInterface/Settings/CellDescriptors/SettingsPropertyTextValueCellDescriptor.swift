@@ -23,7 +23,7 @@ import UIKit
 private let zmLog = ZMSLog(tag: "UI")
 
 class SettingsPropertyTextValueCellDescriptor: SettingsPropertyCellDescriptorType {
-    static let cellType: SettingsTableCell.Type = SettingsTextCell.self
+    static let cellType: SettingsTableCellProtocol.Type = SettingsTextCell.self
     var title: String {
         return settingsProperty.propertyName.settingsPropertyLabelText
     }
@@ -42,19 +42,18 @@ class SettingsPropertyTextValueCellDescriptor: SettingsPropertyCellDescriptorTyp
         guard let textCell = cell as? SettingsTextCell else { return }
 
         if let stringValue = settingsProperty.rawValue() as? String {
-            textCell.textInput.text = stringValue
+            textCell.textInput.text = stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
         if settingsProperty.enabled {
-            textCell.textInput.isUserInteractionEnabled = true
             textCell.textInput.accessibilityTraits.remove(.staticText)
             textCell.textInput.accessibilityIdentifier = title + "Field"
         } else {
-            textCell.textInput.isUserInteractionEnabled = false
             textCell.textInput.accessibilityTraits.insert(.staticText)
             textCell.textInput.accessibilityIdentifier = title + "FieldDisabled"
         }
 
+        textCell.textInput.isEnabled = settingsProperty.enabled
         textCell.textInput.isAccessibilityElement = true
     }
 
@@ -63,8 +62,7 @@ class SettingsPropertyTextValueCellDescriptor: SettingsPropertyCellDescriptorTyp
 
             do {
                 try self.settingsProperty << SettingsPropertyValue.string(value: stringValue)
-            }
-            catch let error as NSError {
+            } catch let error as NSError {
 
                 // specific error message for name string is too short
                 if error.domain == ZMObjectValidationErrorDomain &&
@@ -78,8 +76,7 @@ class SettingsPropertyTextValueCellDescriptor: SettingsPropertyCellDescriptorTyp
                     UIApplication.shared.topmostViewController(onlyFullScreen: false)?.showAlert(for: error)
                 }
 
-            }
-            catch let generalError {
+            } catch let generalError {
                 zmLog.error("Error setting property: \(generalError)")
             }
         }

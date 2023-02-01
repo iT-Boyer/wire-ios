@@ -17,14 +17,16 @@
 //
 
 import UIKit
-import Cartography
 import WireCommonComponents
 import WireDataModel
 
 final class ProfileTitleView: UIView {
 
+    typealias LabelColors = SemanticColors.Label
+
     let verifiedImageView = UIImageView(image: WireStyleKit.imageOfShieldverified)
-    private let titleLabel = UILabel()
+    private let titleLabel = DynamicFontLabel(fontSpec: .normalMediumFont,
+                                              color: LabelColors.textDefault)
 
     var showVerifiedShield = false {
         didSet {
@@ -39,6 +41,7 @@ final class ProfileTitleView: UIView {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -55,21 +58,23 @@ final class ProfileTitleView: UIView {
     }
 
     private func createConstraints() {
-        constrain(self, titleLabel, verifiedImageView) { container, titleLabel, verifiedImageView in
-            titleLabel.top == container.top
-            titleLabel.bottom == container.bottom
-            titleLabel.leading == container.leading
-            titleLabel.trailing == container.trailing
+        [titleLabel, verifiedImageView].prepareForLayout()
+        NSLayoutConstraint.activate([
+          titleLabel.topAnchor.constraint(equalTo: topAnchor),
+          titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+          titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
+          titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
 
-            verifiedImageView.centerY == titleLabel.centerY
-            verifiedImageView.leading == titleLabel.trailing + 10
-        }
+          verifiedImageView.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+          verifiedImageView.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 10)
+        ])
     }
 
-    func configure(with user: UserType, variant: ColorSchemeVariant) {
-        let attributedTitle = user.nameIncludingAvailability(color: UIColor.from(scheme: .textForeground, variant: variant), selfUser: ZMUser.selfUser())
+    func configure(with user: UserType) {
+        let attributedTitle = user.nameIncludingAvailability(color: LabelColors.textDefault,
+                                                             selfUser: ZMUser.selfUser())
         titleLabel.attributedText = attributedTitle
-        titleLabel.font = FontSpec(.normal, .medium).font!
+        setupAccessibility()
     }
 
     private func updateVerifiedShield() {
@@ -79,6 +84,12 @@ final class ProfileTitleView: UIView {
             options: .transitionCrossDissolve,
             animations: { self.verifiedImageView.isHidden = !self.showVerifiedShield }
         )
+    }
+
+    private func setupAccessibility() {
+        isAccessibilityElement = true
+        accessibilityTraits = .header
+        accessibilityLabel = titleLabel.text
     }
 
 }

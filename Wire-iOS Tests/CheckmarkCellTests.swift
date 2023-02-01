@@ -50,6 +50,7 @@ final class CheckmarkCellTests: XCTestCase {
         cell.title = "Option A"
         cell.showCheckmark = false
         cell.colorSchemeVariant = .dark
+        cell.overrideUserInterfaceStyle = .dark
         verify(matching: cell)
     }
 
@@ -65,6 +66,7 @@ final class CheckmarkCellTests: XCTestCase {
         cell.title = "Option B"
         cell.showCheckmark = true
         cell.colorSchemeVariant = .dark
+        cell.overrideUserInterfaceStyle = .dark
         verify(matching: cell)
     }
 }

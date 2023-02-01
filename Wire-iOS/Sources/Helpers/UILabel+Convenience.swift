@@ -17,6 +17,7 @@
 //
 
 import UIKit
+import WireCommonComponents
 
 extension UILabel {
     convenience init(
@@ -25,11 +26,11 @@ extension UILabel {
         weight: FontWeight = .regular,
         color: ColorSchemeColor,
         variant: ColorSchemeVariant = ColorScheme.default.variant) {
-        self.init(frame: .zero)
-        text = key.map { $0.localized }
-        font = FontSpec(size, weight).font
-        textColor = UIColor.from(scheme: color, variant: variant)
-    }
+            self.init(frame: .zero)
+            text = key.map { $0.localized }
+            font = FontSpec(size, weight).font
+            textColor = UIColor.from(scheme: color, variant: variant)
+        }
 
     func configMultipleLineLabel() {
         numberOfLines = 0
@@ -38,12 +39,8 @@ extension UILabel {
         setContentCompressionResistancePriority(.required, for: .vertical)
     }
 
-    static func createMultiLineCenterdLabel(variant: ColorSchemeVariant? = nil) -> UILabel {
-        let label = UILabel(key: nil,
-                            size: .large,
-                            weight: .semibold,
-                            color: .textForeground,
-                            variant: variant ?? ColorScheme.default.variant)
+    static func createMultiLineCenterdLabel() -> UILabel {
+        let label = DynamicFontLabel(fontSpec: .largeSemiboldFont, color: SemanticColors.Label.textDefault)
         label.textAlignment = .center
         label.configMultipleLineLabel()
 
@@ -52,11 +49,11 @@ extension UILabel {
 
     // MARK: - passcode label factory
 
-    static func createHintLabel(variant: ColorSchemeVariant) -> UILabel {
+    static func createHintLabel() -> UILabel {
         let label = UILabel()
 
-        label.font = UIFont.smallRegularFont.withSize(10)
-        label.textColor = UIColor.from(scheme: .textForeground, variant: variant)
+        label.font = FontSpec.smallRegularFont.font!
+        label.textColor = SemanticColors.Label.textDefault
 
         let leadingMargin: CGFloat = CGFloat.AccessoryTextField.horizonalInset
 

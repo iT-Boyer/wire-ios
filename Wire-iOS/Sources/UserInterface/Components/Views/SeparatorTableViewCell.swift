@@ -19,7 +19,9 @@
 import Foundation
 import UIKit
 
-class SeparatorTableViewCell: UITableViewCell, SeparatorViewProtocol, Themeable {
+class SeparatorTableViewCell: UITableViewCell, SeparatorViewProtocol {
+
+    typealias CellColors = SemanticColors.View
 
     let separator = UIView()
     var separatorInsetConstraint: NSLayoutConstraint!
@@ -46,56 +48,33 @@ class SeparatorTableViewCell: UITableViewCell, SeparatorViewProtocol, Themeable 
         configureSubviews()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {
         setUp()
 
         separator.translatesAutoresizingMaskIntoConstraints = false
+        separator.backgroundColor = CellColors.backgroundSeparatorCell
+        backgroundColor = CellColors.backgroundUserCell
+
         contentView.addSubview(separator)
 
         createSeparatorConstraints()
-        applyColorScheme(ColorScheme.default.variant)
     }
 
     func setUp() {
         // can be overriden to customize interface
     }
 
-    // MARK: - Themable
-
     override var isHighlighted: Bool {
         didSet {
             backgroundColor = isHighlighted
-                ? UIColor(white: 0, alpha: 0.08)
-                : contentBackgroundColor(for: colorSchemeVariant)
+                ? CellColors.backgroundUserCellHightLighted
+                : CellColors.backgroundUserCell
         }
-    }
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    // if nil the background color is the default content background color for the theme
-    @objc dynamic var contentBackgroundColor: UIColor? = nil {
-        didSet {
-            guard oldValue != contentBackgroundColor else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        separator.backgroundColor = UIColor.from(scheme: .separator, variant: colorSchemeVariant)
-    }
-
-    final func contentBackgroundColor(for colorSchemeVariant: ColorSchemeVariant) -> UIColor {
-        return contentBackgroundColor ?? UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
     }
 
 }

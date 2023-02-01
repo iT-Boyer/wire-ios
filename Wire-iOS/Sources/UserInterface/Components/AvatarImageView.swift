@@ -113,9 +113,7 @@ class AvatarImageView: UIControl {
     }
 
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
-        configureConstraints()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {

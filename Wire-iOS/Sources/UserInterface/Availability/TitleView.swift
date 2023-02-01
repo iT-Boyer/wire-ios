@@ -17,42 +17,51 @@
 //
 
 import UIKit
-import Cartography
 import WireCommonComponents
 
-class TitleView: UIView {
+class TitleView: UIView, DynamicTypeCapable {
 
-    internal var titleColor, titleColorSelected: UIColor?
-    internal var titleFont: UIFont?
-    internal let titleButton = UIButton()
+    // MARK: - Properties
+    var titleColor: UIColor?
+    var titleFont: FontSpec?
     var tapHandler: ((UIButton) -> Void)?
 
-    public init(color: UIColor? = nil, selectedColor: UIColor? = nil, font: UIFont? = nil) {
-        super.init(frame: CGRect.zero)
-        self.isAccessibilityElement = true
-        self.accessibilityIdentifier = "Name"
+    private let stackView = UIStackView(axis: .vertical)
+    let titleButton = UIButton()
+    private let subtitleLabel = UILabel()
 
-        if let color = color, let selectedColor = selectedColor, let font = font {
-            self.titleColor = color
-            self.titleColorSelected = selectedColor
-            self.titleFont = font
+    // MARK: - Initialization
+    init(color: UIColor? = nil, fontSpec: FontSpec? = nil) {
+        super.init(frame: CGRect.zero)
+        isAccessibilityElement = true
+        accessibilityIdentifier = "Name"
+
+        if let color = color, let font = fontSpec {
+            titleColor = color
+            titleFont = font
         }
 
         createViews()
     }
 
+    // MARK: - Private methods
     private func createConstraints() {
-        constrain(self, titleButton) { view, button in
-            button.edges == view.edges
-        }
+        [titleButton, stackView, subtitleLabel].prepareForLayout()
+
+        stackView.fitIn(view: self)
     }
 
     private func createViews() {
         titleButton.addTarget(self, action: #selector(titleButtonTapped), for: .touchUpInside)
-        addSubview(titleButton)
+        stackView.distribution = .fillProportionally
+        stackView.alignment = .center
+        addSubview(stackView)
+        [titleButton, subtitleLabel].forEach(stackView.addArrangedSubview)
     }
 
-    @objc func titleButtonTapped(_ sender: UIButton) {
+    // MARK: - Methods
+    @objc
+    func titleButtonTapped(_ sender: UIButton) {
         tapHandler?(sender)
     }
 
@@ -60,40 +69,44 @@ class TitleView: UIView {
     /// - parameter conversation: The conversation for which the view should be configured
     /// - parameter interactive: Whether the view should react to user interaction events
     /// - return: Whether the view contains any `NSTextAttachments`
-    internal func configure(icon: NSTextAttachment?, title: String, interactive: Bool, showInteractiveIcon: Bool = true) {
-        configure(icons: icon == nil ? [] : [icon!], title: title, interactive: interactive, showInteractiveIcon: showInteractiveIcon)
+    func configure(icon: NSTextAttachment?, title: String, subtitle: String? = nil, interactive: Bool, showInteractiveIcon: Bool = true) {
+        configure(icons: icon == nil ? [] : [icon!], title: title, subtitle: subtitle, interactive: interactive, showInteractiveIcon: showInteractiveIcon)
     }
 
-    internal func configure(icons: [NSTextAttachment], title: String, interactive: Bool, showInteractiveIcon: Bool = true) {
+    func configure(icons: [NSTextAttachment], title: String, subtitle: String? = nil, interactive: Bool, showInteractiveIcon: Bool = true) {
 
-        guard let font = titleFont, let color = titleColor, let selectedColor = titleColorSelected else { return }
+        guard let font = titleFont, let color = titleColor else { return }
         let shouldShowInteractiveIcon = interactive && showInteractiveIcon
-        let normalLabel = IconStringsBuilder.iconString(with: icons, title: title, interactive: shouldShowInteractiveIcon, color: color)
-        let selectedLabel = IconStringsBuilder.iconString(with: icons, title: title, interactive: shouldShowInteractiveIcon, color: selectedColor)
+        let normalLabel = IconStringsBuilder.iconString(with: icons, title: title, interactive: shouldShowInteractiveIcon, color: color, titleFont: titleFont?.font)
 
-        titleButton.titleLabel!.font = font
+        titleButton.titleLabel!.font = font.font
         titleButton.setAttributedTitle(normalLabel, for: [])
-        titleButton.setAttributedTitle(selectedLabel, for: .highlighted)
-        titleButton.sizeToFit()
         titleButton.isEnabled = interactive
         titleButton.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 1000), for: .vertical)
-        accessibilityLabel = titleButton.titleLabel?.text
-        frame = CGRect(origin: frame.origin, size: titleButton.bounds.size)
+
+        subtitleLabel.isHidden = subtitle == nil
+        subtitleLabel.text = subtitle
+        subtitleLabel.font = .smallLightFont
+
         createConstraints()
-        setNeedsLayout()
-        layoutIfNeeded()
     }
 
-    public required init?(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    func redrawFont() {
+        titleButton.titleLabel!.font = titleFont?.font
+    }
 }
 
+// MARK: NSTextAttachment Extension
 extension NSTextAttachment {
-    static func downArrow(color: UIColor) -> NSTextAttachment {
+    static func downArrow(color: UIColor, size: StyleKitIcon.Size = .nano) -> NSTextAttachment {
         let attachment = NSTextAttachment()
-        attachment.image = StyleKitIcon.downArrow.makeImage(size: 8, color: color)
+        attachment.image = StyleKitIcon.downArrow.makeImage(
+            size: size,
+            color: SemanticColors.Icon.foregroundPlainDownArrow).withRenderingMode(.alwaysTemplate)
         return attachment
     }
 }

@@ -18,6 +18,7 @@
 
 import Foundation
 import WireSyncEngine
+import WireCommonComponents
 
 final class TopPeopleCell: UICollectionViewCell {
 
@@ -40,7 +41,7 @@ final class TopPeopleCell: UICollectionViewCell {
     var displayName: String = "" {
         didSet {
             accessibilityValue = displayName
-            nameLabel.text = displayName.localizedUppercase
+            nameLabel.text = displayName.localized
         }
     }
 
@@ -66,6 +67,7 @@ final class TopPeopleCell: UICollectionViewCell {
         updateForContext()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -99,24 +101,31 @@ final class TopPeopleCell: UICollectionViewCell {
             [contentView, badgeUserImageView, avatarContainer, conversationImageView, nameLabel].prepareForLayout()
 
             var constraints: [NSLayoutConstraint] = []
+            constraints.append(contentsOf: [contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+                                            contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+                                            contentView.topAnchor.constraint(equalTo: topAnchor),
+                                            contentView.bottomAnchor.constraint(equalTo: bottomAnchor)])
 
-            constraints.append(contentsOf: contentView.fitInSuperview(activate: false).values)
-            constraints.append(contentsOf: badgeUserImageView.fitInSuperview(activate: false).values)
+            constraints.append(contentsOf: [badgeUserImageView.trailingAnchor.constraint(equalTo: avatarContainer.trailingAnchor),
+                                            badgeUserImageView.leadingAnchor.constraint(equalTo: avatarContainer.leadingAnchor),
+                                            badgeUserImageView.topAnchor.constraint(equalTo: avatarContainer.topAnchor),
+                                            badgeUserImageView.bottomAnchor.constraint(equalTo: avatarContainer.bottomAnchor)])
 
-            conversationImageViewSize = conversationImageView.setDimensions(length: 80, activate: false)[.width]
-            avatarViewSizeConstraint = avatarContainer.setDimensions(length: 80, activate: false)[.width]
-
+            conversationImageViewSize = conversationImageView.widthAnchor.constraint(equalToConstant: 80)
+            avatarViewSizeConstraint = avatarContainer.widthAnchor.constraint(equalToConstant: 80)
             constraints.append(conversationImageViewSize!)
             constraints.append(avatarViewSizeConstraint!)
 
-            constraints.append(contentsOf: avatarContainer.fitInSuperview(exclude: [.bottom, .trailing], activate: false).values)
-            constraints.append(contentsOf: conversationImageView.fitInSuperview(exclude: [.bottom, .trailing], activate: false).values)
+            constraints.append(contentsOf: [avatarContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                                            avatarContainer.topAnchor.constraint(equalTo: contentView.topAnchor)])
 
-            constraints.append(nameLabel.topAnchor.constraint(equalTo: avatarContainer.bottomAnchor, constant: 8))
+            constraints.append(contentsOf: [conversationImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+                                            conversationImageView.topAnchor.constraint(equalTo: contentView.topAnchor)])
 
-            constraints.append(contentsOf: nameLabel.pin(to: avatarContainer,
-                                                         with: EdgeInsets(top: .nan, leading: 0, bottom: .nan, trailing: 0),
-                                                         exclude: [.top, .bottom], activate: false).values)
+            constraints.append(nameLabel.topAnchor.constraint(equalTo: avatarContainer.bottomAnchor, constant: 4))
+
+            nameLabel.trailingAnchor.constraint(equalTo: avatarContainer.trailingAnchor).isActive = true
+            nameLabel.leadingAnchor.constraint(equalTo: avatarContainer.leadingAnchor).isActive = true
 
             NSLayoutConstraint.activate(constraints)
             initialConstraintsCreated = true
@@ -128,8 +137,8 @@ final class TopPeopleCell: UICollectionViewCell {
     }
 
     private func updateForContext() {
-        nameLabel.font = .smallLightFont
-        nameLabel.textColor = ColorScheme.default.color(named: .textForeground, variant: .dark)
+        nameLabel.font = FontSpec.bodyTwoSemibold.font!
+        nameLabel.textColor = SemanticColors.Label.textDefault
 
         badgeUserImageView.badgeColor = .white
 

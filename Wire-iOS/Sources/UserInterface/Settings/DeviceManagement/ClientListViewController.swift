@@ -18,6 +18,7 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "UI")
 
@@ -35,12 +36,6 @@ final class ClientListViewController: UIViewController,
     var clientsTableView: UITableView?
     let topSeparator = OverflowSeparatorView()
     weak var delegate: ClientListViewControllerDelegate?
-
-    var variant: ColorSchemeVariant? {
-        didSet {
-            setColor(for: variant)
-        }
-    }
 
     var editingList: Bool = false {
         didSet {
@@ -84,12 +79,18 @@ final class ClientListViewController: UIViewController,
 
     var leftBarButtonItem: UIBarButtonItem? {
         if self.isIPadRegular() {
-            return UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(ClientListViewController.backPressed(_:)))
+            return UIBarButtonItem.createNavigationRightBarButtonItem(
+                systemImage: true,
+                target: self,
+                action: #selector(ClientListViewController.backPressed(_:)))
         }
 
         if let rootViewController = self.navigationController?.viewControllers.first,
             self.isEqual(rootViewController) {
-            return UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(ClientListViewController.backPressed(_:)))
+            return UIBarButtonItem.createNavigationRightBarButtonItem(
+                systemImage: true,
+                target: self,
+                action: #selector(ClientListViewController.backPressed(_:)))
         }
 
         return nil
@@ -100,14 +101,10 @@ final class ClientListViewController: UIViewController,
                   credentials: ZMEmailCredentials? = .none,
                   detailedView: Bool = false,
                   showTemporary: Bool = true,
-                  showLegalHold: Bool = true,
-                  variant: ColorSchemeVariant? = .none) {
+                  showLegalHold: Bool = true) {
         self.selfClient = selfClient
         self.detailedView = detailedView
         self.credentials = credentials
-        defer {
-            self.variant = variant
-        }
 
         clientFilter = {
             $0 != selfClient && (showTemporary || $0.type != .temporary) && (showLegalHold || $0.type != .legalHold)
@@ -119,7 +116,7 @@ final class ClientListViewController: UIViewController,
         }
 
         super.init(nibName: nil, bundle: nil)
-        title = "registration.devices.title".localized(uppercased: true)
+        setupControllerTitle()
 
         self.initalizeProperties(clientsList ?? Array(ZMUser.selfUser().clients.filter { !$0.isSelfClient() }))
         self.clientsObserverToken = ZMUserSession.shared()?.addClientUpdateObserver(self)
@@ -162,6 +159,8 @@ final class ClientListViewController: UIViewController,
         self.createConstraints()
 
         self.navigationItem.leftBarButtonItem = leftBarButtonItem
+        self.navigationItem.backBarButtonItem?.accessibilityLabel = L10n.Accessibility.ClientsList.BackButton.description
+        setColor()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -182,14 +181,10 @@ final class ClientListViewController: UIViewController,
         isLoadingViewVisible = false
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-
     func openDetailsOfClient(_ client: UserClient) {
         if let navigationController = self.navigationController {
-            let clientViewController = SettingsClientViewController(userClient: client, credentials: self.credentials, variant: variant)
-            clientViewController.view.backgroundColor = self.view.backgroundColor
+            let clientViewController = SettingsClientViewController(userClient: client, credentials: self.credentials)
+            clientViewController.view.backgroundColor = SemanticColors.View.backgroundDefault
             navigationController.pushViewController(clientViewController, animated: true)
         }
     }
@@ -203,8 +198,8 @@ final class ClientListViewController: UIViewController,
         tableView.estimatedRowHeight = 80
         tableView.register(ClientTableViewCell.self, forCellReuseIdentifier: ClientTableViewCell.zm_reuseIdentifier)
         tableView.isEditing = self.editingList
-        tableView.backgroundColor = UIColor.clear
-        tableView.separatorColor = separatorColor
+        tableView.backgroundColor = SemanticColors.View.backgroundDefault
+        tableView.separatorStyle = .none
         self.view.addSubview(tableView)
         self.clientsTableView = tableView
     }
@@ -216,7 +211,12 @@ final class ClientListViewController: UIViewController,
 
         clientsTableView.translatesAutoresizingMaskIntoConstraints = false
 
-        clientsTableView.fitInSuperview(safely: true)
+        NSLayoutConstraint.activate([
+            clientsTableView.leadingAnchor.constraint(equalTo: view.safeLeadingAnchor),
+            clientsTableView.topAnchor.constraint(equalTo: view.safeTopAnchor),
+            clientsTableView.trailingAnchor.constraint(equalTo: view.safeTrailingAnchor),
+            clientsTableView.bottomAnchor.constraint(equalTo: view.safeBottomAnchor)
+        ])
     }
 
     fileprivate func convertSection(_ section: Int) -> Int {
@@ -346,9 +346,8 @@ final class ClientListViewController: UIViewController,
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let cell = tableView.dequeueReusableCell(withIdentifier: ClientTableViewCell.zm_reuseIdentifier, for: indexPath) as? ClientTableViewCell {
             cell.selectionStyle = .none
-            cell.accessoryType = self.detailedView ? .disclosureIndicator : .none
+            cell.showDisclosureIndicator()
             cell.showVerified = self.detailedView
-            cell.variant = variant
 
             switch self.convertSection((indexPath as NSIndexPath).section) {
             case 0:
@@ -361,6 +360,9 @@ final class ClientListViewController: UIViewController,
             default:
                 cell.userClient = nil
             }
+
+            cell.accessibilityTraits = .button
+            cell.accessibilityHint = L10n.Accessibility.ClientsList.DeviceDetails.hint
 
             return cell
         } else {
@@ -424,14 +426,25 @@ final class ClientListViewController: UIViewController,
 
     func createRightBarButtonItem() {
         if self.editingList {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "general.done".localized.localizedUppercase, style: .plain, target: self, action: #selector(ClientListViewController.endEditing(_:)))
+            let doneButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(title: L10n.Localizable.General.done.capitalized,
+                                                                                      systemImage: false,
+                                                                                      target: self,
+                                                                                      action: #selector(ClientListViewController.endEditing(_:)))
+            self.navigationItem.rightBarButtonItem = doneButtonItem
 
             self.navigationItem.setLeftBarButton(nil, animated: true)
         } else {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "general.edit".localized.localizedUppercase, style: .plain, target: self, action: #selector(ClientListViewController.startEditing(_:)))
-
+            let editButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(title: L10n.Localizable.General.edit.capitalized,
+                                                                                      systemImage: false,
+                                                                                      target: self,
+                                                                                      action: #selector(ClientListViewController.startEditing(_:)))
+            self.navigationItem.rightBarButtonItem = editButtonItem
             self.navigationItem.setLeftBarButton(leftBarButtonItem, animated: true)
         }
+    }
+
+    private func setupControllerTitle() {
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Registration.Devices.title.capitalized)
     }
 
 }

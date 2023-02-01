@@ -76,32 +76,34 @@ class AvailabilityTitleViewTests: ZMSnapshotTestCase {
     // MARK: - Other profile
 
     func testThatItRendersCorrectly_OtherProfile_NoneAvailability() {
-        createTest(for: [.hideActionHint], with: .none, on: otherUser!, colorSchemeVariant: .light)
+        createTest(for: [.hideActionHint], with: .none, on: otherUser!, hasDarkMode: false)
     }
 
     func testThatItRendersCorrectly_OtherProfile_AvailableAvailability() {
-        createTest(for: [.hideActionHint], with: .available, on: otherUser!, colorSchemeVariant: .light)
+        createTest(for: [.hideActionHint], with: .available, on: otherUser!, hasDarkMode: false)
     }
 
     func testThatItRendersCorrectly_OtherProfile_AwayAvailability() {
-        createTest(for: [.hideActionHint], with: .away, on: otherUser!, colorSchemeVariant: .light)
+        createTest(for: [.hideActionHint], with: .away, on: otherUser!, hasDarkMode: false)
     }
 
     func testThatItRendersCorrectly_OtherProfile_BusyAvailability() {
-        createTest(for: [.hideActionHint], with: .busy, on: otherUser!, colorSchemeVariant: .light)
+        createTest(for: [.hideActionHint], with: .busy, on: otherUser!, hasDarkMode: false)
     }
 
     // MARK: - Common methods
 
-    private func createTest(for options: AvailabilityTitleView.Options, with availability: Availability, on user: ZMUser, colorSchemeVariant: ColorSchemeVariant = .dark, file: StaticString = #file, line: UInt = #line) {
+    private func createTest(for options: AvailabilityTitleView.Options, with availability: AvailabilityKind, on user: ZMUser, hasDarkMode: Bool = true, file: StaticString = #file, line: UInt = #line) {
         updateAvailability(for: user, newValue: availability)
         let sut = AvailabilityTitleView(user: user, options: options)
-        sut.colorSchemeVariant = colorSchemeVariant
-        sut.backgroundColor = colorSchemeVariant == .light ? .white : .black
+
+        sut.overrideUserInterfaceStyle = hasDarkMode ? .dark : .light
+        sut.backgroundColor = hasDarkMode ? .black : .white
+        sut.frame = CGRect(origin: .zero, size: CGSize(width: 320, height: 44))
         verify(view: sut, file: file, line: line)
     }
 
-    func updateAvailability(for user: ZMUser, newValue: Availability) {
+    func updateAvailability(for user: ZMUser, newValue: AvailabilityKind) {
         if user == ZMUser.selfUser() {
             user.availability = newValue
         } else {
@@ -113,7 +115,7 @@ class AvailabilityTitleViewTests: ZMSnapshotTestCase {
 }
 
 extension ZMUser {
-    func updateAvailability(_ newValue: Availability) {
+    func updateAvailability(_ newValue: AvailabilityKind) {
         self.willChangeValue(forKey: AvailabilityKey)
         self.setPrimitiveValue(NSNumber(value: newValue.rawValue), forKey: AvailabilityKey)
         self.didChangeValue(forKey: AvailabilityKey)

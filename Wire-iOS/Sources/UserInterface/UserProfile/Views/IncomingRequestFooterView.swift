@@ -19,7 +19,7 @@
 import Foundation
 import UIKit
 
-protocol IncomingRequestFooterViewDelegate: class {
+protocol IncomingRequestFooterViewDelegate: AnyObject {
 
     /// Called when the user accepts or denies a connection request.
     func footerView(_ footerView: IncomingRequestFooterView, didRespondToRequestWithAction action: IncomingConnectionAction)
@@ -30,25 +30,16 @@ protocol IncomingRequestFooterViewDelegate: class {
  * A view that lets the user accept a connection request.
  */
 
-class IncomingRequestFooterView: UIView, Themeable {
+class IncomingRequestFooterView: UIView {
 
     let titleLabel = UILabel()
-    let acceptButton = Button()
-    let ignoreButton = Button()
+    let acceptButton = LegacyButton(fontSpec: .smallSemiboldFont)
+    let ignoreButton = LegacyButton(fontSpec: .smallSemiboldFont)
 
     let contentStack = UIStackView()
 
     /// The delegate of the view, that will be called when the user accepts or denies the request.
     weak var delegate: IncomingRequestFooterViewDelegate?
-
-    /// The color scheme variant.
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            if colorSchemeVariant != oldValue {
-                applyColorScheme(colorSchemeVariant)
-            }
-        }
-    }
 
     // MARK: - Initialization
 
@@ -58,10 +49,9 @@ class IncomingRequestFooterView: UIView, Themeable {
         configureConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
-        configureConstraints()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {
@@ -74,13 +64,18 @@ class IncomingRequestFooterView: UIView, Themeable {
         acceptButton.setTitle("inbox.connection_request.connect_button_title".localized(uppercased: true), for: .normal)
         acceptButton.addTarget(self, action: #selector(acceptButtonTapped), for: .touchUpInside)
         acceptButton.layer.cornerRadius = 8
-        acceptButton.titleLabel?.font = .smallSemiboldFont
 
         ignoreButton.accessibilityIdentifier = "ignore"
         ignoreButton.setTitle("inbox.connection_request.ignore_button_title".localized(uppercased: true), for: .normal)
         ignoreButton.addTarget(self, action: #selector(ignoreButtonTapped), for: .touchUpInside)
         ignoreButton.layer.cornerRadius = 8
-        ignoreButton.titleLabel?.font = .smallSemiboldFont
+
+        titleLabel.textColor = SemanticColors.Label.textDefault
+        backgroundColor = SemanticColors.View.backgroundDefault
+
+        acceptButton.applyStyle(.accentColorTextButtonStyle)
+
+        ignoreButton.applyStyle(.secondaryTextButtonStyle)
 
         let buttonsStack = UIStackView(arrangedSubviews: [ignoreButton, acceptButton])
         buttonsStack.axis = .horizontal
@@ -95,8 +90,6 @@ class IncomingRequestFooterView: UIView, Themeable {
         contentStack.addArrangedSubview(buttonsStack)
         addSubview(contentStack)
 
-        colorSchemeVariant = ColorScheme.default.variant
-        applyColorScheme(colorSchemeVariant)
     }
 
     private func configureConstraints() {
@@ -113,23 +106,6 @@ class IncomingRequestFooterView: UIView, Themeable {
             contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
             contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24)
         ])
-    }
-
-    // MARK: - Theme
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        titleLabel.textColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        backgroundColor = UIColor.from(scheme: .contentBackground, variant: colorSchemeVariant)
-
-        acceptButton.setTitleColor(.white, for: .normal)
-        acceptButton.setTitleColor(.whiteAlpha40, for: .highlighted)
-        acceptButton.setBackgroundImageColor(UIColor.accent(), for: .normal)
-        acceptButton.setBackgroundImageColor(UIColor.accentDarken, for: .highlighted)
-
-        ignoreButton.setTitleColor(UIColor.from(scheme: .textForeground, variant: colorSchemeVariant), for: .normal)
-        ignoreButton.setTitleColor(UIColor.from(scheme: .textDimmed, variant: colorSchemeVariant), for: .highlighted)
-        ignoreButton.setBackgroundImageColor(UIColor.from(scheme: .secondaryAction, variant: colorSchemeVariant), for: .normal)
-        ignoreButton.setBackgroundImageColor(UIColor.from(scheme: .secondaryActionDimmed, variant: colorSchemeVariant), for: .highlighted)
     }
 
     // MARK: - Events

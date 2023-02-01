@@ -17,7 +17,6 @@
 //
 // General strings
 
-
 "general.ok" = "OK";
 "general.next" = "Nästa";
 "general.cancel" = "Avbryt";
@@ -53,14 +52,14 @@
 "peoplepicker.search_placeholder" = "Sök efter namn eller användarnamn";
 "peoplepicker.header.top_people" = "Topp-personer";
 "peoplepicker.button.create_conversation" = "Skapa grupp";
-"peoplepicker.button.add_to_conversation" = "Add Participants to Group";
+"peoplepicker.button.add_to_conversation" = "Add Participants";
 "peoplepicker.header.conversations" = "Grupper";
 "peoplepicker.header.team_conversations" = "%@ grupper";
 "peoplepicker.header.send_invitation" = "Bjud in";
 "peoplepicker.header.contacts" = "Kontakter";
 "peoplepicker.header.contacts_personal" = "Personliga kontakter";
 "peoplepicker.header.directory" = "Anslut";
-"peoplepicker.header.federation" = "Connect with other domain";
+"peoplepicker.header.federation" = "Anslut med annan domän";
 
 "peoplepicker.group.title.singular" = "Add Participants";
 "peoplepicker.group.title.plural" = "Add Participants (%d)";
@@ -81,24 +80,20 @@
 
 "peoplepicker.no_contacts_title" = "Inga kontakter.";
 
-"peoplepicker.no_matching_results_title" = "Inga resultat.";
-"peoplepicker.no_matching_results_message" = "Ange en fullständig e-postadress.";
 "peoplepicker.no_search_results" = "No matching results. Try entering a different name.";
 
 "peoplepicker.no_matching_results.action.send_invite" = "Skicka en inbjudan";
 "peoplepicker.no_matching_results.action.share_contacts" = "Dela kontakter";
+"peoplepicker.no_matching_results.action.learn_more" = "Läs mer";
+"peoplepicker.no_matching_results.action.manage_services" = "Hantera Tjänster";
 
-"peoplepicker.no_matching_results_provide_valid_email" = "Ange en giltig e-postadress";
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "Inga resultat.";
-"peoplepicker.no_matching_results_services_title" = "Services are helpers that can improve your workflow. To enable them, ask your administrator.";
-"peoplepicker.no_matching_results_services_admin_title" = "Services are helpers that can improve your workflow.";
-"peoplepicker.no_matching_results_services_manage_services_title" = "Hantera Tjänster";
-/* This sentence ends with button title, contained in peoplepicker.no_matching_results_after_address_book_upload_button */
-"peoplepicker.no_matching_results_after_address_book_upload_message" = "Ange en fullständig e-postadress eller";
-/*  */
-"peoplepicker.no_matching_results_after_address_book_upload_button" = "dela kontakter";
-
-"peoplepicker.share_contacts.no_results.title" = "Hitta andra med hjälp av namn eller e-postadress";
+"peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
+"peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
+"peoplepicker.no_matching_results.message.users_all_added" = "Alla är här.";
+"peoplepicker.no_matching_results.message.services" = "Inga resultat.";
+"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Services are helpers that can improve your workflow.";
+"peoplepicker.no_matching_results.message.services_not_enabled" = "Services are helpers that can improve your workflow. To enable them, ask your administrator.";
 
 "peoplepicker.send_invitation.dialog.title" = "Inbjudan skickat";
 "peoplepicker.send_invitation.dialog.message" = "Det kan användas i 2 veckor. Skicka en ny om det löper ut.";
@@ -112,8 +107,6 @@
 "peoplepicker.quick-action.admin-services" = "Hantera Tjänster";
 
 "peoplepicker.federation.domain_unvailable" = "The federated domain is currently not available. [Learn more](%@)";
-
-"add_participants.all_contacts_added" = "Alla är här.";
 
 "add_participants.alert.title" = "Fullt hus";
 "add_participants.alert.message.new_conversation" = "Up to %d people can join a conversation.";
@@ -142,6 +135,12 @@
 "conversation_list.header.self_team.accessibility_value.active" = "Aktiva nu.";
 "conversation_list.header.self_team.accessibility_value.has_new_messages" = "Har nya meddelanden.";
 
+// Conversation List Bottom Bar
+"conversation_list.bottom_bar.contacts.title" = "Kontakter";
+"conversation_list.bottom_bar.conversations.title" = "Konversationer";
+"conversation_list.bottom_bar.folders.title" = "Folders";
+"conversation_list.bottom_bar.archived.title" = "Arkiv";
+
 // Conversation List Data Usage Permission Dialog
 "conversation_list.data_usage_permission_alert.title" = "Hjälp oss att göra Wire bättre";
 "conversation_list.data_usage_permission_alert.message" = "I agree that Wire may create and use anonymous usage and error reports to improve the Wire App. I can revoke this consent at any time.";
@@ -158,19 +157,8 @@
 "conversation_list.voiceover.status.missed_call" = "missat samtal";
 "conversation_list.voiceover.status.pause_media" = "pausa media";
 "conversation_list.voiceover.status.play_media" = "spela upp media";
-"conversation_list.voiceover.status.silenced" = "tystad";
 "conversation_list.voiceover.status.typing" = "skriver";
 "conversation_list.voiceover.status.ping" = "ping-ljud";
-"conversation_list.voiceover.status.mention" = "you are mentioned";
-"conversation_list.voiceover.status.reply" = "reply";
-"conversation_list.voiceover.bottom_bar.recent_button.label" = "recent";
-"conversation_list.voiceover.bottom_bar.recent_button.hint" = "list of recent conversations";
-"conversation_list.voiceover.bottom_bar.folder_button.label" = "folders";
-"conversation_list.voiceover.bottom_bar.folder_button.hint" = "list of conversations organized in folders";
-"conversation_list.voiceover.bottom_bar.archived_button.label" = "arkiverad";
-"conversation_list.voiceover.bottom_bar.archived_button.hint" = "lista över arkiverade konversationer";
-"conversation_list.voiceover.bottom_bar.contacts_button.label" = "kontakter";
-"conversation_list.voiceover.bottom_bar.contacts_button.hint" = "sök efter personer på Wire";
 "conversation_list.voiceover.bottom_bar.compose_button.label" = "komponera";
 "conversation_list.voiceover.bottom_bar.compose_button.hint" = "komponera meddelanden och spara dem till senare";
 "conversation_list.voiceover.bottom_bar.camera_button.label" = "kamera";
@@ -196,7 +184,7 @@
 
 // Folders
 
-"folder.creation.name.title" = "Create new folder";
+"folder.creation.name.title" = "Skapa ny mapp";
 "folder.creation.name.button.create" = "Skapa";
 "folder.creation.name.header" = "Move the conversation \"%@\" to a new folder.";
 "folder.creation.name.footer" = "Maximum 64 characters";
@@ -226,10 +214,8 @@
 "list.section.groups" = "Grupper";
 "list.section.contacts" = "Personer";
 "list.section.requests" = "Requests";
-"list.section.favorites" = "Favorites";
+"list.section.favorites" = "Favoriter";
 
-"conversation.voiceover.verified" = "verifierad";
-"conversation.voiceover.legalhold" = "legal hold";
 "conversation.voiceover.value.active" = "active";
 "conversation.voiceover.value.disabled" = "disabled";
 
@@ -238,7 +224,7 @@
 "conversation.status.typing" = "Skriver ett meddelande…";
 "conversation.status.typing.group" = "%@: skriver ett meddelande…";
 "conversation.status.silenced" = "Tystad";
-"conversation.status.poor_connection" = "Poor connection";
+"conversation.status.poor_connection" = "Dålig anslutning";
 "conversation.status.blocked" = "Blockerad";
 "conversation.status.incoming_call" = "%@ is calling…";
 "conversation.status.incoming_call.unknown" = "Someone is calling…";
@@ -256,9 +242,9 @@
 "conversation.status.message.mention" = "%@";
 "conversation.status.message.reply" = "%@";
 "conversation.status.message.ephemeral" = "Skickade dig ett meddelande";
-"conversation.status.message.ephemeral.group" = "Someone sent a message";
+"conversation.status.message.ephemeral.group" = "Någon skickade ett meddelande";
 "conversation.status.message.ephemeral.mention" = "Nämnde dig";
-"conversation.status.message.ephemeral.mention.group" = "Someone mentioned you";
+"conversation.status.message.ephemeral.mention.group" = "Någon nämnde dig";
 "conversation.status.message.ephemeral.reply" = "Replied to your message";
 "conversation.status.message.ephemeral.reply.group" = "Someone replied to your message";
 "conversation.status.message.ephemeral.knock" = "Pingade";
@@ -278,8 +264,6 @@
 "compose.contact.title" = "Konversation";
 "compose.message.title" = "Meddelande";
 
-"conversation_details.open_button.accessibility_hint" = "Double tap to view the details of the conversation.";
-
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Conversation
 "conversation.invite_more_people.title" = "Sprid ordet!";
@@ -292,7 +276,7 @@
 
 "conversation.input_bar.verified" = "Verifierad";
 "conversation.input_bar.placeholder" = "Skriv ett meddelande";
-"conversation.input_bar.placeholder_ephemeral" = "Tidsinställt meddelande";
+"conversation.input_bar.placeholder_ephemeral" = "Self-deleting message";
 
 "conversation.input_bar.audio_message.tooltip.pull_send" = "Dra upp för att skicka";
 "conversation.input_bar.audio_message.tooltip.tap_send" = "Tryck för att skicka";
@@ -313,7 +297,7 @@
 "conversation.connection_view.in_address_book" = "i kontakter";
 
 "conversation.input_bar.shortcut.send" = "Skicka meddelande";
-"conversation.input_bar.shortcut.newline" = "Insert line break";
+"conversation.input_bar.shortcut.newline" = "Insert Line Break";
 "conversation.input_bar.shortcut.edit_last_message" = "Redigera senaste meddelandet";
 "conversation.input_bar.shortcut.cancel_editing_message" = "Avbryt";
 "conversation.input_bar.shortcut.choose_previous_mention" = "Choose previous mention";
@@ -327,10 +311,12 @@
 "conversation.create.guidance.empty" = "Åtminstone 1 tecken";
 "conversation.create.guidance.toolong" = "För många tecken";
 "conversation.create.options.title" = "Conversation options";
-"conversation.create.options.subtitle" = "Guests and services: %@, Read receipts: %@";
+"conversation.create.options.subtitle" = "Guests: %@, Services: %@, Read receipts: %@";
 "conversation.create.guests.title" = "Tillåt gäster";
 "conversation.create.guests.subtitle" = "Öppna den här konversationen till personer utanför ditt team.";
-"conversation.create.receipts.title" = "Read receipts";
+"conversation.create.services.title" = "Allow services";
+"conversation.create.services.subtitle" = "Öppna den här konversationen för tjänster.";
+"conversation.create.receipts.title" = "Läskvitton";
 "conversation.create.receipts.subtitle" = "When this is on, people can see when their messages in this conversation are read.";
 
 "conversation.input_bar.ongoing_call_alert.title" = "Pågående samtal";
@@ -340,9 +326,15 @@
 
 "conversation.alert.message_deleted" = "The message is deleted.";
 
-"conversation.guests_present" = "Gäster är närvarande";
-"conversation.services_present" = "Services are active";
-"conversation.guests_services_present" = "Guests and services are present";
+// Conversation banner
+"conversation.banner.guests" = "Gäster";
+"conversation.banner.services" = "Tjänster";
+"conversation.banner.externals" = "Externals";
+"conversation.banner.remotes" = "Federated users";
+"conversation.banner.are_present" = "%@ are present";
+"conversation.banner.are_active" = "%@ are active";
+"conversation.banner.separator" = " and ";
+
 "conversation.action.search" = "Sök";
 
 // Reply message preview
@@ -357,7 +349,7 @@
 "conversation.input_bar.message_preview.accessibility.image_message" = "Image message";
 "conversation.input_bar.message_preview.accessibility.location_message" = "Location message";
 "conversation.input_bar.message_preview.accessibility.video_message" = "Video message";
-"conversation.input_bar.message_preview.accessibility.audio_message" = "Audio message";
+"conversation.input_bar.message_preview.accessibility.audio_message" = "Ljudmeddelande";
 "conversation.input_bar.message_preview.accessibility.file_message" = "File message (%@)";
 "conversation.input_bar.message_preview.accessibility.unknown_message" = "Unknown message";
 "conversation.input_bar.message_preview.accessibility.message_from" = "%@ from %@";
@@ -425,7 +417,7 @@
 "content.system.other_removed_you" = "%@ tog bort dig";
 "content.system.you_removed_other" = "Du tog bort %@";
 
-"content.system.services.warning" = "Services have access to the content of this conversation";
+"content.system.services.warning" = "Tjänster har åtkomst till den här konversationens innehåll";
 
 // Link attachment messages
 
@@ -444,16 +436,20 @@
 "content.system.conversation.other.started" = "%@ startade en konversation med %@";
 "content.system.conversation.other.added" = "%@ lade till %@";
 "content.system.conversation.other.removed" = "%@ tog bort %@";
+"content.system.conversation.other.removed.legalhold" = "%@ was removed from this conversation because legal hold has been activated.";
+"content.system.conversation.others.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.other.left" = "%@ lämnade";
 
 "content.system.conversation.you.started" = "%@ startade en konversation med %@";
 "content.system.conversation.you.added" = "%@ lade till %@";
 "content.system.conversation.you.removed" = "%@ tog bort %@";
+"content.system.conversation.you.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.you.left" = "%@ lämnade";
 "content.system.conversation.team.member-leave" = "%@ togs bort från teamet.";
 "content.system.conversation.guest.joined" = "%@ joined";
+"content.system.conversation.guest.you_joined" = "You joined";
 
-"content.system.conversation.invite.title" = "Services and people outside your team can join this conversation.";
+"content.system.conversation.invite.title" = "Personer utanför ditt team kan ansluta till den här konversationen.";
 "content.system.conversation.invite.button" = "Bjud in personer";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ tog bort konversationsnamnet";
@@ -474,8 +470,8 @@
 "content.system.you_wanted_to_talk" = "Du ringde";
 "content.system.ephemeral_time_remaining" = "%@ lämnade";
 
-"content.system.self_user_new_client" = "**You** started using [a new device](%@)";
-"content.system.self_user_new_self_client" = "**You** started using [this device](%@)";
+"content.system.self_user_new_client" = "You started using [a new device](%@)";
+"content.system.self_user_new_self_client" = "You started using [this device](%@)";
 
 "content.system.you_started" = "Du";
 
@@ -513,7 +509,7 @@
 "content.system.message_read_receipt_off" = "%@ turned read receipts off for everyone";
 "content.system.message_read_receipt_off-you" = "%@ turned read receipts off for everyone";
 
-"content.system.message_read_receipt_on_add_to_group" = "Read receipts are on";
+"content.system.message_read_receipt_on_add_to_group" = "Läskvitton är på";
 
 // legal hold
 
@@ -531,25 +527,25 @@
 "content.system.new_users" = "Ny användare gick med.";
 "content.system.verify_devices" = "Verifiera enheter";
 
-"content.system.unverified_self_devices" = "**You** unverified one of [your devices](%@)";
-"content.system.unverified_other_devices" = "**You** unverified one of [%1$@’s devices](%2$@)";
+"content.system.unverified_self_devices" = "You unverified one of [your devices](%@)";
+"content.system.unverified_other_devices" = "You unverified one of [%1$@’s devices](%2$@)";
 
 "content.system.missing_messages.title" = "Du har inte använt denna enhet på ett tag. Några meddelanden kanske inte dyker upp här.";
 "content.system.missing_messages.subtitle_start" = "Under tiden,";
 
-"content.system.cannot_decrypt.self" = "A message from **you** could not be decrypted.";
-"content.system.cannot_decrypt.other" = "A message from **%@** could not be decrypted.";
+"content.system.cannot_decrypt.self" = "A message from you could not be decrypted.";
+"content.system.cannot_decrypt.other" = "A message from %@ could not be decrypted.";
 "content.system.cannot_decrypt.reset_session" = "Fix future messages";
 "content.system.cannot_decrypt.error_details" = "(Fixed error: %d ID: %@)";
 
-"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, **you need to resend them.**";
-"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from **%1$@**. To recover lost messages, **ask %1$@ to resend them.**";
+"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, you need to resend them.";
+"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from %1$@. To recover lost messages, ask %1$@ to resend them.";
 
-"content.system.cannot_decrypt_identity_changed.self" = "**Your** device identity changed. Undelivered message.";
-"content.system.cannot_decrypt_identity_changed.other" = "**%@’s** device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
+"content.system.cannot_decrypt_identity_changed.self" = "Your device identity changed. Undelivered message.";
+"content.system.cannot_decrypt_identity_changed.other" = "%@’s device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
 
-"content.system.session_reset.other" = "**%@ was unable to decrypt some of your messages but has solved the issue**. This affected all conversations you share together.";
-"content.system.session_reset.self" = "**You were unable to decrypt some of your messages but you solved the issue**. This affected all conversations.";
+"content.system.session_reset.other" = "%@ was unable to decrypt some of your messages but has solved the issue. This affected all conversations you share together.";
+"content.system.session_reset.self" = "You were unable to decrypt some of your messages but you solved the issue. This affected all conversations.";
 
 "content.system.unknown_message.body" = "This message can’t be displayed. You may be using an older version of Wire.";
 
@@ -617,8 +613,12 @@
 
 "connection_request_pending_title" = "Connection Request";
 "connection_request.send_button_title" = "Anslut";
+"inbox.title" = "Connection Requests";
 "inbox.connection_request.connect_button_title" = "Anslut";
 "inbox.connection_request.ignore_button_title" = "Ignorera";
+"error.connection.title" = "Error";
+"error.connection.missing_legalhold_consent" = "You cannot connect to this user due to legal hold.";
+"error.connection.generic_error" = "Något gick fel, vänligen försök igen";
 
 // Save image errors
 "library.alert.permission_warning.title" = "Wire needs access to your Photos";
@@ -643,13 +643,15 @@
 "voice.accept_button.title" = "Acceptera";
 "voice.decline_button.title" = "Avböj";
 "voice.hang_up_button.title" = "Lägg på";
-"voice.mute_button.title" = "Tysta";
-"voice.video_button.title" = "Video";
-"voice.flip_video_button.title" = "Flip";
+"voice.mute_button.title" = "Mikrofon";
+"voice.video_button.title" = "Kamera";
+"voice.flip_video_button.title" = "Switch camera";
 "voice.speaker_button.title" = "Högtalare";
 "voice.cancel_button.title" = "Avbryt";
 "voice.call_button.title" = "Ring";
 "voice.end_call_button.title" = "End Call";
+"voice.pick_up_button.title" = "Acceptera";
+"voice.calling.title" = "Calling...";
 "voice.call_error.unsupported_version.title" = "Please update Wire";
 "voice.call_error.unsupported_version.message" = "You received a call that isn't supported by this version of Wire.\nGet the latest version in the App Store.";
 "voice.call_error.unsupported_version.dismiss" = "Senare";
@@ -665,6 +667,8 @@
 "voice.top_overlay.tap_to_return" = "Tap to return to call";
 "voice.top_overlay.accessibility_title" = "Pågående samtal";
 
+"voice.flip_camera_button.title" = "Flip";
+
 // Voice New
 
 "call.status.connecting" = "Ansluter…";
@@ -677,7 +681,7 @@
 "call.status.constant_bitrate" = "Konstant bithastighet";
 "call.status.variable_bitrate" = "Variable Bit Rate";
 
-"call.participants.show_all" = "Show All (%@)";
+"call.participants.show_all" = "Participants (%d)";
 "call.participants.list.title" = "Participants";
 
 "call.overlay.switch_to.speakers" = "SPEAKERS";
@@ -687,6 +691,7 @@
 
 "call.grid.hints.fullscreen" = "Double tap on a tile for fullscreen";
 "call.grid.hints.go_back_or_zoom" = "Double tap to go back, pinch to zoom";
+"call.grid.hints.go_back" = "Double tap to go back";
 "call.grid.hints.zoom" = "Pinch to zoom";
 
 "call.video.paused" = "Klippet pausades";
@@ -699,7 +704,7 @@
 "call.degraded.alert.message.unknown" = "Någon har börjat använda en ny enhet.";
 "call.degraded.alert.action.continue" = "Ring ändå";
 
-"call.degraded.ended.alert.title" = "Call ended";
+"call.degraded.ended.alert.title" = "Samtalet avslutades";
 "call.degraded.ended.alert.message.self" = "The call was disconnected because you started using a new device.";
 "call.degraded.ended.alert.message.user" = "The call was disconnected because %@ is no longer a verified contact.";
 "call.degraded.ended.alert.message.unknown" = "The call was disconnected because someone is no longer a verified contact.";
@@ -719,7 +724,7 @@
 "call.announcement.incoming" = "Incoming call from %@";
 "call.actions.label.toggle_mute_on" = "Tysta";
 "call.actions.label.toggle_mute_off" = "Slå på ljud";
-"call.actions.label.flip_camera" = "Flip camera";
+"call.actions.label.flip_camera" = "Switch camera";
 "call.actions.label.toggle_speaker_on" = "Enable speaker";
 "call.actions.label.toggle_speaker_off" = "Disable speaker";
 "call.actions.label.accept_call" = "Acceptera samtal";
@@ -747,7 +752,7 @@
 "participants.section.settings" = "Alternativ";
 "participants.footer.add_title" = "Add Participants";
 "participants.section.name.footer" = "Up to %1$d participants can join a group conversation.";
-"participants.section.admins.footer" = "There are no admins.";
+"participants.section.admins.footer" = "Det finns inga administratörer.";
 "participants.section.members.footer" = "There are no members.";
 
 "profile.profile.group_admin_options.title" = "Group admin";
@@ -760,7 +765,7 @@
 "meta.menu.unarchive" = "Hämta från Arkiv";
 "meta.menu.delete" = "Delete Group…";
 "meta.menu.clear_content" = "Clear Content…";
-"meta.menu.move_to_folder" = "Move to…";
+"meta.menu.move_to_folder" = "Flytta till…";
 "meta.menu.remove_from_folder" = "Remove from \"%@\"";
 "meta.menu.silence.mute" = "Tysta";
 "meta.menu.silence.unmute" = "Slå på ljud";
@@ -769,7 +774,7 @@
 "meta.menu.mark_unread" = "Mark as Unread";
 "meta.menu.mark_read" = "Mark as Read";
 "shortcut.mark_all_as_read.title" = "Mark All as Read";
-"meta.menu.configure_notifications" = "Notifications…";
+"meta.menu.configure_notifications" = "Aviseringar…";
 "meta.menu.open_self_profile" = "Open Profile";
 
 // Delete conversation
@@ -782,15 +787,15 @@
 
 // Configure conversation notifications
 "meta.menu.configure_notification.dialog_message" = "Notify me about:";
-"meta.menu.configure_notification.button_everything" = "Everything";
+"meta.menu.configure_notification.button_everything" = "Allting";
 "meta.menu.configure_notification.button_mentions_and_replies" = "Mentions and Replies";
-"meta.menu.configure_notification.button_nothing" = "Nothing";
+"meta.menu.configure_notification.button_nothing" = "Ingenting";
 "meta.menu.configure_notification.button_cancel" = "Avbryt";
 
 // Leave conversation
 "meta.leave_conversation_dialog_title" = "Lämna konversationen?";
 "meta.leave_conversation_dialog_message" = "Deltagarna kommer meddelas och konversationen tas bort från din lista.";
-"meta.leave_conversation.delete_content_as_well_message" = "Also clear the content";
+"meta.leave_conversation.delete_content_as_well_message" = "Rensa även innehållet";
 "meta.leave_conversation_button_cancel" = "Avbryt";
 "meta.leave_conversation_button_leave" = "Lämna";
 "meta.leave_conversation_button_leave_and_delete" = "Leave and clear content";
@@ -835,7 +840,7 @@
 "profile.connection_request_dialog.button_connect" = "Anslut";
 
 // Delete group
-"conversation.delete_request_dialog.title" = "Delete group conversation?";
+"conversation.delete_request_dialog.title" = "Ta bort grupp-konversation?";
 "conversation.delete_request_dialog.message" = "This will delete the group and all content for all participants on all devices. There is no option to restore the content. All participants will be notified.";
 "conversation.delete_request_error_dialog.title" = "An error occurred while trying to delete the group %@. Please try again.";
 "conversation.delete_request_error_dialog.button_delete_group" = "Delete Group";
@@ -857,7 +862,7 @@
 "profile.block_button_title_action" = "Blockera";
 "profile.unblock_button_title_action" = "Avblockera";
 
-"profile.cancel_connection_button_title" = "AVBRYT BEGÄRAN";
+"profile.cancel_connection_button_title" = "Avbryt begäran";
 "profile.connection_request_state.blocked" = "BLOCKERAD";
 "profile.create_conversation_button_title" = "Skapa grupp";
 "profile.open_conversation_button_title" = "Öppna konversation";
@@ -875,10 +880,8 @@
 "profile.details.guest" = "Gäst";
 "profile.details.group_admin" = "Group admin";
 "profile.details.partner" = "external";
-
-"profile_view.accessibility.handle" = "Användarnanm";
-"profile_view.accessibility.name" = "Visningsnamn";
-"profile_view.accessibility.team_name" = "Team namn";
+"profile.details.federated" = "Federerad";
+"profile.details.blocking_reason" = "This user is blocked due to legal hold. [LEARN MORE](%@)";
 
 // Device list
 "profile.devices.title" = "Enheter";
@@ -906,16 +909,19 @@
 "device.type.unknown" = "Okänd";
 
 // Bot
-"participants.services.remove_integration.button" = "remove integration";
+"participants.services.remove_integration.button" = "Remove service";
 
 // Group details
-"group_details.guest_options_cell.title" = "Gästalternativ";
+"group_details.guest_options_cell.title" = "Gäster";
 "group_details.guest_options_cell.enabled" = "På";
 "group_details.guest_options_cell.disabled" = "Av";
-"group_details.timeout_options_cell.title" = "Tidsinställda meddelanden";
+"group_details.services_options_cell.title" = "Tjänster";
+"group_details.services_options_cell.enabled" = "På";
+"group_details.services_options_cell.disabled" = "Av";
+"group_details.timeout_options_cell.title" = "Själv-borttagande meddelanden";
 "group_details.notification_options_cell.title" = "Notiser";
 "group_details.notification_options_cell.description" = "You can be notified about everything (including audio and video calls) or only when someone mentions you or replies to one of your messages.";
-"group_details.receipt_options_cell.title" = "Read receipts";
+"group_details.receipt_options_cell.title" = "Läskvitton";
 "group_details.receipt_options_cell.description" = "When this is on, people can see when their messages in this conversation are read.";
 
 "group_details.conversation_admins_header.title" = "Group admins";
@@ -926,8 +932,8 @@
 
 "legalhold.participants.section.title" = "Legal hold subjects";
 "legalhold.header.title" = "Legal Hold";
-"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.";
-"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.\nYour conversation partners will be aware of the recording.";
+"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.";
+"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.\nYour conversation partners will be aware of the recording.";
 "legalhold.accessibility" = "Legal hold details";
 
 
@@ -944,15 +950,9 @@
 "self.about" = "Om";
 "self.sign_out" = "Logga ut";
 "self.report_abuse" = "Rapportera missbruk";
-"self.voiceover.label" = "Profil";
-"self.voiceover.hint" = "Öppna profil och inställningar";
 "self.new-device.voiceover.label" = "Profil, nya enheter tillagda";
 
-"self.add_phone_number" = "Lägg till telefonnummer";
 "self.add_email_password" = "Lägg till e-postadress och lösenord";
-
-"self.accessibility.profile_photo_image" = "Profile picture";
-"self.accessibility.profile_photo_edit_button" = "Change profile picture";
 
 // About screen
 "about.tos.title" = "Användarvillkor";
@@ -975,9 +975,9 @@
 
 // Settings changed alert
 
-"self.read_receipts_enabled.title" = "You have enabled read receipts";
-"self.read_receipts_disabled.title" = "You have disabled read receipts";
-"self.read_receipts_description.title" = "You can change this option in your account settings.";
+"self.read_receipts_enabled.title" = "Du har aktiverat läskvitton";
+"self.read_receipts_disabled.title" = "Du har inaktiverat läskvitton";
+"self.read_receipts_description.title" = "Du kan ändra det här alternativet i dina konto-inställningar.";
 
 // Settings - top level
 "self.settings.create_team.title" = "Skapa ett team";
@@ -1002,6 +1002,11 @@
 "self.settings.account_section.phone.title" = "Telefon";
 "self.settings.account_section.handle.title" = "Användarnanm";
 "self.settings.account_section.add_handle.title" = "Lägg till användarnamn";
+"self.settings.account_section.team.title" = "Team";
+"self.settings.account_section.domain.title" = "Domän";
+"self.settings.account_section.profile_link.title" = "Profile link";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copy Profile Link";
+"self.settings.account_section.profile_link.actions.copied_link" = "Profile Link Copied!";
 
 "self.settings.account_details_group.info.footer" = "Andra kan hitta dig med dessa uppgifter.";
 "self.settings.account_details_group.personal.footer" = "Denna information är inte synlig.";
@@ -1020,8 +1025,18 @@
 
 "self.settings.encrypt_messages_at_rest.title" = "Encrypt messages at rest";
 
-"self.settings.account_picture_group.picture" = "Bild";
-"self.settings.account_picture_group.color" = "Färg";
+"self.settings.account_picture_group.picture" = "Profile picture";
+"self.settings.account_picture_group.alert.title" = "Change your profile picture";
+"self.settings.account_picture_group.alert.choose_picture" = "Choose from Library";
+"self.settings.account_picture_group.alert.take_picture" = "Take Photo";
+"self.settings.account_picture_group.color" = "Profile color";
+"self.settings.account_picture_group.accent_color.blue" = "Blue";
+"self.settings.account_picture_group.accent_color.green" = "Green";
+"self.settings.account_picture_group.accent_color.yellow" = "Yellow";
+"self.settings.account_picture_group.accent_color.red" = "Red";
+"self.settings.account_picture_group.accent_color.amber" = "Amber";
+"self.settings.account_picture_group.accent_color.turquoise" = "Turquoise";
+"self.settings.account_picture_group.accent_color.purple" = "Purple";
 
 "self.settings.account_personal_information_group.title" = "Personal Information";
 
@@ -1051,7 +1066,7 @@
 "self.settings.privacy_crash_menu.description.title" = "Send anonymous crash reports and basic data like version number and operating system to help Wire identify and solve issues in the app.";
 
 // Analytics
-"self.settings.privacy_analytics.title" = "Send anonymous usage data";
+"self.settings.privacy_analytics.title" = "Skicka anonyma användningsdata";
 "self.settings.privacy_analytics_menu.description.title" = "Usage data allows Wire to understand how the app is being used and how it can be improved. The data is anonymous and does not include the content of your communications (such as messages, files or calls).";
 
 "self.settings.receiveNews_and_offers.title" = "Receive Newsletter";
@@ -1120,8 +1135,11 @@
 "self.settings.callkit.caption" = "Dela med iOS";
 "self.settings.callkit.description" = "Visa Wire-samtal på låsskärmen och i iOS samtalshistorik. Om iCloud är aktiverat, delas samtalshistorik med Apple.";
 
+"self.settings.mute_other_call.caption" = "Silence other calls";
+"self.settings.mute_other_call.description" = "Enable to silence incoming calls when you are already in an ongoing call.";
+
 "self.settings.vbr.title" = "Variabel Bit Rate kodning";
-"self.settings.vbr.description" = "Detta gör att ljudsamtal använder mindre data och fungerar bättre på långsamma nätverk. Stäng av för att använda konstant Bitrate kodning.";
+"self.settings.vbr.description" = "This makes audio calls use less data and work better on slower networks. Turn off to use constant bitrate encoding (CBR). This setting only affects 1:1 calls; conference calls always use CBR encoding.";
 
 "self.settings.sound_menu.sounds.wire_call" = "Wire samtal";
 "self.settings.sound_menu.sounds.wire_message" = "Wire meddelande";
@@ -1167,6 +1185,8 @@
 
 // Developer options
 "self.settings.developer_options.title" = "Utvecklaralternativ";
+"self.settings.developer_options.loggin.title" = "Alternativ";
+"self.settings.developer_options.database_statistics.title" = "Database Statistics";
 "self.settings.apns_logging.title" = "APNS loggning";
 
 // Privacy (visibility) options
@@ -1272,7 +1292,7 @@
 
 // Landing screen
 
-"landing.header" = "Wire. Add your Account.";
+"landing.header" = "Wire. Log in or create a personal account.";
 "landing.welcome_message" = "Trying to create a Pro or Enterprise account for your business or organization?";
 "landing.welcome_submessage" = "Unfortunately, that's not possible in the app - once you have created your team, you can log in here";
 "landing.create_account.title" = "Create a Wire personal account";
@@ -1284,24 +1304,16 @@
 "landing.login.button.title" = "Logga in";
 "landing.login.email.button.title" = "Log in with email";
 "landing.login.enterprise.button.title" = "Enterprise log in";
-"landing.login.sso.button.title" = "Log in with SSO";
+"landing.login.sso.button.title" = "Logga in med SSO";
 
 "landing.custom_backend.title" = "Connected to \"%@\"";
 "landing.custom_backend.more_info.button.title" = "Show more";
 "landing.custom_backend.more_info.alert.title" = " You are connected to a third-party server: %@";
+"landing.custom_backend.alert.title" = "On-premises Backend";
+"landing.custom_backend.alert.message.backend-name" = "Backend name:";
+"landing.custom_backend.alert.message.backend-url" = "Backend URL:";
 
 // Create team
-
-"team.name.headline" = "Namnge ditt team";
-"team.name.subheadline" = "Du kan alltid ändra det senare.";
-"team.name.textfield.placeholder" = "teamnamn";
-"team.name.textfield.accessibility" = "Ange teamnamn";
-"team.name.whatiswireforteams" = "What is Wire Pro?";
-
-"team.email.headline" = "Ditt konto";
-"team.email.subheadline" = "Ange din jobb e-postadress.";
-"team.email.textfield.placeholder" = "Din jobb e-post";
-"team.email.button.learn_more" = "Läs mer";
 
 "team.activation_code.headline" = "Du har fått mail";
 "team.phone_activation_code.headline" = "Verification";
@@ -1319,28 +1331,13 @@
 "verification.code_label" = "Six-digit code. Text field.";
 "verification.code_hint" = "Double tap to enter the code.";
 
-// Invite Team Members
-
-"team.invite.header.title" = "Skapa ditt team";
-"team.invite.header.subtitle" = "Your Wire team is ready to go. Invite your colleagues as members.";
-"team.invite.textfield.placeholder" = "Colleague's email";
-"team.invite.textfield.accesibility" = "Enter email address for colleague to invite.";
-"team.invite.learn_more.title" = "Läs mer";
-"team.invite.top_bar.skip" = "Hoppa över";
-"team.invite.top_bar.done" = "Färdig";
-
-// Team Invite Errors
-"team.invite.error.generic" = "Något gick fel, vänligen försök igen";
-"team.invite.error.already_registered" = "This email address is already in use";
-"team.invite.error.already_invited" = "Den här e-postadressen har redan bjudits in";
-"team.invite.error.too_many_invitations" = "Det högsta antalet inbjudningar har sänts";
 "team.invite.error.no_internet" = "Ingen Internet anslutning";
 
 // Guest Room
 
 "guest_room.allow_guests.title" = "Tillåt gäster";
 "guest_room.allow_guests.subtitle" = "Öppna den här konversationen till personer utanför ditt team.";
-"guest_room.remove_guests.message" = "Den nuvarande gästen kommer att tas bort från konversationen. Nya gäster kommer inte att tillåtas.";
+"guest_room.remove_guests.message" = "Nuvarande gäster kommer tas bort från konversationen. Nya gäster kommer inte att tillåtas.";
 "guest_room.remove_guests.action" = "Ta bort";
 "guest_room.revoke_link.message" = "Nya gäster kommer inte ha möjlighet att ansluta med den här länken. Nuvarande gäster kommer fortsättningsvis ha åtkomst.";
 "guest_room.revoke_link.action" = "Återkalla Länk";
@@ -1348,8 +1345,11 @@
 "guest_room.error.generic.title" = "Något gick fel";
 "guest_room.error.generic.message" = "Check your connection and try again";
 
-"guest_room.link.header.title" = "Bjud in andra med en länk";
-"guest_room.link.header.subtitle" = "Alla som har länken kan ansluta till konversationen även om de inte har Wire.";
+"guest_room.link.header.title" = "Guest Links";
+"guest_room.link.header.subtitle" = "Invite others with a link to this conversation. Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.not_allowed.for_self_team.explanation" = "Att generera gäst-länkar tillåts inte i ditt team.";
+"guest_room.link.not_allowed.for_other_team.explanation" = "You can't generate a guest link in this conversation, as it has been created by someone from another team and this team is not allowed to use guest links.";
+"guest_room.link.disabled.for_other_team.explanation" = "You can't disable the guest option in this conversation, as it has been created by someone from another team.";
 
 "guest_room.link.button.title" = "Skapa länk";
 
@@ -1362,6 +1362,14 @@
 
 "guest_room.expiration.hours_left" = "%@h left";
 "guest_room.expiration.less_than_minutes_left" = "Less than %@m left";
+
+// Services Options
+
+"services_options.allow_services.title" = "Allow services";
+"services_options.allow_services.subtitle" = "Öppna den här konversationen för tjänster.";
+"services_options.remove_services.message" = "Current services will be removed from the conversation. New services will not be allowed.";
+"services_options.remove_services.action" = "Ta bort";
+
 
 // Registration
 
@@ -1420,7 +1428,7 @@
 "registration.no_history.restore_backup_failed.wrong_version.message" = "Den här säkerhetskopian skapades av en nyare eller inaktuell version av Wire och kan inte återställas här.";
 
 // SSO – Company Login
-"login.sso.alert.title" = "Enterprise Login";
+"login.sso.alert.title" = "Företagsinloggning";
 "login.sso.alert.message.sso_and_email" = "Please enter your email or SSO code. If your email matches an enterprise installation of Wire, this app will connect to that server.";
 "login.sso.alert.message.sso_only" = "Please enter your SSO code:";
 "login.sso.alert.action" = "Logga in";
@@ -1437,11 +1445,11 @@
 "login.sso.error.alert.invalid_status.message" = "Please try again later (error %@).";
 "login.sso.error.alert.invalid_format.message.sso_only" = "Please enter a valid SSO access code";
 "login.sso.error.alert.invalid_format.message.sso_and_email" = "Please enter a valid email or SSO access code";
-"login.sso.error.alert.domain_not_registered.message" = "This email cannot be used for enterprise login. Please enter the SSO code to proceed.";
+"login.sso.error.alert.domain_not_registered.message" = "Den här e-postadressen kan användas för företagsinloggning. Vänligen ange SSO-koden för att fortsätta.";
 "login.sso.error.alert.domain_associated_with_wrong_server.message" = "This email is linked to a different server, but the app can only be connected to one server at a time. Please log out of all Wire accounts on this device and try to login again.";
 "login.sso.error.alert.unknown.message" = "Försök igen senare.";
-"login.sso.backend_switch.title" = "Redirecting...";
-"login.sso.backend_switch.subtitle" = "You are being redirected to your dedicated enterprise service.";
+"login.sso.backend_switch.title" = "Omdirigerar...";
+"login.sso.backend_switch.subtitle" = "Du omdirigeras till din dedikerade företagstjänst.";
 "login.sso.backend_switch.information" = "Provide credentials only if you're sure this is your organization's log in.";
 
 
@@ -1575,7 +1583,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Något gick fel, vänligen försök igen";
 "error.user.needs_credentials" = "Kontrollera dina detaljer och försök igen.";
-"error.user.domain_blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"error.user.domain_blocked" = "You can't create this account as your email domain is intentionally blocked.\nPlease ask your team admin to invite you via email.";
 "error.user.invalid_credentials" = "Kontrollera dina detaljer och försök igen.";
 "error.user.account_pending_activation" = "Det konto du försöker få åtkomst till väntar på aktivering. Vänligen kontrollera dina uppgifter.";
 "error.user.network_error" = "Det verkar finnas ett problem med ditt nätverk. Försök igen senare.";
@@ -1613,6 +1621,9 @@
 "error.conversation.cannot_remove" = "Removing the participant failed";
 "error.conversation.too_many_members" = "Konversationen är full";
 "error.conversation.offline" = "Det verkar finnas ett problem med din Internetanslutning. Vänligen se till att den fungerar.";
+"error.conversation.missing_legalhold_consent" = "Due to legal hold, only team members can be added to this conversation";
+"error.message.send.missing_legalhold_consent" = "You cannot send this message because you have at least one outdated device that does not support legal hold. Please update all your devices or remove them from the app settings";
+"error.message.send.title" = "Messages cannot be sent";
 
 "sketchpad.initial_hint" = "Tryck på färgen om du vill ändra penselstorlek";
 
@@ -1624,13 +1635,49 @@
 "push.notification.new_user" = "%@ gick precis med Wire";
 "push.notification.new_message" = "Nytt meddelande";
 
-
-//Force Update
+// Force Update
 "force.update.title" = "Uppdatering nödvändig";
 "force.update.message" = "Du går miste om nya funktioner. Få den senaste versionen av Wire i App Storen.";
 "force.update.ok_button" = "Gå till App Store";
 
-//Jailbroken alert
+// Feature configs
+"feature_config.alert.generic_title" = "Team settings changed";
+
+// Feature configs: file sharing
+"feature_config.update.file_sharing.alert.title" = "There has been a change in Wire";
+"feature_config.update.file_sharing.alert.message.disabled" = "Sharing and receiving files of any type is now disabled.";
+"feature_config.update.file_sharing.alert.message.enabled" = "Sharing and receiving files of any type is now enabled.";
+"feature_config.file_sharing_restrictions.file" = "Att ta emot filer är förbjudet";
+"feature_config.file_sharing_restrictions.picture" = "Att ta emot bilder är förbjudet";
+"feature_config.file_sharing_restrictions.video" = "Att ta emot videor är förbjudet";
+"feature_config.file_sharing_restrictions.audio" = "Receiving audio files is prohibited";
+
+//Feature flag - Conference calling
+"feature_config.update.conference_calling.alert.title" = "Enterprise plan";
+"feature_config.update.conference_calling.alert.message" = "Your team was upgraded to the Enterprise plan. You now have access to features such as starting conference calls.";
+"feature_config.update.conference_calling.alert.message.learn_more" = "Learn more about the Enterprise plan";
+
+"feature_config.conference_calling_restrictions.admins.alert.title" = "Uppgradera till Företag";
+"feature_config.conference_calling_restrictions.admins.alert.message" = "Your team is currently on the free Basic plan. Upgrade to Enterprise to access features such as starting conference calls.";
+"feature_config.conference_calling_restrictions.admins.alert.message.learn_more" = "Learn more about Wire’s pricing";
+"feature_config.conference_calling_restrictions.admins.alert.action.upgrade" = "Uppgradera nu";
+
+"feature_config.conference_calling_restrictions.members.alert.title" = "Funktionen är inte tillgänglig";
+"feature_config.conference_calling_restrictions.members.alert.message" = "Ditt team behöver uppgradera till ett Företagsabbonemang för att påbörja ett konferenssamtal.";
+
+"feature_config.conference_calling_restrictions.personal.alert.title" = "Funktionen är inte tillgänglig";
+"feature_config.conference_calling_restrictions.personal.alert.message" = "The option to initiate a conference call is only available in the paid version of Wire.";
+
+// Feature configs: self-deleting messages
+"feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timer before writing a message.";
+"feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Generating guest links is now disabled for all group admins.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Generating guest links is now enabled for all group admins.";
+
+// Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak detected";
 "jailbrokendevice.alert.message" = "For security reasons, Wire can't be used on this device. Any existing Wire data has been erased.";
 
@@ -1641,6 +1688,10 @@
 "databaseloadingfailure.alert.delete_database" = "Delete Database";
 "databaseloadingfailure.alert.delete_database.message" = "By deleting the database, all local data and messages for this account will be permanently deleted.";
 "databaseloadingfailure.alert.delete_database.continue" = "Fortsätt";
+
+// Backend not supported alert
+"backend_not_supported.alert.title" = "Server version not supported";
+"backend_not_supported.alert.message" = "The server version is not supported by this app. Please contact your system administrator.";
 
 // Third Party
 "giphy.conversation.message" = "%@ · via giphy.com";
@@ -1657,7 +1708,7 @@
 "invite_banner.invite_button_title" = "Bjud in fler personer";
 
 // Collections
-"collections.section.images.title" = "Bilder";
+"collections.section.images.title" = "Images";
 "collections.section.files.title" = "Filer";
 "collections.section.videos.title" = "Videor";
 "collections.section.links.title" = "Länkar";
@@ -1689,23 +1740,21 @@
 
 "availability.message.cancel" = "Avbryt";
 "availability.message.set_status" = "Ange status";
-"availability.accessibility_label.change_status" = "Change Status";
-"availability.accessibility_label.status" = "Status";
 
 "availability.none" = "Inget alls";
 "availability.available" = "Tillgänglig";
 "availability.away" = "Borta";
 "availability.busy" = "Upptagen";
 
-"availability.reminder.away.title" = "You are set to Away";
+"availability.reminder.away.title" = "Du är inställd som Borta";
 "availability.reminder.away.message" = "You will appear as Away to other people. You will not receive notifications about any incoming calls or messages.";
-"availability.reminder.busy.title" = "You are set to Busy";
+"availability.reminder.busy.title" = "Du är inställd på Upptagen";
 "availability.reminder.busy.message" = "You will appear as Busy to other people. You will only receive notifications for mentions, replies, and calls in conversations that are not muted.";
-"availability.reminder.available.title" = "You are set to Available";
+"availability.reminder.available.title" = "Du är inställd på Tillgänglig";
 "availability.reminder.available.message" = "You will appear as Available to other people. You will receive notifications for incoming calls and for messages according to the Notifications setting in each conversation.";
-"availability.reminder.none.title" = "No status set";
+"availability.reminder.none.title" = "Ingen status inställd";
 "availability.reminder.none.message" = "You will receive notifications for incoming calls and for messages according to the Notifications setting in each conversation.";
-"availability.reminder.action.dont_remind_me" = "Do not display this information again";
+"availability.reminder.action.dont_remind_me" = "Visa inte den här informationen igen";
 "availability.reminder.action.ok" = "OK";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1727,7 +1776,7 @@
 "url_action.title" = "Confirm URL action";
 "url_action.connect_to_bot.message" = "Would you like to connect to the bot?";
 
-"url_action.switch_backend.title" = "Connect to server";
+"url_action.switch_backend.title" = "Anslut till server";
 "url_action.switch_backend.message" = "This configuration will connect the app to a third-party server:\n%@";
 
 "url_action.switch_backend.error.logged_in.title" = "Can’t switch servers";
@@ -1736,6 +1785,14 @@
 "url_action.switch_backend.error.invalid_backend.title" = "The server is not responding";
 "url_action.switch_backend.error.invalid_backend" = "Please check your internet connection, verify the link and try again.";
 
+// Placeholder: conversation name
+"url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
+"url_action.join_conversation.confirmation.confirm_button" = "Gå med";
+
+"url_action.join_conversation.error.alert.title" = "Du kunde inte gå med i konversationen";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "Konversationen är fylld.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "Länken till konversationen är ogiltig.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Learn more about guest links";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire can't find this person.";
@@ -1754,7 +1811,7 @@
 // News and offers consent prompt
 
 "news_offers.consent.title" = "Vill du ta emot nyheter och produkt-uppdateringar från Wire via e-post?";
-"news_offers.consent.message" = "You can unsubscribe at any time.";
+"news_offers.consent.message" = "Du kan avprenumerera när som helst.";
 "news_offers.consent.button.privacy_policy.title" = "Integritetspolicy";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1791,14 +1848,14 @@
 // Legal hold - alert
 "legalhold_request.button.accessibility" = "Pending approval.";
 "legalhold_request.alert.title" = "Legal Hold Requested";
-"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and timed messages in all conversations.";
+"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and self-deleting messages in all conversations.";
 "legalhold_request.alert.detail.enter_password" = "Ange Ditt lösenord för att bekräfta.";
 "legalhold_request.alert.error_wrong_password" = "Wrong Password";
 
 // Legal hold activated
 "legalhold_active.alert.title" = "Legal Hold is Active";
 "legalhold_active.alert.learn_more" = "Läs mer";
-"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and timed messages.\n\nYour conversation partners will be aware of the recording.";
+"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and self-deleting messages.\n\nYour conversation partners will be aware of the recording.";
 
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Your session expired";
@@ -1820,10 +1877,10 @@
 
 // Custom app lock - create passcode
 "create_passcode.textfield.placeholder" = "";
-"create_passcode.title_label" = "Create a passcode";
-"create_passcode.info_label" = "It will be used to unlock Wire. If you forget this passcode **it can not be recovered.**";
-"create_passcode.info_label_forced_applock" = "Create a passcode to unlock Wire. Please remember it, as **it can not be recovered.**";
-"create_passcode.create_button.title" = "create passcode";
+"create_passcode.title_label" = "Set a passcode";
+"create_passcode.info_label" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.info_label_forced_applock" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.create_button.title" = "Set a Passcode";
 
 // Custom app lock - create passcode validation
 "create_passcode.validation.too_short" = "At least eight characters long";
@@ -1835,9 +1892,9 @@
 // Custom app lock - unlock
 "unlock.textfield.placeholder" = "Enter your passcode";
 "unlock.title_label" = "Enter passcode to unlock Wire";
-"unlock.wipe_button" = "Access as new device";
+"unlock.wipe_button" = "Forgot your app lock passcode?";
 "unlock.error_label" = "Wrong passcode";
-"unlock.submit_button.title" = "unlock";
+"unlock.submit_button.title" = "Lås upp";
 
 // Custom app lock - warning screen
 "warning_screen.title_label" = "There was a change in Wire";
@@ -1847,16 +1904,16 @@
 
 // Wipe database
 
-"wipe_database.title_label" = "Access as new device";
-"wipe_database.info_label" = "The data stored on this device can only be accessed with your passcode.\n\nIf you have forgotten your passcode, you can delete the database to log in again as a new device.\n\nBy deleting the database, ";
+"wipe_database.title_label" = "Forgot your app lock passcode?";
+"wipe_database.info_label" = "The data stored on this device can only be accessed with your app lock passcode. If you have forgotten your passpcode, you can reset this device. Please enter your Wire account password to reset this device and log in again. By resetting your device,";
 "wipe_database.info_label.highlighted" = "all local data and messages for this account will be permanently deleted.";
 
-"wipe_database.button.title" = "I want to delete the database";
+"wipe_database.button.title" = "Reset Device";
 
 // Wipe database alert
 
-"wipe_database.alert.description" = "Confirm database deletion";
-"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device.";
+"wipe_database.alert.description" = "Reset Device";
+"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device,\nto reset this device and log in again";
 "wipe_database.alert.placeholder" = "Type 'Delete'";
 "wipe_database.alert.confirm" = "Radera";
 "wipe_database.alert.confirm_input" = "Radera";
@@ -1873,4 +1930,30 @@
 "appLockModule.message.passcode" = "Unlock Wire with Passcode";
 "appLockModule.message.passcodeUnavailable" = "To unlock Wire, turn on Passcode in your device settings";
 "appLockModule.unlockButton.title" = "Lås upp";
-"appLockModule.goToSettingsButton.title" = "Go to settings";
+"appLockModule.goToSettingsButton.title" = "Gå till inställningar";
+
+//MARK: - Keyboard shortcut
+"keyboardshortcut.scrollToBottom" = "Scroll to Bottom";
+"keyboardshortcut.conversationDetail" = "Conversation Details...";
+"keyboardshortcut.searchInConversation" = "Search in Conversation...";
+"keyboardshortcut.openPeople" = "Personer";
+
+// MARK: - Security classification
+"security_classification.security_level" = "Security level:";
+"security_classification.level.bund" = "VS-NfD";
+"security_classification.level.not_classified" = "UNCLASSIFIED";
+
+"proxy-credentials.title" = "Proxy Credentials";
+// url of proxy server as backend
+"proxy-credentials.caption" = "This backend is configured to use the following proxy server: %@.";
+"proxy-credentials.username.label" = "Proxy Email or Username";
+"proxy-credentials.username.placeholder" = "Email or Username";
+"proxy-credentials.password.label" = "Proxy Password";
+"proxy-credentials.password.placeholder" = "Lösenord";
+
+"landing.alert.create-new-account.not-supported.title" = "Not supported";
+"landing.alert.create-new-account.not-supported.message" = "You can't create a personal account on an on-premises backend with proxy support.";
+"landing.alert.sso.not-supported.title" = "Not supported";
+"landing.alert.sso.not-supported.message" = "You can't log in via SSO on an on-premises backend with proxy support.";
+"credentials.general-error.alert.title" = "Invalid Information";
+"credentials.general-error.alert.message" = "These account credentials are incorrect. Please verify your details and try again.";

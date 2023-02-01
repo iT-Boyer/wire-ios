@@ -50,6 +50,8 @@ final class AppLockModuleViewTests: XCTestCase {
         XCTAssertEqual(presenter.events, [.viewDidAppear])
     }
 
+    // @SF.Locking @TSFI.FS-IOS @S0.1
+    // Make sure that the presenter got event from view if unlock happened through reauthentication
     func test_ItSendsEvent_WhenLockViewRequestReauthentication() {
         // Given
         sut.loadViewIfNeeded()
@@ -98,6 +100,8 @@ final class AppLockModuleViewTests: XCTestCase {
         XCTAssertEqual(presenter.events, [.configChangeAcknowledged])
     }
 
+    // @SF.Locking @TSFI.FS-IOS @S0.1
+    // Make sure presenter gets event when app enters foreground
     func test_ItSendsEvent_WhenApplicationWillEnterForeground() {
         // When
         sut.applicationWillEnterForeground()

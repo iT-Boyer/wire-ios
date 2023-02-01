@@ -17,8 +17,11 @@
 //
 
 import UIKit
+import WireCommonComponents
 
-class DetailsCollectionViewCell: SeparatorCollectionViewCell {
+class DetailsCollectionViewCell: SeparatorCollectionViewCell, DynamicTypeCapable {
+
+    // MARK: - Properties
 
     private let leftIconView = UIImageView()
     private let titleLabel = UILabel()
@@ -32,21 +35,24 @@ class DetailsCollectionViewCell: SeparatorCollectionViewCell {
     /// The leading offset of the content when `icon` is nil.
     var contentLeadingOffset: CGFloat = 24
 
-    // MARK: - Properties
-
     var titleBolded: Bool {
         get {
-            return titleLabel.font == FontSpec.init(.normal, .semibold).font
+            return titleLabel.font == FontSpec.normalSemiboldFont.font
         }
 
         set {
-            titleLabel.font = newValue ? FontSpec.init(.normal, .semibold).font! : FontSpec.init(.normal, .light).font!
+            titleLabel.font = newValue ? FontSpec.normalSemiboldFont.font : FontSpec.normalLightFont.font
         }
     }
 
     var icon: UIImage? {
         get { return leftIconView.image }
         set { updateIcon(newValue) }
+    }
+
+    var iconColor: UIColor? {
+        get { return leftIconView.tintColor }
+        set { leftIconView.tintColor = newValue }
     }
 
     var title: String? {
@@ -60,12 +66,22 @@ class DetailsCollectionViewCell: SeparatorCollectionViewCell {
     }
 
     var disabled: Bool = false {
-        didSet {
-            updateDisabledState()
+        didSet { }
+    }
+
+    override var accessibilityLabel: String? {
+        get {
+            guard let title = title,
+                  let status = status else { return nil }
+            return "\(title), \(status)"
+        }
+
+        set {
+            super.accessibilityLabel = newValue
         }
     }
 
-    // MARK: - Configuration
+    // MARK: - Configuration - Override Methods
 
     override func setUp() {
         super.setUp()
@@ -75,10 +91,12 @@ class DetailsCollectionViewCell: SeparatorCollectionViewCell {
         leftIconView.setContentHuggingPriority(.required, for: .horizontal)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = FontSpec.init(.normal, .light).font!
+        titleLabel.font = FontSpec.bodyTwoSemibold.font!
+        titleLabel.applyStyle(.primaryCellLabel)
 
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.font = FontSpec.init(.small, .regular).font!
+        statusLabel.font = FontSpec.mediumRegularFont.font
+        statusLabel.applyStyle(.secondaryCellLabel)
 
         leftIconContainer = UIView()
         leftIconContainer.addSubview(leftIconView)
@@ -111,14 +129,13 @@ class DetailsCollectionViewCell: SeparatorCollectionViewCell {
         contentStackView.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
         contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
         contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16).isActive = true
+
+        setupAccessibility()
     }
 
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
-        let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        backgroundColor = UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
-        statusLabel.textColor = sectionTextColor
-        updateDisabledState()
+        backgroundColor = SemanticColors.View.backgroundUserCell
     }
 
     // MARK: - Layout
@@ -158,8 +175,15 @@ class DetailsCollectionViewCell: SeparatorCollectionViewCell {
         }
     }
 
-    private func updateDisabledState() {
-        titleLabel.textColor = UIColor.from(scheme: disabled ? .textPlaceholder : .textForeground, variant: colorSchemeVariant)
+    private func setupAccessibility() {
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    func redrawFont() {
+        statusLabel.font = FontSpec.smallRegularFont.font
+
+        titleLabel.font = titleBolded ? FontSpec.normalSemiboldFont.font : FontSpec.normalLightFont.font
     }
 
 }

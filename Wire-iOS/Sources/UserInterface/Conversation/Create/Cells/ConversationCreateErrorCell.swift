@@ -18,6 +18,7 @@
 
 import Foundation
 import UIKit
+import WireCommonComponents
 
 class ConversationCreateErrorCell: UICollectionViewCell {
 
@@ -28,18 +29,23 @@ class ConversationCreateErrorCell: UICollectionViewCell {
         setup()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setup()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     fileprivate func setup() {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.font = FontSpec(.small, .semibold).font!
-        label.textColor = UIColor.from(scheme: .errorIndicator, variant: .light)
+        label.textColor = SemanticColors.Label.textErrorDefault
 
         contentView.addSubview(label)
-        label.fitInSuperview(with: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
+        ])
     }
 }

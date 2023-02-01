@@ -17,6 +17,7 @@
 
 import Foundation
 import UIKit
+import WireCommonComponents
 
 extension UIColor {
     enum AlarmButton {
@@ -25,7 +26,7 @@ extension UIColor {
 }
 
 /// A button with spinner at the trailing side. Title text is non truncated.
-final class SpinnerButton: Button {
+final class SpinnerButton: LegacyButton {
 
     private lazy var spinner: Spinner = {
         let spinner = Spinner()
@@ -59,8 +60,8 @@ final class SpinnerButton: Button {
         }
     }
 
-    override init() {
-        super.init()
+    override init(fontSpec: FontSpec) {
+        super.init(fontSpec: fontSpec)
 
         configureTitleLabel()
     }
@@ -117,6 +118,6 @@ final class SpinnerButton: Button {
 
     // MARK: - factory method
     static func alarmButton() -> SpinnerButton {
-        return SpinnerButton(style: .empty, cornerRadius: 6, titleLabelFont: .smallSemiboldFont)
+        return SpinnerButton(legacyStyle: .empty, cornerRadius: 6, fontSpec: .smallSemiboldFont)
     }
 }

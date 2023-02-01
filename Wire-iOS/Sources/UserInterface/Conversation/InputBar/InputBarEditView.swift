@@ -16,7 +16,6 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Cartography
 import WireCommonComponents
 import UIKit
 
@@ -24,16 +23,18 @@ enum EditButtonType {
     case undo, confirm, cancel
 }
 
-protocol InputBarEditViewDelegate: class {
+protocol InputBarEditViewDelegate: AnyObject {
     func inputBarEditView(_ editView: InputBarEditView, didTapButtonWithType buttonType: EditButtonType)
     func inputBarEditViewDidLongPressUndoButton(_ editView: InputBarEditView)
 }
 
 final class InputBarEditView: UIView {
+typealias IconColors = SemanticColors.Icon
+
     private static var iconButtonTemplate: IconButton {
         let iconButton = IconButton()
-        iconButton.setIconColor(.from(scheme: .iconNormal), for: .normal)
-        iconButton.setIconColor(.from(scheme: .iconHighlighted), for: .highlighted)
+        iconButton.setIconColor(IconColors.foregroundDefaultBlack, for: .normal)
+        iconButton.setIconColor(IconColors.foregroundDefaultBlack.withAlphaComponent(0.6), for: .highlighted)
 
         return iconButton
     }
@@ -42,6 +43,8 @@ final class InputBarEditView: UIView {
     let confirmButton = InputBarEditView.iconButtonTemplate
     let cancelButton = InputBarEditView.iconButtonTemplate
     let iconSize: CGFloat = StyleKitIcon.Size.tiny.rawValue
+    private let margin: CGFloat = 16
+    private lazy var buttonMargin: CGFloat = margin + iconSize / 2
 
     weak var delegate: InputBarEditViewDelegate?
 
@@ -51,6 +54,7 @@ final class InputBarEditView: UIView {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -73,20 +77,24 @@ final class InputBarEditView: UIView {
     }
 
     fileprivate func createConstraints() {
-        let margin: CGFloat = 16
-        let buttonMargin: CGFloat = margin + iconSize / 2
-        constrain(self, undoButton, confirmButton, cancelButton) { view, undoButton, confirmButton, cancelButton in
-            align(top: view, undoButton, confirmButton, cancelButton)
-            align(bottom: view, undoButton, confirmButton, cancelButton)
+        [undoButton, confirmButton, cancelButton].prepareForLayout()
+        NSLayoutConstraint.activate([
+            topAnchor.constraint(equalTo: undoButton.topAnchor),
+            topAnchor.constraint(equalTo: confirmButton.topAnchor),
+            topAnchor.constraint(equalTo: cancelButton.topAnchor),
 
-            undoButton.centerX == view.leading + buttonMargin
-            undoButton.width == view.height
+            bottomAnchor.constraint(equalTo: undoButton.bottomAnchor),
+            bottomAnchor.constraint(equalTo: confirmButton.bottomAnchor),
+            bottomAnchor.constraint(equalTo: cancelButton.bottomAnchor),
 
-            confirmButton.centerX == view.centerX
-            confirmButton.width == view.height
-            cancelButton.centerX == view.trailing - buttonMargin
-            cancelButton.width == view.height
-        }
+            undoButton.centerXAnchor.constraint(equalTo: leadingAnchor, constant: buttonMargin),
+            undoButton.widthAnchor.constraint(equalTo: heightAnchor),
+
+            confirmButton.centerXAnchor.constraint(equalTo: centerXAnchor),
+            confirmButton.widthAnchor.constraint(equalTo: heightAnchor),
+            cancelButton.centerXAnchor.constraint(equalTo: trailingAnchor, constant: -buttonMargin),
+            cancelButton.widthAnchor.constraint(equalTo: heightAnchor)
+        ])
     }
 
     @objc func buttonTapped(_ sender: IconButton) {

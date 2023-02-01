@@ -17,7 +17,7 @@
 //
 
 import UIKit
-import Cartography
+import WireCommonComponents
 
 final class ActionCell: UITableViewCell, CellConfigurationConfigurable {
 
@@ -31,40 +31,45 @@ final class ActionCell: UITableViewCell, CellConfigurationConfigurable {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     private func setupViews() {
         let backgroundView = UIView()
-        backgroundView.backgroundColor = .init(white: 0, alpha: 0.08)
+        backgroundView.backgroundColor = SemanticColors.View.backgroundUserCell
         selectedBackgroundView = backgroundView
         imageContainer.addSubview(iconImageView)
-        iconImageView.setIcon(.link, size: .tiny, color: .strongBlue)
-        label.textColor = .strongBlue
-        label.font = FontSpec(.normal, .light).font
+        iconImageView.setIcon(.link, size: .tiny, color: SemanticColors.Icon.foregroundDefault)
+        iconImageView.setTemplateIcon(.link, size: .tiny)
+        iconImageView.tintColor = SemanticColors.Icon.foregroundDefault
+        label.textColor = SemanticColors.Label.textDefault
+        label.font = FontSpec(.normal, .semibold).font
         [imageContainer, label].forEach(contentView.addSubview)
     }
 
     private func createConstraints() {
-        constrain(contentView, label, imageContainer, iconImageView) { contentView, label, imageContainer, imageView in
-            imageContainer.top == contentView.top
-            imageContainer.bottom == contentView.bottom
-            imageContainer.leading == contentView.leading
-            imageContainer.width == 64
-            imageView.center == imageContainer.center
-            label.leading == imageContainer.trailing
-            label.top == contentView.top
-            label.trailing == contentView.trailing
-            label.bottom == contentView.bottom
-            label.height == 56
-        }
+        [label, imageContainer, iconImageView].prepareForLayout()
+        NSLayoutConstraint.activate([
+          imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
+          imageContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+          imageContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+          imageContainer.widthAnchor.constraint(equalToConstant: 64),
+            iconImageView.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
+          label.leadingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+          label.topAnchor.constraint(equalTo: contentView.topAnchor),
+          label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+          label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+          label.heightAnchor.constraint(equalToConstant: 56)
+        ])
     }
 
     func configure(with configuration: CellConfiguration, variant: ColorSchemeVariant) {
         guard case let .leadingButton(title, identifier, _) = configuration else { preconditionFailure() }
         accessibilityIdentifier = identifier
         label.text = title
-        backgroundColor = UIColor.from(scheme: .barBackground, variant: variant)
+        backgroundColor = SemanticColors.View.backgroundUserCell
     }
 }

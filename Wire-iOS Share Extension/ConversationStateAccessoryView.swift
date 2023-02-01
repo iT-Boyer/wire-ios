@@ -34,10 +34,9 @@ class ConversationStateAccessoryView: UIView {
         configureConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
-        configureConstraints()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {
@@ -47,7 +46,9 @@ class ConversationStateAccessoryView: UIView {
         contentStack.spacing = 8
 
         legalHoldImageView.setContentHuggingPriority(.required, for: .horizontal)
-        legalHoldImageView.setIcon(.legalholdactive, size: 16, color: .vividRed)
+
+        legalHoldImageView.setTemplateIcon(.legalholdactive, size: 16)
+        legalHoldImageView.tintColor = SemanticColors.Icon.foregroundDefaultRed
         contentStack.addArrangedSubview(legalHoldImageView)
 
         verifiedImageView.setContentHuggingPriority(.required, for: .horizontal)

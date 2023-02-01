@@ -1,26 +1,24 @@
 //
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 import Foundation
 import UIKit
-import Cartography
 import WireSyncEngine
-import WireSystem
 
 private let zmLog = ZMSLog(tag: "UI")
 
@@ -55,40 +53,28 @@ final class SettingsClientViewController: UIViewController,
 
     var fromConversation: Bool = false
 
-    var variant: ColorSchemeVariant? {
-        didSet {
-            setColor(for: variant)
-        }
-    }
-
     var removalObserver: ClientRemovalObserver?
 
     convenience init(userClient: UserClient,
                      fromConversation: Bool,
-                     credentials: ZMEmailCredentials? = .none,
-                     variant: ColorSchemeVariant? = .none) {
-        self.init(userClient: userClient, credentials: credentials, variant: variant)
+                     credentials: ZMEmailCredentials? = .none) {
+        self.init(userClient: userClient, credentials: credentials)
         self.fromConversation = fromConversation
     }
 
     required init(userClient: UserClient,
-                  credentials: ZMEmailCredentials? = .none,
-                  variant: ColorSchemeVariant? = .none) {
+                  credentials: ZMEmailCredentials? = .none) {
         self.userClient = userClient
-        defer {
-            self.variant = variant
-        }
 
         super.init(nibName: nil, bundle: nil)
         self.edgesForExtendedLayout = []
-
         self.userClientToken = UserClientChangeInfo.add(observer: self, for: userClient)
         if userClient.fingerprint == .none {
             ZMUserSession.shared()?.enqueue({ () -> Void in
                 userClient.fetchFingerprintOrPrekeys()
             })
         }
-        self.title = userClient.deviceClass?.localizedDescription.localizedUppercase
+        setupNavigationTitle()
         self.credentials = credentials
     }
 
@@ -110,12 +96,17 @@ final class SettingsClientViewController: UIViewController,
         if fromConversation {
             setupFromConversationStyle()
         }
+        setColor()
     }
 
     func setupFromConversationStyle() {
-        view.backgroundColor = .from(scheme: .background)
-        tableView.separatorColor = .from(scheme: .separator)
-        navigationController?.navigationBar.titleTextAttributes = [.foregroundColor: UIColor.from(scheme: .textForeground)]
+        view.backgroundColor = SemanticColors.View.backgroundDefault
+        navigationController?.navigationBar.titleTextAttributes = [.foregroundColor: SemanticColors.Label.textDefault]
+    }
+
+    private func setupNavigationTitle() {
+        guard let deviceClass = userClient.deviceClass?.localizedDescription.localized else { return }
+        navigationItem.setupNavigationBarTitle(title: deviceClass.capitalized)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -140,9 +131,8 @@ final class SettingsClientViewController: UIViewController,
         tableView.dataSource = self
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 80
-        tableView.backgroundColor = UIColor.clear
-        tableView.separatorColor = separatorColor
-
+        tableView.backgroundColor = SemanticColors.View.backgroundDefault
+        tableView.separatorStyle = .none
         tableView.register(ClientTableViewCell.self, forCellReuseIdentifier: ClientTableViewCell.zm_reuseIdentifier)
         tableView.register(FingerprintTableViewCell.self, forCellReuseIdentifier: FingerprintTableViewCell.zm_reuseIdentifier)
         tableView.register(SettingsTableCell.self, forCellReuseIdentifier: type(of: self).deleteCellReuseIdentifier)
@@ -153,19 +143,24 @@ final class SettingsClientViewController: UIViewController,
     }
 
     private func createConstraints() {
-        constrain(tableView, self.view, self.topSeparator) { tableView, selfView, topSeparator in
-            tableView.edges == selfView.edges
+        [tableView, topSeparator].prepareForLayout()
+        NSLayoutConstraint.activate([
+          tableView.topAnchor.constraint(equalTo: view.topAnchor),
+          tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+          tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
+          tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
 
-            topSeparator.left == tableView.left
-            topSeparator.right == tableView.right
-            topSeparator.top == tableView.top
-        }
+          topSeparator.leftAnchor.constraint(equalTo: tableView.leftAnchor),
+          topSeparator.rightAnchor.constraint(equalTo: tableView.rightAnchor),
+          topSeparator.topAnchor.constraint(equalTo: tableView.topAnchor)
+        ])
     }
 
     required override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         fatalError("init(nibNameOrNil:nibBundleOrNil:) has not been implemented")
     }
 
+    @available(*, unavailable)
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -208,8 +203,7 @@ final class SettingsClientViewController: UIViewController,
         case .fingerprintAndVerify:
             if self.userClient == ZMUserSession.shared()?.selfUserClient {
                 return 1
-            }
-            else {
+            } else {
                 return 2
             }
         case .resetSession:
@@ -231,21 +225,20 @@ final class SettingsClientViewController: UIViewController,
                 cell.wr_editable = false
                 cell.showVerified = false
                 cell.showLabel = true
-                cell.variant = self.variant
+                cell.accessibilityTraits = .none
+                cell.accessibilityHint = ""
                 return cell
             }
 
         case .fingerprintAndVerify:
             if (indexPath as NSIndexPath).row == 0 {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: FingerprintTableViewCell.zm_reuseIdentifier, for: indexPath) as? FingerprintTableViewCell {
-
                     cell.selectionStyle = .none
+                    cell.separatorInset = .zero
                     cell.fingerprint = self.userClient.fingerprint
-                        cell.variant = self.variant
                     return cell
                 }
-            }
-            else {
+            } else {
                 if let cell = tableView.dequeueReusableCell(withIdentifier: type(of: self).verifiedCellReuseIdentifier, for: indexPath) as? SettingsToggleCell {
                     cell.titleText = NSLocalizedString("device.verified", comment: "")
                     cell.cellNameLabel.accessibilityIdentifier = "device verified label"
@@ -253,7 +246,6 @@ final class SettingsClientViewController: UIViewController,
                     cell.switchView.accessibilityIdentifier = "device verified"
                     cell.accessibilityIdentifier = "device verified"
                     cell.switchView.isOn = self.userClient.verified
-                        cell.variant = self.variant
                     return cell
                 }
             }
@@ -262,7 +254,6 @@ final class SettingsClientViewController: UIViewController,
             if let cell = tableView.dequeueReusableCell(withIdentifier: type(of: self).resetCellReuseIdentifier, for: indexPath) as? SettingsTableCell {
                 cell.titleText = NSLocalizedString("profile.devices.detail.reset_session.title", comment: "")
                 cell.accessibilityIdentifier = "reset session"
-                cell.variant = self.variant
                 return cell
             }
 
@@ -270,7 +261,6 @@ final class SettingsClientViewController: UIViewController,
             if let cell = tableView.dequeueReusableCell(withIdentifier: type(of: self).deleteCellReuseIdentifier, for: indexPath) as? SettingsTableCell {
                 cell.titleText = NSLocalizedString("self.settings.account_details.remove_device.title", comment: "")
                 cell.accessibilityIdentifier = "remove device"
-                cell.variant = self.variant
                 return cell
             }
         }
@@ -406,7 +396,7 @@ extension UserClient {
         if let remoteIdentifier = remoteIdentifier {
             lines.append("ID: \(remoteIdentifier)")
         }
-        if let pushToken = pushToken {
+        if let pushToken = PushTokenStorage.pushToken {
             lines.append("Push Token: \(pushToken.deviceTokenString)")
         }
         return lines.joined(separator: "\n")

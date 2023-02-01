@@ -28,23 +28,15 @@ final class GroupDetailsRenameCell: UICollectionViewCell {
     let titleTextField = SimpleTextField()
     var contentStackView: UIStackView!
 
-    var variant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != variant else { return }
-            configureColors()
-        }
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
 
         setup()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-
-        setup()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     fileprivate func setup() {
@@ -56,7 +48,6 @@ final class GroupDetailsRenameCell: UICollectionViewCell {
         verifiedIconView.setContentCompressionResistancePriority(UILayoutPriority.required, for: .horizontal)
         verifiedIconView.accessibilityIdentifier = "img.shield"
 
-        accessoryIconView.setIcon(.pencil, size: 12, color: UIColor.from(scheme: .textForeground, variant: variant))
         accessoryIconView.translatesAutoresizingMaskIntoConstraints = false
         accessoryIconView.contentMode = .scaleAspectFit
         accessoryIconView.setContentHuggingPriority(UILayoutPriority.required, for: .horizontal)
@@ -67,7 +58,7 @@ final class GroupDetailsRenameCell: UICollectionViewCell {
         titleTextField.returnKeyType = .done
         titleTextField.backgroundColor = .clear
         titleTextField.textInsets = UIEdgeInsets.zero
-        titleTextField.keyboardAppearance = ColorScheme.default.keyboardAppearance
+        titleTextField.keyboardAppearance = .default
 
         contentStackView = UIStackView(arrangedSubviews: [verifiedIconView, titleTextField, accessoryIconView])
         contentStackView.axis = .horizontal
@@ -94,9 +85,10 @@ final class GroupDetailsRenameCell: UICollectionViewCell {
     }
 
     private func configureColors() {
-        backgroundColor = UIColor.from(scheme: .barBackground, variant: variant)
-        accessoryIconView.setIcon(.pencil, size: .tiny, color: UIColor.from(scheme: .textForeground, variant: variant))
-        titleTextField.textColor = UIColor.from(scheme: .textForeground, variant: variant)
+        backgroundColor = SemanticColors.View.backgroundUserCell
+        accessoryIconView.setTemplateIcon(.pencil, size: .tiny)
+        accessoryIconView.tintColor = SemanticColors.Icon.foregroundDefault
+        titleTextField.textColor = SemanticColors.Label.textDefault
     }
 
 }

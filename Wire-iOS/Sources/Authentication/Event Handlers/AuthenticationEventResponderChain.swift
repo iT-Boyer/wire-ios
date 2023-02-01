@@ -24,7 +24,7 @@ import WireDataModel
  * Provides information to the event responder chain and executes actions.
  */
 
-protocol AuthenticationEventResponderChainDelegate: class {
+protocol AuthenticationEventResponderChainDelegate: AnyObject {
 
     /// The object providing authentication status info.
     var statusProvider: AuthenticationStatusProvider { get }
@@ -67,6 +67,7 @@ class AuthenticationEventResponderChain {
         case registrationStepSuccess
         case userProfileChange(UserChangeInfo)
         case userInput(Any)
+        case deviceConfigurationComplete
     }
 
     // MARK: - Properties
@@ -98,6 +99,7 @@ class AuthenticationEventResponderChain {
     var registrationSuccessHandlers: [AnyAuthenticationEventHandler<Void>] = []
     var userProfileChangeObservers: [AnyAuthenticationEventHandler<UserChangeInfo>] = []
     var userInputObservers: [AnyAuthenticationEventHandler<Any>] = []
+    var deviceConfigurationHandlers: [AnyAuthenticationEventHandler<Void>] = []
 
     /**
      * Configures the object with the given delegate and registers the default observers.
@@ -138,6 +140,7 @@ class AuthenticationEventResponderChain {
 
         // loginErrorHandlers
         registerHandler(AuthenticationPhoneLoginErrorHandler(), to: &loginErrorHandlers)
+        registerHandler(AuthenticationEmailVerificationRequiredErrorHandler(), to: &loginErrorHandlers)
         registerHandler(AuthenticationEmailLoginUnknownErrorHandler(), to: &loginErrorHandlers)
         registerHandler(AuthenticationEmailFallbackErrorHandler(), to: &loginErrorHandlers)
         registerHandler(UserEmailUpdateFailureErrorHandler(), to: &loginErrorHandlers)
@@ -149,21 +152,17 @@ class AuthenticationEventResponderChain {
         // registrationErrorHandlers
         registerHandler(RegistrationActivationExistingAccountPolicyHandler(), to: &registrationErrorHandlers)
         registerHandler(RegistrationActivationErrorHandler(), to: &registrationErrorHandlers)
-        registerHandler(TeamEmailVerificationErrorHandler(), to: &registrationErrorHandlers)
         registerHandler(RegistrationFinalErrorHandler(), to: &registrationErrorHandlers)
 
         // registrationSuccessHandlers
         registerHandler(RegistrationActivationCodeSentEventHandler(), to: &registrationSuccessHandlers)
-        registerHandler(TeamEmailVerificationCodeAvailableEventHandler(), to: &registrationSuccessHandlers)
         registerHandler(RegistrationCredentialsVerifiedEventHandler(), to: &registrationSuccessHandlers)
-        registerHandler(TeamCredentialsVerifiedEventHandler(), to: &registrationSuccessHandlers)
         registerHandler(RegistrationIncrementalUserDataChangeHandler(), to: &registrationSuccessHandlers)
 
         // userProfileChangeObservers
         registerHandler(UserEmailChangeEventHandler(), to: &userProfileChangeObservers)
 
         // userInputObservers
-        registerHandler(AuthenticationTeamCreationInputHandler(), to: &userInputObservers)
         registerHandler(AuthenticationCodeVerificationInputHandler(), to: &userInputObservers)
         registerHandler(AuthenticationCredentialsCreationInputHandler(), to: &userInputObservers)
         registerHandler(AuthenticationIncrementalUserCreationInputHandler(), to: &userInputObservers)
@@ -171,6 +170,10 @@ class AuthenticationEventResponderChain {
         registerHandler(AuthenticationButtonTapInputHandler(), to: &userInputObservers)
         registerHandler(AuthenticationAddEmailPasswordInputHandler(), to: &userInputObservers)
         registerHandler(AuthenticationReauthenticateInputHandler(), to: &userInputObservers)
+        registerHandler(AuthenticationShowCustomBackendInfoHandler(), to: &userInputObservers)
+
+        // deviceConfigurationHandlers
+        registerHandler(DeviceConfigurationEventHandler(), to: &deviceConfigurationHandlers)
     }
 
     /// Registers a handler inside the specified type erased array.
@@ -212,6 +215,8 @@ class AuthenticationEventResponderChain {
             handleEvent(with: userProfileChangeObservers, context: changeInfo)
         case .userInput(let value):
             handleEvent(with: userInputObservers, context: value)
+        case .deviceConfigurationComplete:
+            handleEvent(with: deviceConfigurationHandlers, context: ())
         }
     }
 

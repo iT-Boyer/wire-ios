@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireDataModel
 import WireCommonComponents
@@ -25,6 +24,16 @@ import WireCommonComponents
 final class CollectionLinkCell: CollectionCell {
     private var articleView: ArticleView? = .none
     private var headerView = CollectionCellHeader()
+
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupAccessibility()
+    }
 
     func createArticleView(with textMessageData: ZMTextMessageData) {
         let articleView = ArticleView(withImagePlaceholder: textMessageData.linkPreviewHasImage)
@@ -34,26 +43,30 @@ final class CollectionLinkCell: CollectionCell {
         articleView.authorLabel.numberOfLines = 1
         articleView.configure(withTextMessageData: textMessageData,
                               obfuscated: false)
-        self.secureContentsView.addSubview(articleView)
+        secureContentsView.addSubview(articleView)
         // Reconstraint the header
-        self.headerView.removeFromSuperview()
-        self.headerView.message = self.message!
+        headerView.removeFromSuperview()
+        headerView.message = message!
 
-        self.secureContentsView.addSubview(self.headerView)
+        secureContentsView.addSubview(headerView)
 
-        self.contentView.layoutMargins = UIEdgeInsets(top: 16, left: 4, bottom: 4, right: 4)
+        contentView.layoutMargins = UIEdgeInsets(top: 16, left: 4, bottom: 4, right: 4)
 
-        constrain(self.contentView, articleView, headerView) { contentView, articleView, headerView in
+        [articleView, headerView].prepareForLayout()
+        NSLayoutConstraint.activate([
+            headerView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            headerView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor, constant: 12),
+            headerView.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor, constant: -12),
 
-            headerView.top == contentView.topMargin
-            headerView.leading == contentView.leadingMargin + 12
-            headerView.trailing == contentView.trailingMargin - 12
+          articleView.topAnchor.constraint(greaterThanOrEqualTo: headerView.bottomAnchor, constant: -4),
+            articleView.leftAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leftAnchor),
+            articleView.rightAnchor.constraint(equalTo: contentView.layoutMarginsGuide.rightAnchor),
+            articleView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor)
+        ])
 
-            articleView.top >= headerView.bottom - 4
-            articleView.left == contentView.leftMargin
-            articleView.right == contentView.rightMargin
-            articleView.bottom == contentView.bottomMargin
-        }
+        secureContentsView.layer.borderColor = SemanticColors.View.borderCollectionCell.cgColor
+        secureContentsView.layer.cornerRadius = 12
+        secureContentsView.layer.borderWidth = 1
 
         self.articleView = articleView
     }
@@ -63,9 +76,11 @@ final class CollectionLinkCell: CollectionCell {
     }
 
     override func updateForMessage(changeInfo: MessageChangeInfo?) {
+        typealias ConversationSearch = L10n.Accessibility.ConversationSearch
+
         super.updateForMessage(changeInfo: changeInfo)
 
-        guard let message = self.message, let textMessageData = message.textMessageData, textMessageData.linkPreview != nil else {
+        guard let message = message, let textMessageData = message.textMessageData, textMessageData.linkPreview != nil else {
             return
         }
 
@@ -73,17 +88,20 @@ final class CollectionLinkCell: CollectionCell {
 
         if changeInfo == nil {
             shouldReload = true
-        }
-        else {
+        } else {
             shouldReload = changeInfo!.imageChanged
         }
 
         if shouldReload {
-            self.articleView?.removeFromSuperview()
-            self.articleView = nil
+            articleView?.removeFromSuperview()
+            articleView = nil
 
-            self.createArticleView(with: textMessageData)
+            createArticleView(with: textMessageData)
         }
+        accessibilityLabel = ConversationSearch.SentBy.description(message.senderName)
+                            + ", \(message.serverTimestamp?.formattedDate ?? ""), "
+                            + ConversationSearch.LinkMessage.description
+        accessibilityHint = ConversationSearch.Item.hint
     }
 
     override func copyDisplayedContent(in pasteboard: UIPasteboard) {
@@ -93,6 +111,11 @@ final class CollectionLinkCell: CollectionCell {
 
     public override func prepareForReuse() {
         super.prepareForReuse()
-        self.message = .none
+        message = .none
+    }
+
+    private func setupAccessibility() {
+        isAccessibilityElement = true
+        accessibilityTraits = .button
     }
 }

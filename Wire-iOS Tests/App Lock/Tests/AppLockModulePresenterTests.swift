@@ -91,6 +91,7 @@ final class AppLockModulePresenterTests: XCTestCase {
         XCTAssertEqual(router.actions, [.inputPasscode])
     }
 
+    // @SF.Locking @TSFI.FS-IOS @S0.1
     func test_AuthenticationDenied() {
         // When
         sut.handleResult(.authenticationDenied(.faceID))
@@ -99,6 +100,7 @@ final class AppLockModulePresenterTests: XCTestCase {
         XCTAssertEqual(view.models, [.locked(.faceID)])
     }
 
+    // @SF.Locking @TSFI.FS-IOS @S0.1
     func test_AuthenticationUnavailable() {
         // When
         sut.handleResult(.authenticationUnavailable)

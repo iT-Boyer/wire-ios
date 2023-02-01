@@ -19,7 +19,7 @@
 import XCTest
 @testable import Wire
 
-final class TopPeopleCellSnapshotTests: XCTestCase {
+final class TopPeopleCellSnapshotTests: ZMSnapshotTestCase {
 
     var sut: TopPeopleCell!
 
@@ -27,7 +27,8 @@ final class TopPeopleCellSnapshotTests: XCTestCase {
         super.setUp()
         sut = TopPeopleCell(frame: CGRect(x: 0, y: 0, width: 56, height: 78))
         sut.user = MockUserType.createDefaultOtherUser()
-        sut.backgroundColor = .black
+        sut.overrideUserInterfaceStyle = .light
+        sut.backgroundColor = SemanticColors.View.backgroundDefault
     }
 
     override func tearDown() {

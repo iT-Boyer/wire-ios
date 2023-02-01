@@ -27,8 +27,7 @@ extension String {
     @discardableResult func deleteFileAtPath() -> Bool {
         do {
             try FileManager.default.removeItem(atPath: self)
-        }
-        catch {
+        } catch {
             zmLog.error("Cannot delete file: \(self): \(error)")
             return false
         }
@@ -111,6 +110,31 @@ extension AVSAudioEffectType: CustomStringConvertible {
             return "None"
         default:
             return "Unknown"
+        }
+    }
+
+    public var accessibilityLabel: String {
+        typealias AudioRecord = L10n.Accessibility.AudioRecord
+
+        switch self {
+        case .none:
+            return AudioRecord.NormalEffectButton.description
+        case .pitchupInsane:
+            return AudioRecord.HeliumEffectButton.description
+        case .pitchdownInsane:
+            return AudioRecord.DeepVoiceEffectButton.description
+        case .paceupMed:
+            return AudioRecord.QuickEffectButton.description
+        case .reverbMax:
+            return AudioRecord.HallEffectButton.description
+        case .chorusMax:
+            return AudioRecord.AlienEffectButton.description
+        case .vocoderMed:
+            return AudioRecord.RoboticEffectButton.description
+        case .pitchUpDownMax:
+            return AudioRecord.HighToDeepEffectButton.description
+        default:
+            return description
         }
     }
 

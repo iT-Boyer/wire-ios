@@ -17,7 +17,7 @@
 //
 
 import UIKit
-import Cartography
+import WireCommonComponents
 
 final class TextCell: UITableViewCell, CellConfigurationConfigurable {
 
@@ -26,24 +26,26 @@ final class TextCell: UITableViewCell, CellConfigurationConfigurable {
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        backgroundColor = .clear
+
         contentView.addSubview(container)
         container.addSubview(label)
         label.font = FontSpec(.normal, .light).font
         label.lineBreakMode = .byClipping
         label.numberOfLines = 0
-        constrain(contentView, container, label) { contentView, container, label in
-            container.leading == contentView.leading
-            container.top == contentView.top
-            container.trailing == contentView.trailing
-            container.bottom == contentView.bottom - 32
-            label.top == container.top + 16
-            label.leading == container.leading + 16
-            label.trailing == container.trailing - 16
-            label.bottom == container.bottom - 16
-        }
+        [container, label].prepareForLayout()
+        NSLayoutConstraint.activate([
+          container.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+          container.topAnchor.constraint(equalTo: contentView.topAnchor),
+          container.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+          container.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -32),
+          label.topAnchor.constraint(equalTo: container.topAnchor, constant: 16),
+          label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+          label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+          label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16)
+        ])
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -51,8 +53,10 @@ final class TextCell: UITableViewCell, CellConfigurationConfigurable {
     func configure(with configuration: CellConfiguration, variant: ColorSchemeVariant) {
         guard case let .text(text) = configuration else { preconditionFailure() }
         label.attributedText = text && .lineSpacing(8)
-        label.textColor = UIColor.from(scheme: .textForeground, variant: variant)
-        container.backgroundColor = UIColor.from(scheme: .barBackground, variant: variant)
-    }
 
+        label.textColor = SemanticColors.Label.textDefault
+        container.backgroundColor = SemanticColors.View.backgroundDefault
+        backgroundColor = SemanticColors.View.backgroundDefault
+
+    }
 }

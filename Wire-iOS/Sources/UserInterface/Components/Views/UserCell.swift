@@ -32,11 +32,15 @@ extension UIImageView {
 class UserCell: SeparatorCollectionViewCell, SectionListCellType {
 
     var hidesSubtitle: Bool = false
+    typealias IconColors = SemanticColors.Icon
+    typealias LabelColors = SemanticColors.Label
 
     let avatarSpacer = UIView()
     let avatar = BadgeUserImageView()
-    let titleLabel = UILabel()
-    let subtitleLabel = UILabel()
+    let titleLabel = DynamicFontLabel(fontSpec: .bodyTwoSemibold,
+                                      color: LabelColors.textDefault)
+    let subtitleLabel = DynamicFontLabel(fontSpec: .mediumRegularFont,
+                                         color: LabelColors.textCellSubtitle)
     let connectButton = IconButton()
     let accessoryIconView = UIImageView()
     let userTypeIconView = IconImageView()
@@ -52,8 +56,8 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
 
     weak var user: UserType?
 
-    static let boldFont: UIFont = .smallRegularFont
-    static let lightFont: UIFont = .smallLightFont
+    static let boldFont: FontSpec = .smallRegularFont
+    static let lightFont: FontSpec = .smallLightFont
     static let defaultAvatarSpacing: CGFloat = 64
 
     /// Specify a custom avatar spacing
@@ -68,15 +72,21 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
 
     var sectionName: String?
     var cellIdentifier: String?
+    let iconColor = IconColors.foregroundDefault
 
     override var isSelected: Bool {
         didSet {
-            let foregroundColor = UIColor.from(scheme: .background, variant: colorSchemeVariant)
-            let backgroundColor = UIColor.from(scheme: .iconNormal, variant: colorSchemeVariant)
-            let borderColor = isSelected ? backgroundColor : backgroundColor.withAlphaComponent(0.64)
-            checkmarkIconView.image = isSelected ? StyleKitIcon.checkmark.makeImage(size: 12, color: foregroundColor) : nil
-            checkmarkIconView.backgroundColor = isSelected ? backgroundColor : .clear
-            checkmarkIconView.layer.borderColor = borderColor.cgColor
+            checkmarkIconView.image = isSelected ? StyleKitIcon.checkmark.makeImage(size: 12, color: IconColors.foregroundCheckMarkSelected) : nil
+            checkmarkIconView.backgroundColor = isSelected ? .accent() : IconColors.backgroundCheckMark
+            checkmarkIconView.layer.borderColor = isSelected ? UIColor.clear.cgColor : IconColors.borderCheckMark.cgColor
+            checkmarkIconView.layer.borderWidth = isSelected ? 0 : 2
+            setupAccessibility()
+        }
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            backgroundColor = isHighlighted ? SemanticColors.View.backgroundUserCellHightLighted : SemanticColors.View.backgroundUserCell
         }
     }
 
@@ -92,38 +102,54 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
             connectButton.isHidden = true
             accessoryIconView.isHidden = true
             checkmarkIconView.image = nil
-            checkmarkIconView.layer.borderColor = UIColor.from(scheme: .iconNormal, variant: colorSchemeVariant).cgColor
+            checkmarkIconView.layer.borderColor = IconColors.borderCheckMark.cgColor
             checkmarkIconView.isHidden = true
         }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else { return }
+        //  Border colors are not dynamically updating for Dark Mode
+        //  When you use adaptive colors with CALayers you’ll notice that these colors,
+        // are not updating when switching appearance live in the app.
+        // That's why we use the traitCollectionDidChange(_:) method.
+        checkmarkIconView.layer.borderColor = IconColors.borderCheckMark.cgColor
     }
 
     override func setUp() {
         super.setUp()
 
+        backgroundColor = SemanticColors.View.backgroundUserCell
+
         userTypeIconView.setUpIconImageView()
         microphoneIconView.setUpIconImageView()
         videoIconView.setUpIconImageView()
+
+        userTypeIconView.set(size: .tiny, color: iconColor)
+        microphoneIconView.set(size: .tiny, color: iconColor)
+        videoIconView.set(size: .tiny, color: iconColor)
 
         verifiedIconView.image = WireStyleKit.imageOfShieldverified
         verifiedIconView.setUpIconImageView(accessibilityIdentifier: "img.shield")
 
         connectButton.setIcon(.plusCircled, size: .tiny, for: .normal)
+        connectButton.setIconColor(iconColor, for: .normal)
         connectButton.imageView?.contentMode = .center
         connectButton.isHidden = true
 
         checkmarkIconView.layer.borderWidth = 2
         checkmarkIconView.contentMode = .center
         checkmarkIconView.layer.cornerRadius = 12
+        checkmarkIconView.backgroundColor = IconColors.backgroundCheckMark
         checkmarkIconView.isHidden = true
 
         accessoryIconView.setUpIconImageView()
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .normalLightFont
         titleLabel.accessibilityIdentifier = "user_cell.name"
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.font = .smallRegularFont
         subtitleLabel.accessibilityIdentifier = "user_cell.username"
 
         avatar.userSession = ZMUserSession.shared()
@@ -158,7 +184,7 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
         createConstraints()
     }
 
-    func createConstraints() {
+    private func createConstraints() {
         let avatarSpacerWidthConstraint = avatarSpacer.widthAnchor.constraint(equalToConstant: UserCell.defaultAvatarSpacing)
         self.avatarSpacerWidthConstraint = avatarSpacerWidthConstraint
 
@@ -178,33 +204,87 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
         ])
     }
 
+    func setupAccessibility() {
+        typealias ClientsList = L10n.Accessibility.ClientsList
+        typealias Calling = L10n.Accessibility.Calling
+
+        guard let title = titleLabel.text else {
+                  isAccessibilityElement = false
+                  return
+              }
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        var content = "\(title)"
+
+        if let subtitle = subtitleLabel.text {
+            content += ", " + subtitle
+        }
+
+        if let userType = userTypeIconView.accessibilityLabel,
+           !userTypeIconView.isHidden {
+            content += ", \(userType)"
+        }
+
+        if !verifiedIconView.isHidden {
+            content += ", " + ClientsList.DeviceVerified.description
+        }
+
+        if !microphoneIconView.isHidden {
+            accessibilityTraits = .staticText
+            if let microphoneStyle = microphoneIconView.style as? MicrophoneIconStyle {
+                switch microphoneStyle {
+                case .unmuted, .unmutedPulsing:
+                    content += ", " + Calling.MicrophoneOn.description
+                case .muted, .hidden:
+                    content += ", " + Calling.MicrophoneOff.description
+                }
+            }
+
+            if !videoIconView.isHidden {
+                content += ", " + Calling.CameraOn.description
+            }
+        } else {
+            setupAccessibilityHint()
+        }
+
+        accessibilityLabel = content
+    }
+
+    private func setupAccessibilityHint() {
+        typealias ContactsList = L10n.Accessibility.ContactsList
+        typealias ServicesList = L10n.Accessibility.ServicesList
+        typealias ClientsList = L10n.Accessibility.ClientsList
+        typealias CreateConversation = L10n.Accessibility.CreateConversation
+
+        if !checkmarkIconView.isHidden {
+            accessibilityHint = isSelected
+                                ? CreateConversation.SelectedUser.hint
+                                : CreateConversation.UnselectedUser.hint
+        } else if let user = user, user.isServiceUser {
+            accessibilityHint = ServicesList.ServiceCell.hint
+        } else {
+            accessibilityHint = ContactsList.UserCell.hint
+        }
+    }
+
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
-        let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
 
-        let iconColor = UIColor.from(scheme: .iconGuest, variant: colorSchemeVariant)
+        accessoryIconView.setTemplateIcon(.disclosureIndicator, size: 12)
+        accessoryIconView.tintColor = IconColors.foregroundDefault
 
-        backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-
-        userTypeIconView.set(size: .tiny, color: iconColor)
-        microphoneIconView.set(size: .tiny, color: iconColor)
-        videoIconView.set(size: .tiny, color: iconColor)
-
-        accessoryIconView.setIcon(.disclosureIndicator, size: 12, color: sectionTextColor)
-        connectButton.setIconColor(sectionTextColor, for: .normal)
-        checkmarkIconView.layer.borderColor = UIColor.from(scheme: .iconNormal, variant: colorSchemeVariant).cgColor
-        titleLabel.textColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        subtitleLabel.textColor = sectionTextColor
         updateTitleLabel()
     }
 
     private func updateTitleLabel(selfUser: UserType? = nil) {
         guard let user = user,
               let selfUser = selfUser else {
-            return
-        }
-
-        var attributedTitle = user.nameIncludingAvailability(color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant), selfUser: selfUser)
+                  return
+              }
+        var attributedTitle = user.nameIncludingAvailability(
+            color: SemanticColors.Label.textDefault,
+            selfUser: selfUser)
 
         if user.isSelfUser, let title = attributedTitle {
             attributedTitle = title + "user_cell.title.you_suffix".localized
@@ -241,6 +321,7 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
         } else {
             subtitleLabel.isHidden = true
         }
+        setupAccessibility()
     }
 
 }
@@ -262,7 +343,7 @@ extension UserCell {
     private func subtitle(forServiceUser service: SearchServiceUser) -> NSAttributedString? {
         guard let summary = service.summary else { return nil }
 
-        return summary && UserCell.boldFont
+        return summary && UserCell.boldFont.font!
     }
 
     static var correlationFormatters: [ColorSchemeVariant: AddressBookCorrelationFormatter] = [:]
@@ -281,5 +362,4 @@ extension UserType {
 
         return nil
     }
-
 }

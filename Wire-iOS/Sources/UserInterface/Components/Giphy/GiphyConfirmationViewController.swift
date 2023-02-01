@@ -17,12 +17,11 @@
 //
 
 import UIKit
-import Cartography
 import Ziphy
 import FLAnimatedImage
 import WireCommonComponents
 
-protocol GiphyConfirmationViewControllerDelegate {
+protocol GiphyConfirmationViewControllerDelegate: AnyObject {
 
     func giphyConfirmationViewController(_ giphyConfirmationViewController: GiphyConfirmationViewController, didConfirmImageData imageData: Data)
 
@@ -30,14 +29,16 @@ protocol GiphyConfirmationViewControllerDelegate {
 
 final class GiphyConfirmationViewController: UIViewController {
 
-    var imagePreview = FLAnimatedImageView()
-    var acceptButton = Button(style: .full)
-    var cancelButton = Button(style: .empty)
-    var buttonContainer = UIView()
-    var delegate: GiphyConfirmationViewControllerDelegate?
-    let searchResultController: ZiphySearchResultsController?
-    let ziph: Ziph?
-    var imageData: Data?
+    typealias Giphy = L10n.Localizable.Giphy
+
+    private let imagePreview = FLAnimatedImageView()
+    private let acceptButton = Button(style: .accentColorTextButtonStyle, cornerRadius: 16, fontSpec: .normalSemiboldFont)
+    private let cancelButton = Button(style: .secondaryTextButtonStyle, cornerRadius: 16, fontSpec: .normalSemiboldFont)
+    private let buttonContainer = UIView()
+    weak var delegate: GiphyConfirmationViewControllerDelegate?
+    private let searchResultController: ZiphySearchResultsController?
+    private let ziph: Ziph?
+    private var imageData: Data?
 
     /// init method with optional arguments for remove dependency for testing
     ///
@@ -45,7 +46,9 @@ final class GiphyConfirmationViewController: UIViewController {
     ///   - ziph: provide nil for testing only
     ///   - previewImage: image for preview
     ///   - searchResultController: provide nil for testing only
-    init(withZiph ziph: Ziph?, previewImage: FLAnimatedImage?, searchResultController: ZiphySearchResultsController?) {
+    init(withZiph ziph: Ziph?,
+         previewImage: FLAnimatedImage?,
+         searchResultController: ZiphySearchResultsController?) {
         self.ziph = ziph
         self.searchResultController = searchResultController
 
@@ -55,19 +58,22 @@ final class GiphyConfirmationViewController: UIViewController {
             imagePreview.animatedImage = previewImage
         }
 
-        let closeImage = StyleKitIcon.cross.makeImage(size: .tiny, color: .black)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: closeImage, style: .plain, target: self, action: #selector
-            (GiphySearchViewController.onDismiss))
+        let closeImage = StyleKitIcon.cross.makeImage(size: .tiny, color: SemanticColors.Icon.foregroundDefaultBlack)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: closeImage,
+                                                            style: .plain,
+                                                            target: self,
+                                                            action: #selector(GiphySearchViewController.onDismiss))
 
-        view.backgroundColor = .from(scheme: .background)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorScheme.default.statusBarStyle
+        return .lightContent
     }
 
     override func viewDidLoad() {
@@ -76,17 +82,17 @@ final class GiphyConfirmationViewController: UIViewController {
         extendedLayoutIncludesOpaqueBars = true
 
         let titleLabel = UILabel()
-        titleLabel.font = FontSpec(.small, .semibold).font!
-        titleLabel.textColor = UIColor.from(scheme: .textForeground)
-        titleLabel.text = title?.localizedUppercase
+        titleLabel.font = FontSpec.headerSemiboldFont.font!
+        titleLabel.textColor = SemanticColors.Label.textDefault
+        titleLabel.text = title?.capitalized
         titleLabel.sizeToFit()
         navigationItem.titleView = titleLabel
 
         view.backgroundColor = .black
         acceptButton.isEnabled = false
-        acceptButton.setTitle("giphy.confirm".localized, for: .normal)
+        acceptButton.setTitle(Giphy.confirm.capitalized, for: .normal)
         acceptButton.addTarget(self, action: #selector(GiphyConfirmationViewController.onAccept), for: .touchUpInside)
-        cancelButton.setTitle("giphy.cancel".localized, for: .normal)
+        cancelButton.setTitle(Giphy.cancel.capitalized, for: .normal)
         cancelButton.addTarget(self, action: #selector(GiphyConfirmationViewController.onCancel), for: .touchUpInside)
 
         imagePreview.contentMode = .scaleAspectFit
@@ -114,53 +120,59 @@ final class GiphyConfirmationViewController: UIViewController {
         }
     }
 
-    @objc func onDismiss() {
+    @objc
+    private func onDismiss() {
         dismiss(animated: true, completion: nil)
     }
 
-    @objc func onCancel() {
+    @objc
+    private func onCancel() {
         _ = navigationController?.popViewController(animated: true)
     }
 
-    @objc func onAccept() {
+    @objc
+    private func onAccept() {
         if let imageData = imageData {
             delegate?.giphyConfirmationViewController(self, didConfirmImageData: imageData)
         }
     }
 
-    func configureConstraints() {
+    private func configureConstraints() {
 
-        imagePreview.translatesAutoresizingMaskIntoConstraints = false
+        let widthConstraint = buttonContainer.widthAnchor.constraint(equalToConstant: 476)
+
+        widthConstraint.priority = .init(700)
+
+        [imagePreview,
+         buttonContainer,
+         cancelButton,
+         acceptButton].prepareForLayout()
 
         NSLayoutConstraint.activate([
             imagePreview.leadingAnchor.constraint(equalTo: view.safeLeadingAnchor),
             imagePreview.trailingAnchor.constraint(equalTo: view.safeTrailingAnchor),
             imagePreview.topAnchor.constraint(equalTo: safeTopAnchor),
-            imagePreview.bottomAnchor.constraint(equalTo: buttonContainer.topAnchor)
+            imagePreview.bottomAnchor.constraint(equalTo: buttonContainer.topAnchor),
+
+            cancelButton.heightAnchor.constraint(equalToConstant: 40),
+            cancelButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 100),
+            cancelButton.leftAnchor.constraint(equalTo: buttonContainer.leftAnchor),
+            cancelButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+            cancelButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor),
+
+            acceptButton.heightAnchor.constraint(equalToConstant: 40),
+            acceptButton.rightAnchor.constraint(equalTo: buttonContainer.rightAnchor),
+            acceptButton.topAnchor.constraint(equalTo: buttonContainer.topAnchor),
+            acceptButton.bottomAnchor.constraint(equalTo: buttonContainer.bottomAnchor),
+
+            cancelButton.widthAnchor.constraint(equalTo: acceptButton.widthAnchor),
+            cancelButton.rightAnchor.constraint(equalTo: acceptButton.leftAnchor, constant: -16),
+
+            buttonContainer.leftAnchor.constraint(greaterThanOrEqualTo: view.leftAnchor, constant: 32),
+            buttonContainer.rightAnchor.constraint(lessThanOrEqualTo: view.rightAnchor, constant: -32),
+            buttonContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -32),
+            widthConstraint,
+            buttonContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
-
-        constrain(buttonContainer, cancelButton, acceptButton) { container, leftButton, rightButton in
-            leftButton.height == 40
-            leftButton.width >= 100
-            leftButton.left == container.left
-            leftButton.top == container.top
-            leftButton.bottom == container.bottom
-
-            rightButton.height == 40
-            rightButton.right == container.right
-            rightButton.top == container.top
-            rightButton.bottom == container.bottom
-
-            leftButton.width == rightButton.width
-            leftButton.right == rightButton.left - 16
-        }
-
-        constrain(view, buttonContainer) { container, buttonContainer in
-            buttonContainer.left >= container.left + 32
-            buttonContainer.right <= container.right - 32
-            buttonContainer.bottom == container.bottom - 32
-            buttonContainer.width == 476 ~ 700.0
-            buttonContainer.centerX == container.centerX
-        }
     }
 }

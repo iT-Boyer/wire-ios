@@ -18,14 +18,15 @@
 
 import Foundation
 import WireDataModel
+import WireCommonComponents
 
-protocol UserCellSubtitleProtocol: class {
+protocol UserCellSubtitleProtocol: AnyObject {
     func subtitle(forRegularUser user: UserType?) -> NSAttributedString?
 
     static var correlationFormatters: [ColorSchemeVariant: AddressBookCorrelationFormatter] { get set }
 
-    static var boldFont: UIFont { get }
-    static var lightFont: UIFont { get }
+    static var boldFont: FontSpec { get }
+    static var lightFont: FontSpec { get }
 }
 
 extension UserCellSubtitleProtocol where Self: UIView & Themeable {
@@ -34,14 +35,12 @@ extension UserCellSubtitleProtocol where Self: UIView & Themeable {
 
         var components: [NSAttributedString?] = []
 
-        if user.isFederated, let domain = user.domain {
-            components.append("@\(user.handle ?? "")@\(domain)" && UserCell.boldFont)
-        } else if let handle = user.handle, !handle.isEmpty {
-            components.append("@\(handle)" && UserCell.boldFont)
+        if let handle = user.handleDisplayString(withDomain: user.isFederated), !handle.isEmpty {
+            components.append(handle && UserCell.boldFont.font!)
         }
 
         WirelessExpirationTimeFormatter.shared.string(for: user).apply {
-            components.append($0 && UserCell.boldFont)
+            components.append($0 && UserCell.boldFont.font!)
         }
 
         if let user = user as? ZMUser, let addressBookName = user.addressBookEntry?.cachedName {
@@ -49,7 +48,7 @@ extension UserCellSubtitleProtocol where Self: UIView & Themeable {
             components.append(formatter.correlationText(for: user, addressBookName: addressBookName))
         }
 
-        return components.compactMap({ $0 }).joined(separator: " " + String.MessageToolbox.middleDot + " " && UserCell.lightFont)
+        return components.compactMap({ $0 }).joined(separator: " " + String.MessageToolbox.middleDot + " " && UserCell.lightFont.font!)
     }
 
     private static func correlationFormatter(for colorSchemeVariant: ColorSchemeVariant) -> AddressBookCorrelationFormatter {

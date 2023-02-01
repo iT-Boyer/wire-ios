@@ -19,10 +19,11 @@
 import Foundation
 import WireDataModel
 import UIKit
+import WireCommonComponents
 
 typealias GroupConversationCellConversation = Conversation & StableRandomParticipantsProvider
 
-final class GroupConversationCell: UICollectionViewCell, Themeable {
+final class GroupConversationCell: UICollectionViewCell {
 
     let avatarSpacer = UIView()
     let avatarView = ConversationAvatarView()
@@ -32,24 +33,9 @@ final class GroupConversationCell: UICollectionViewCell, Themeable {
     var contentStackView: UIStackView!
     var titleStackView: UIStackView!
 
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    // if nil the background color is the default content background color for the theme
-    @objc dynamic var contentBackgroundColor: UIColor? = nil {
-        didSet {
-            guard oldValue != contentBackgroundColor else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
     override var isHighlighted: Bool {
         didSet {
-            backgroundColor = isHighlighted ? .init(white: 0, alpha: 0.08) : .clear
+            backgroundColor = isHighlighted ? SemanticColors.View.backgroundUserCellHightLighted : SemanticColors.View.backgroundUserCell
         }
     }
 
@@ -58,13 +44,9 @@ final class GroupConversationCell: UICollectionViewCell, Themeable {
         setup()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setup()
-    }
-
-    fileprivate func contentBackgroundColor(for colorSchemeVariant: ColorSchemeVariant) -> UIColor {
-        return contentBackgroundColor ?? UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     fileprivate func setup() {
@@ -98,11 +80,15 @@ final class GroupConversationCell: UICollectionViewCell, Themeable {
         contentView.addSubview(contentStackView)
         contentView.addSubview(separator)
 
-        applyColorScheme(colorSchemeVariant)
+        backgroundColor = SemanticColors.View.backgroundUserCell
+        separator.backgroundColor = SemanticColors.View.backgroundSeparatorCell
+        titleLabel.applyStyle(.primaryCellLabel)
+        subtitleLabel.applyStyle(.secondaryCellLabel)
+
         createConstraints()
     }
 
-    func createConstraints() {
+    private func createConstraints() {
         NSLayoutConstraint.activate([
             avatarView.widthAnchor.constraint(equalToConstant: 28),
             avatarView.heightAnchor.constraint(equalToConstant: 28),
@@ -119,14 +105,6 @@ final class GroupConversationCell: UICollectionViewCell, Themeable {
             separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             separator.heightAnchor.constraint(equalToConstant: .hairline)
         ])
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-        separator.backgroundColor = UIColor.from(scheme: .cellSeparator, variant: colorSchemeVariant)
-        titleLabel.textColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        subtitleLabel.textColor = sectionTextColor
     }
 
     func configure(conversation: GroupConversationCellConversation) {

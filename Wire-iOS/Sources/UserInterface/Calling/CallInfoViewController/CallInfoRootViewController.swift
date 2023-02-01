@@ -21,8 +21,7 @@ import UIKit
 import SafariServices
 import WireDataModel
 
-protocol CallInfoRootViewControllerDelegate: class {
-    func infoRootViewController(_ viewController: CallInfoRootViewController, perform action: CallAction)
+protocol CallInfoRootViewControllerDelegate: CallingActionsViewDelegate {
     func infoRootViewController(_ viewController: CallInfoRootViewController, contextDidChange context: CallInfoRootViewController.Context)
 }
 
@@ -37,7 +36,7 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
     private let contentNavigationController: UINavigationController
     private let callDegradationController: CallDegradationController
 
-    private weak var participantsViewController: CallParticipantsViewController?
+    private weak var participantsViewController: CallParticipantsListViewController?
 
     var context: Context = .overview {
         didSet {
@@ -64,6 +63,7 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
         callDegradationController.targetViewController = self
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -84,8 +84,8 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
     }
 
     private func createConstraints() {
-        contentNavigationController.view.fitInSuperview()
-        callDegradationController.view.fitInSuperview()
+        contentNavigationController.view.fitIn(view: view)
+        callDegradationController.view.fitIn(view: view)
     }
 
     private func updateConfiguration(animated: Bool = false) {
@@ -105,7 +105,7 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
 
     private func presentParticipantsList() {
         context = .participants
-        let participantsList = CallParticipantsViewController(scrollableWithConfiguration: configuration)
+        let participantsList = CallParticipantsListViewController(scrollableWithConfiguration: configuration)
         participantsViewController = participantsList
         contentNavigationController.pushViewController(participantsList, animated: true)
     }
@@ -120,8 +120,8 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
     func infoViewController(_ viewController: CallInfoViewController, perform action: CallAction) {
         switch (action, configuration.degradationState) {
         case (.showParticipantsList, _): presentParticipantsList()
-        case (.acceptCall, .incoming): delegate?.infoRootViewController(self, perform: .acceptDegradedCall)
-        default: delegate?.infoRootViewController(self, perform: action)
+        case (.acceptCall, .incoming): delegate?.callingActionsViewPerformAction(.acceptDegradedCall)
+        default: delegate?.callingActionsViewPerformAction(action)
         }
     }
 
@@ -131,11 +131,11 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
     }
 
     func continueDegradedCall() {
-        delegate?.infoRootViewController(self, perform: .continueDegradedCall)
+        delegate?.callingActionsViewPerformAction(.continueDegradedCall)
     }
 
     func cancelDegradedCall() {
-        delegate?.infoRootViewController(self, perform: .terminateDegradedCall)
+        delegate?.callingActionsViewPerformAction(.terminateDegradedCall)
     }
 
 }

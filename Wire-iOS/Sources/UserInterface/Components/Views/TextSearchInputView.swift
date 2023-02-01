@@ -17,21 +17,23 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireCommonComponents
 import WireSystem
 
-protocol TextSearchInputViewDelegate: class {
+protocol TextSearchInputViewDelegate: AnyObject {
     func searchView(_ searchView: TextSearchInputView, didChangeQueryTo: String)
     func searchViewShouldReturn(_ searchView: TextSearchInputView) -> Bool
 }
 
 final class TextSearchInputView: UIView {
+    typealias SearchBarColors = SemanticColors.SearchBar
+
     let iconView = UIImageView()
-    let searchInput = UITextView()
-    let placeholderLabel = UILabel()
-    let cancelButton = IconButton(style: .default)
+    let searchInput = SearchTextView(style: .default)
+    let placeholderLabel = DynamicFontLabel(fontSpec: .body,
+                                            color: SearchBarColors.textInputViewPlaceholder)
+    let clearButton = IconButton(style: .default)
 
     private let spinner = ProgressSpinner()
 
@@ -58,74 +60,74 @@ final class TextSearchInputView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
 
-        backgroundColor = UIColor.from(scheme: .barBackground)
+        backgroundColor = .clear
 
-        iconView.setIcon(.search, size: .tiny, color: UIColor.from(scheme: .textForeground))
+        iconView.setIcon(.search,
+                         size: .tiny,
+                         color: SearchBarColors.backgroundButton)
+
         iconView.contentMode = .center
-
         searchInput.delegate = self
         searchInput.autocorrectionType = .no
         searchInput.accessibilityLabel = "Search"
         searchInput.accessibilityIdentifier = "search input"
-        searchInput.keyboardAppearance = ColorScheme.default.keyboardAppearance
-        searchInput.layer.cornerRadius = 4
-        searchInput.backgroundColor = UIColor.from(scheme: .tokenFieldBackground)
+        searchInput.keyboardAppearance = .default
         searchInput.textContainerInset = UIEdgeInsets(top: 10, left: 40, bottom: 10, right: 8)
-        searchInput.font = .normalFont
-        searchInput.textColor = .from(scheme: .textForeground)
-
+        searchInput.font = FontSpec.body.font!
         placeholderLabel.textAlignment = .natural
         placeholderLabel.isAccessibilityElement = false
-        placeholderLabel.font = .smallRegularFont
-        placeholderLabel.textColor = .from(scheme: .textDimmed)
 
-        cancelButton.setIcon(.clearInput, size: .tiny, for: .normal)
-        cancelButton.addTarget(self, action: #selector(TextSearchInputView.onCancelButtonTouchUpInside(_:)), for: .touchUpInside)
-        cancelButton.isHidden = true
-        cancelButton.accessibilityIdentifier = "cancel search"
+        clearButton.setIcon(.clearInput, size: .tiny, for: .normal)
+        clearButton.addTarget(self, action: #selector(TextSearchInputView.onCancelButtonTouchUpInside(_:)), for: .touchUpInside)
+        clearButton.isHidden = true
+        clearButton.accessibilityIdentifier = "cancel search"
+        clearButton.accessibilityLabel = L10n.Accessibility.SearchView.ClearButton.description
+
+        clearButton.setIconColor(SearchBarColors.backgroundButton, for: .normal)
 
         spinner.color = UIColor.from(scheme: .textDimmed, variant: .light)
         spinner.iconSize = StyleKitIcon.Size.tiny.rawValue
-        [iconView, searchInput, cancelButton, placeholderLabel, spinner].forEach(self.addSubview)
+        [searchInput, iconView, clearButton, placeholderLabel, spinner].forEach(addSubview)
 
-        self.createConstraints()
+        createConstraints()
     }
 
     private func createConstraints() {
-        constrain(self, iconView, searchInput, placeholderLabel, cancelButton) { selfView, iconView, searchInput, placeholderLabel, cancelButton in
-            iconView.leading == searchInput.leading + 8
-            iconView.centerY == searchInput.centerY
+        [self, iconView, searchInput, placeholderLabel, clearButton, self, searchInput, clearButton, spinner].prepareForLayout()
 
-            iconView.top == selfView.top
-            iconView.bottom == selfView.bottom
+        NSLayoutConstraint.activate(
+            searchInput.fitInConstraints(view: self, inset: 8) + [
+            iconView.leadingAnchor.constraint(equalTo: searchInput.leadingAnchor, constant: 16),
+            iconView.centerYAnchor.constraint(equalTo: searchInput.centerYAnchor),
 
-            selfView.height <= 100
+            iconView.topAnchor.constraint(equalTo: topAnchor),
+            iconView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            searchInput.edges == inset(selfView.edges, UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8))
+            heightAnchor.constraint(lessThanOrEqualToConstant: 100),
 
-            placeholderLabel.leading == searchInput.leading + 48
-            placeholderLabel.top == searchInput.top
-            placeholderLabel.bottom == searchInput.bottom
-            placeholderLabel.trailing == cancelButton.leading
-        }
+            placeholderLabel.leadingAnchor.constraint(equalTo: searchInput.leadingAnchor, constant: 48),
+            placeholderLabel.topAnchor.constraint(equalTo: searchInput.topAnchor),
+            placeholderLabel.bottomAnchor.constraint(equalTo: searchInput.bottomAnchor),
+            placeholderLabel.trailingAnchor.constraint(equalTo: clearButton.leadingAnchor),
 
-        constrain(self, searchInput, cancelButton, spinner) { view, searchInput, cancelButton, spinner in
-            cancelButton.centerY == view.centerY
-            cancelButton.trailing == searchInput.trailing - 8
-            cancelButton.width == StyleKitIcon.Size.tiny.rawValue
-            cancelButton.height == StyleKitIcon.Size.tiny.rawValue
+            clearButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            clearButton.trailingAnchor.constraint(equalTo: searchInput.trailingAnchor, constant: -16),
+            clearButton.widthAnchor.constraint(equalToConstant: StyleKitIcon.Size.tiny.rawValue),
+            clearButton.heightAnchor.constraint(equalToConstant: StyleKitIcon.Size.tiny.rawValue),
 
-            spinner.trailing == cancelButton.leading - 6
-            spinner.centerY == cancelButton.centerY
-            spinner.width == StyleKitIcon.Size.tiny.rawValue
-        }
+            spinner.trailingAnchor.constraint(equalTo: clearButton.leadingAnchor, constant: -6),
+            spinner.centerYAnchor.constraint(equalTo: clearButton.centerYAnchor),
+            spinner.widthAnchor.constraint(equalToConstant: StyleKitIcon.Size.tiny.rawValue)
+        ])
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        fatal("init?(coder aDecoder: NSCoder) is not implemented")
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
-    @objc func onCancelButtonTouchUpInside(_ sender: AnyObject!) {
+    @objc
+    func onCancelButtonTouchUpInside(_ sender: AnyObject!) {
         self.query = ""
         self.searchInput.text = ""
         self.searchInput.resignFirstResponder()
@@ -137,7 +139,7 @@ final class TextSearchInputView: UIView {
 
     fileprivate func updateForSearchQuery() {
         self.updatePlaceholderLabel()
-        cancelButton.isHidden = self.query.isEmpty
+        clearButton.isHidden = self.query.isEmpty
     }
 }
 

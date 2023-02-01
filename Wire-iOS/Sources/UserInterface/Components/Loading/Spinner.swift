@@ -38,7 +38,11 @@ final class Spinner: UIView {
                 return
             }
 
-            isAnimating ? startAnimationInternal() : stopAnimationInternal()
+            if isAnimating {
+                startAnimationInternal()
+            } else {
+                stopAnimationInternal()
+            }
         }
     }
 
@@ -53,6 +57,7 @@ final class Spinner: UIView {
         setup()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -84,7 +89,8 @@ final class Spinner: UIView {
 
     private func setupConstraints() {
         spinner.translatesAutoresizingMaskIntoConstraints = false
-        spinner.centerInSuperview()
+        spinner.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        spinner.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
     }
 
     private func startAnimationInternal() {

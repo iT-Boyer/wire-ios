@@ -91,7 +91,7 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
                     UIView.animate(easing: .easeOutExpo, duration: 0.35, animations: {
                         self.scrollingFraction = self.userInteractionHorizontalOffset / self.bounds.size.width
                         self.layoutIfNeeded()
-                    }) { _ in
+                    }, completion: { _ in
                         // reset gesture state
                         let animEndInteractionPosition = self.revealDrawerGestureRecognizer.location(in: self)
 
@@ -105,7 +105,7 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
 
                         self.scrollingFraction = newOffset.x / self.bounds.size.width
                         self.layoutIfNeeded()
-                    }
+                    })
 
                     revealDrawerOverscrolled = false
                 }
@@ -146,6 +146,10 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     private func setupRecognizer() {
         revealDrawerGestureRecognizer.delegate = self
         revealDrawerGestureRecognizer.delaysTouchesEnded = false
@@ -157,7 +161,7 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
     private func setupSwipeMenuCollectionCell() {
         canOpenDrawer = true
         overscrollFraction = 0.6
-        /// When the swipeView is swiped and excesses this offset, the "3 dots" stays at left.
+        // When the swipeView is swiped and excesses this offset, the "3 dots" stays at left.
         maxVisualDrawerOffset = SwipeMenuCollectionCell.MaxVisualDrawerOffsetRevealDistance
 
         swipeView.backgroundColor = .clear
@@ -195,8 +199,8 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
             }
             openedFeedbackGenerator.prepare()
         case .ended,
-             .failed,
-             .cancelled:
+                .failed,
+                .cancelled:
             drawerScrollingEnded(withOffset: offset.x)
 
             if offset.x + initialDrawerOffset > bounds.size.width * overscrollFraction {
@@ -205,7 +209,6 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
 
                 separatorLine.alpha = 0.0
                 setVisualDrawerOffset(0, updateUI: false)
-                NotificationCenter.default.removeObserver(self)
             } else {
                 if visualDrawerOffset > drawerWidth / CGFloat(2) {
                     openedFeedbackGenerator.impactOccurred()
@@ -260,7 +263,7 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
 
     private func setDrawerOpen(_ isOpened: Bool, animated: Bool) {
         if isOpened && visualDrawerOffset == drawerWidth ||
-           !isOpened && visualDrawerOffset == 0 {
+            !isOpened && visualDrawerOffset == 0 {
             return
         }
 
@@ -301,10 +304,10 @@ class SwipeMenuCollectionCell: UICollectionViewCell {
 
         swipeViewHorizontalConstraint = swipeView.leftAnchor.constraint(equalTo: contentView.leftAnchor)
 
-        /// menu view attachs to swipeView before reaching max offset
+        // Menu view attachs to swipeView before reaching max offset
         menuViewToSwipeViewLeftConstraint = menuView.rightAnchor.constraint(equalTo: swipeView.leftAnchor)
 
-        /// menu view attachs to content view after reaching max offset
+        // Menu view attachs to content view after reaching max offset
         maxMenuViewToSwipeViewLeftConstraint = menuView.leftAnchor.constraint(equalTo: leftAnchor, constant: maxVisualDrawerOffset)
 
         [swipeView, separatorLine, menuView].prepareForLayout()
@@ -367,12 +370,7 @@ extension SwipeMenuCollectionCell: UIGestureRecognizerDelegate {
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if #available(iOS 13.0, *) {
-            return gestureRecognizer is UILongPressGestureRecognizer
-        }
-
-        // all other recognizers require this pan recognizer to fail
-        return gestureRecognizer == revealDrawerGestureRecognizer
+        return gestureRecognizer is UILongPressGestureRecognizer
     }
 
     /// NOTE:
@@ -390,27 +388,15 @@ extension SwipeMenuCollectionCell: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool {
 
-        if #available(iOS 13.0, *) {
-            return false
-        } else if #available(iOS 11.0, *) {
-            // pan recognizer should not require failure of any other recognizer
-            return !(gestureRecognizer is UIPanGestureRecognizer)
-        }
+        return false
 
-        return !(gestureRecognizer is UIPanGestureRecognizer) || !(otherGestureRecognizer is UIPanGestureRecognizer)
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
 
-        if #available(iOS 13.0, *) {
-            return true
-        } else if #available(iOS 11.0, *) {
-            // pan recognizer should not recognize simultaneously with any other recognizer
-            return !(gestureRecognizer is UIPanGestureRecognizer)
-        }
-
         return true
+
     }
 
 }

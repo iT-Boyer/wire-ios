@@ -23,7 +23,6 @@ extension ConversationViewController: UIPopoverPresentationControllerDelegate {
     func createAndPresentParticipantsPopoverController(with rect: CGRect,
                                                        from view: UIView,
                                                        contentViewController controller: UIViewController) {
-
         endEditing()
 
         controller.presentationController?.delegate = self
@@ -37,11 +36,7 @@ extension ConversationViewController: UIAdaptivePresentationControllerDelegate {
             return .overFullScreen
         }
 
-        if #available(iOS 13, *) {
-            return .formSheet
-        } else {
-            return .fullScreen
-        }
+        return .formSheet
     }
 }
 

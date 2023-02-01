@@ -35,6 +35,7 @@ class ConfirmationCodeCell: UITableViewCell {
         backgroundColor = .clear
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -42,9 +43,7 @@ class ConfirmationCodeCell: UITableViewCell {
     private func setupViews() {
         addSubview(textField)
 
-        if #available(iOS 12, *) {
-            textField.textContentType = .oneTimeCode
-        }
+        textField.textContentType = .oneTimeCode
 
         textField.keyboardType = .decimalPad
         textField.accessibilityIdentifier = "VerificationCode"

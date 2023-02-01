@@ -24,6 +24,29 @@ final class ConversationViewController: UIViewController {
     unowned let zClientViewController: ZClientViewController
     private let visibleMessage: ZMConversationMessage?
 
+    typealias keyboardShortcut = L10n.Localizable.Keyboardshortcut
+
+    override var keyCommands: [UIKeyCommand]? {
+        return [
+            UIKeyCommand(action: #selector(gotoBottom(_:)),
+                         input: UIKeyCommand.inputDownArrow,
+                         modifierFlags: [.command, .alternate],
+                         discoverabilityTitle: keyboardShortcut.scrollToBottom),
+            UIKeyCommand(action: #selector(onCollectionButtonPressed(_:)),
+                         input: "f",
+                         modifierFlags: [.command],
+                         discoverabilityTitle: keyboardShortcut.searchInConversation),
+            UIKeyCommand(action: #selector(titleViewTapped),
+                         input: "i", modifierFlags: [.command],
+                         discoverabilityTitle: keyboardShortcut.conversationDetail)
+        ]
+    }
+
+    @objc
+    func gotoBottom(_: Any?) {
+        contentViewController.tableView.scrollToBottom(animated: true)
+    }
+
     var conversation: ZMConversation {
         didSet {
             if oldValue == conversation {
@@ -74,10 +97,7 @@ final class ConversationViewController: UIViewController {
             break
         }
 
-        let _participantsController = viewController?.wrapInNavigationController()
-
-        return _participantsController
-
+        return viewController?.wrapInNavigationController(setBackgroundColor: true)
     }
 
     required init(session: ZMUserSessionInterface,
@@ -161,19 +181,32 @@ final class ConversationViewController: UIViewController {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
+            updateRightNavigationItemsButtons()
+            updateLeftNavigationBarItems()
+        }
+    }
+
     func createOutgoingConnectionViewController() {
         outgoingConnectionViewController = OutgoingConnectionViewController()
         outgoingConnectionViewController.view.translatesAutoresizingMaskIntoConstraints = false
         outgoingConnectionViewController.buttonCallback = { [weak self] action in
-            self?.session.enqueue({
-                switch action {
-                case .cancel:
-                    self?.conversation.connectedUser?.cancelConnectionRequest()
-                case .archive:
-                    self?.conversation.isArchived = true
-                }
-            })
 
+            switch action {
+            case .cancel:
+                self?.conversation.connectedUser?.cancelConnectionRequest(completion: { (error) in
+                    if let error = error as? LocalizedError {
+                        self?.presentLocalizedErrorAlert(error)
+                    }
+                })
+            case .archive:
+                self?.session.enqueue({
+                    self?.conversation.isArchived = true
+                })
+            }
             self?.openConversationList()
         }
     }
@@ -279,7 +312,7 @@ final class ConversationViewController: UIViewController {
     @objc
     func didTapMediaBar(_ tapGestureRecognizer: UITapGestureRecognizer?) {
         if let mediaPlayingMessage = AppDelegate.shared.mediaPlaybackManager?.activeMediaPlayer?.sourceMessage,
-            conversation === mediaPlayingMessage.conversationLike {
+           conversation === mediaPlayingMessage.conversationLike {
             contentViewController.scroll(to: mediaPlayingMessage, completion: nil)
         }
     }
@@ -310,12 +343,17 @@ final class ConversationViewController: UIViewController {
         view.setNeedsLayout()
     }
 
+    @objc
+    private func titleViewTapped() {
+        if let superview = titleView.superview,
+           let participantsController = participantsController {
+            presentParticipantsViewController(participantsController, from: superview)
+        }
+    }
+
     private func setupNavigatiomItem() {
         titleView.tapHandler = { [weak self] _ in
-            if let superview = self?.titleView.superview,
-                let participantsController = self?.participantsController {
-                self?.presentParticipantsViewController(participantsController, from: superview)
-            }
+            self?.titleViewTapped()
         }
         titleView.configure()
 
@@ -372,7 +410,7 @@ extension ConversationViewController: InvisibleInputAccessoryViewDelegate {
 // MARK: - ZMConversationObserver
 
 extension ConversationViewController: ZMConversationObserver {
-    public func conversationDidChange(_ note: ConversationChangeInfo) {
+    func conversationDidChange(_ note: ConversationChangeInfo) {
         if note.causedByConversationPrivacyChange {
             presentPrivacyWarningAlert(for: note)
         }
@@ -407,14 +445,14 @@ extension ConversationViewController: ZMConversationObserver {
 // MARK: - ZMConversationListObserver
 
 extension ConversationViewController: ZMConversationListObserver {
-    public func conversationListDidChange(_ changeInfo: ConversationListChangeInfo) {
+    func conversationListDidChange(_ changeInfo: ConversationListChangeInfo) {
         updateLeftNavigationBarItems()
         if changeInfo.deletedObjects.contains(conversation) {
             ZClientViewController.shared?.transitionToList(animated: true, completion: nil)
         }
     }
 
-    public func conversationInsideList(_ list: ZMConversationList, didChange changeInfo: ConversationChangeInfo) {
+    func conversationInsideList(_ list: ZMConversationList, didChange changeInfo: ConversationChangeInfo) {
         updateLeftNavigationBarItems()
     }
 }
@@ -452,7 +490,7 @@ extension ConversationViewController: ConversationInputBarViewControllerDelegate
         contentViewController.didFinishEditing(message)
         session.enqueue({
             if let newText = newText,
-                !newText.isEmpty {
+               !newText.isEmpty {
                 let fetchLinkPreview = !Settings.disableLinkPreviews
                 message.textMessageData?.editText(newText, mentions: mentions, fetchLinkPreview: fetchLinkPreview)
             } else {
@@ -480,4 +518,52 @@ extension ConversationViewController: ConversationInputBarViewControllerDelegate
             self.conversation.draftMessage = message
         }
     }
+
+    var searchBarButtonItem: UIBarButtonItem {
+        let showingSearchResults = (self.collectionController?.isShowingSearchResults ?? false)
+        let action = #selector(ConversationViewController.onCollectionButtonPressed(_:))
+
+        let button = IconButton()
+        button.setIcon(showingSearchResults ? .activeSearch : .search, size: .tiny, for: .normal)
+        button.accessibilityIdentifier = "collection"
+        button.accessibilityLabel = L10n.Accessibility.Conversation.SearchButton.description
+
+        button.addTarget(self, action: action, for: .touchUpInside)
+
+        button.backgroundColor = SemanticColors.Button.backgroundBarItem
+        button.setIconColor(SemanticColors.Icon.foregroundDefault, for: .normal)
+        button.layer.borderWidth = 1
+        button.setBorderColor(SemanticColors.Button.borderBarItem.resolvedColor(with: traitCollection), for: .normal)
+        button.layer.cornerRadius = 12
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
+        button.bounds.size = button.systemLayoutSizeFitting(CGSize(width: .max, height: 32))
+
+        return UIBarButtonItem(customView: button)
+    }
+
+    @objc
+    private func onCollectionButtonPressed(_ sender: AnyObject?) {
+        if collectionController == .none {
+            let collections = CollectionsViewController(conversation: conversation)
+            collections.delegate = self
+
+            collections.onDismiss = { [weak self] _ in
+                guard let weakSelf = self else {
+                    return
+                }
+
+                weakSelf.collectionController?.dismiss(animated: true)
+            }
+            collectionController = collections
+        } else {
+            collectionController?.refetchCollection()
+        }
+
+        collectionController?.shouldTrackOnNextOpen = true
+
+        let navigationController = KeyboardAvoidingViewController(viewController: collectionController!).wrapInNavigationController(setBackgroundColor: true)
+
+        ZClientViewController.shared?.present(navigationController, animated: true)
+    }
+
 }

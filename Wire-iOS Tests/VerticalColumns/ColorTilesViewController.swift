@@ -17,8 +17,8 @@
 //
 
 import UIKit
-@testable import Wire
 import WireCommonComponents
+@testable import Wire
 
 struct ColorTile {
     let color: AccentColor
@@ -38,6 +38,7 @@ final class ColorTilesViewController: VerticalColumnCollectionViewController, De
         super.init(interItemSpacing: 1, interColumnSpacing: 1, columnCount: columnCount)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

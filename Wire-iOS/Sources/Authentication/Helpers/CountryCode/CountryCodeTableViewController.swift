@@ -19,7 +19,7 @@
 import Foundation
 import UIKit
 
-protocol CountryCodeTableViewControllerDelegate: class {
+protocol CountryCodeTableViewControllerDelegate: AnyObject {
     func countryCodeTableViewController(_ viewController: UIViewController, didSelect country: Country)
 }
 
@@ -69,24 +69,24 @@ final class CountryCodeTableViewController: UITableViewController, UISearchContr
 
         searchController.searchResultsUpdater = self
         searchController.searchBar.sizeToFit()
-        if #available(iOS 11.0, *) {
-            navigationItem.searchController = searchController
-            navigationItem.hidesSearchBarWhenScrolling = false
-        } else {
-            tableView.tableHeaderView = searchController.searchBar
-        }
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
         tableView.sectionIndexBackgroundColor = UIColor.clear
 
         resultsTableViewController.tableView.delegate = self
         searchController.delegate = self
-        searchController.dimsBackgroundDuringPresentation = false
+        searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self
-        searchController.searchBar.backgroundColor = UIColor.white
+        searchController.searchBar.backgroundColor = SemanticColors.SearchBar.backgroundInputView
 
         navigationItem.rightBarButtonItem = navigationController?.closeItem()
 
         definesPresentationContext = true
-        title = NSLocalizedString("registration.country_select.title", comment: "").localizedUppercase
+        title = NSLocalizedString("registration.country_select.title", comment: "").localized
+
+        if let title = title {
+            navigationItem.setupNavigationBarTitle(title: title.capitalized)
+        }
     }
 
     // MARK: - UITableViewDelegate

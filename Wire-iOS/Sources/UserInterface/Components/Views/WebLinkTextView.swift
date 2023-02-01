@@ -29,32 +29,23 @@ final class WebLinkTextView: UITextView {
     init() {
         super.init(frame: .zero, textContainer: nil)
 
-        if #available(iOS 11.0, *) {
-            textDragDelegate = self
-        }
+        textDragDelegate = self
 
         setup()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     private func setup() {
-
-        // WORKAROUND: isEditable needs to true on iOS 13 for links to be visible as an accessiblity element
-        // and set to false in iOS 12 or earlier for links to be tappable.
-        if #available(iOS 13.0, *) {
-            isEditable = true
-        } else {
-            isEditable = false
-        }
-
         isScrollEnabled = false
         bounces = false
         backgroundColor = UIColor.clear
         textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         textContainer.lineFragmentPadding = 0
+        accessibilityTraits = .link
     }
 
     /// non-selectable textview
@@ -78,7 +69,6 @@ final class WebLinkTextView: UITextView {
     }
 }
 
-@available(iOS 11.0, *)
 extension WebLinkTextView: UITextDragDelegate {
 
     public func textDraggableView(_ textDraggableView: UIView & UITextDraggable, itemsForDrag dragRequest: UITextDragRequest) -> [UIDragItem] {

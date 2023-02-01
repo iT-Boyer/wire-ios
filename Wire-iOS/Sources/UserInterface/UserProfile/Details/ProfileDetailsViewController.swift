@@ -23,7 +23,7 @@ import WireDataModel
  * A view controller that displays the details for a user.
  */
 
-final class ProfileDetailsViewController: UIViewController, Themeable {
+final class ProfileDetailsViewController: UIViewController {
 
     /// The user whose profile is displayed.
     let user: UserType
@@ -56,13 +56,6 @@ final class ProfileDetailsViewController: UIViewController, Themeable {
 
     private let profileHeaderViewController: ProfileHeaderViewController
     private let tableView = UITableView(frame: .zero, style: .grouped)
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard colorSchemeVariant != oldValue else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
 
     // MARK: - Initialization
 
@@ -97,6 +90,7 @@ final class ProfileDetailsViewController: UIViewController, Themeable {
         contentController.delegate = self
 
         IconToggleSubtitleCell.register(in: tableView)
+        UserBlockingReasonCell.register(in: tableView)
     }
 
     @available(*, unavailable)
@@ -128,8 +122,9 @@ final class ProfileDetailsViewController: UIViewController, Themeable {
         tableView.tableHeaderView = profileHeaderViewController.view
         addChild(profileHeaderViewController)
 
+        view.backgroundColor = SemanticColors.View.backgroundDefault
         tableView.backgroundColor = .clear
-        applyColorScheme(colorSchemeVariant)
+        tableView.separatorColor = SemanticColors.View.backgroundSeparatorCell
     }
 
     private func configureConstraints() {
@@ -144,16 +139,7 @@ final class ProfileDetailsViewController: UIViewController, Themeable {
         ])
     }
 
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        view.backgroundColor = UIColor.from(scheme: .contentBackground, variant: colorSchemeVariant)
-        tableView.separatorColor = UIColor.from(scheme: .separator, variant: colorSchemeVariant)
-    }
-
     // MARK: - Layout
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorScheme.default.statusBarStyle
-    }
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return [.portrait]

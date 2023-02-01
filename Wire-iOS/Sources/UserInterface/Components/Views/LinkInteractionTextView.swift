@@ -19,7 +19,7 @@
 import UIKit
 import WireDataModel
 
-protocol TextViewInteractionDelegate: class {
+protocol TextViewInteractionDelegate: AnyObject {
     func textView(_ textView: LinkInteractionTextView, open url: URL) -> Bool
     func textViewDidLongPress(_ textView: LinkInteractionTextView)
 }
@@ -40,9 +40,7 @@ final class LinkInteractionTextView: UITextView {
         super.init(frame: frame, textContainer: textContainer)
         delegate = self
 
-        if #available(iOS 11.0, *) {
-            textDragDelegate = self
-        }
+        textDragDelegate = self
     }
 
     @available(*, unavailable)
@@ -115,8 +113,7 @@ extension LinkInteractionTextView: UITextViewDelegate {
                   interaction: UITextItemInteraction) -> Bool {
 
         // present system context preview
-        if #available(iOS 13.0, *),
-            UIApplication.shared.canOpenURL(URL),
+        if  UIApplication.shared.canOpenURL(URL),
             interaction == .presentActions,
             !isMarkdownLink(in: characterRange) {
             return true
@@ -133,10 +130,8 @@ extension LinkInteractionTextView: UITextViewDelegate {
 
             if #available(iOS 13.2, *) {
                 needFixForRepeatedGesture = false
-            } else if #available(iOS 13.0, *) {
-                needFixForRepeatedGesture = true
             } else {
-                needFixForRepeatedGesture = false
+                needFixForRepeatedGesture = true
             }
 
             let performLinkInteraction: () -> Bool = {
@@ -148,8 +143,8 @@ extension LinkInteractionTextView: UITextViewDelegate {
             }
 
             if needFixForRepeatedGesture {
-                /// workaround for iOS 13 - this delegate method is called multiple times and we only want to handle it when the state == .ended
-                /// the issue is fixed on iOS 13.2 and no need this workaround
+                // Workaround for iOS 13 - this delegate method is called multiple times and we only want to handle it when the state == .ended
+                // the issue is fixed on iOS 13.2 and no need this workaround
                 if textView.gestureRecognizers?.contains(where: {$0.isKind(of: UITapGestureRecognizer.self) && $0.state == .ended}) == true {
                     return performLinkInteraction()
                 }
@@ -173,7 +168,6 @@ extension LinkInteractionTextView: UITextViewDelegate {
 
 // MARK: - UITextDragDelegate
 
-@available(iOS 11.0, *)
 extension LinkInteractionTextView: UITextDragDelegate {
 
     func textDraggableView(_ textDraggableView: UIView & UITextDraggable, itemsForDrag dragRequest: UITextDragRequest) -> [UIDragItem] {

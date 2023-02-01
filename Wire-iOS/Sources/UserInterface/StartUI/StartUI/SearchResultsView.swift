@@ -40,7 +40,7 @@ final class SearchResultsView: UIView {
         collectionViewLayout.minimumLineSpacing = 0
 
         collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: collectionViewLayout)
-        collectionView.backgroundColor = UIColor.clear
+        collectionView.backgroundColor = SemanticColors.View.backgroundDefault
         collectionView.allowsMultipleSelection = true
         collectionView.keyboardDismissMode = .onDrag
         collectionView.bounces = true
@@ -59,11 +59,12 @@ final class SearchResultsView: UIView {
                                                object: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func createConstraints() {
+    private func createConstraints() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         emptyResultContainer.translatesAutoresizingMaskIntoConstraints = false
         accessoryContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -119,8 +120,7 @@ final class SearchResultsView: UIView {
                     accessoryView.trailingAnchor.constraint(equalTo: accessoryContainer.trailingAnchor),
                     accessoryView.bottomAnchor.constraint(equalTo: accessoryContainer.bottomAnchor)
                 ])
-            }
-            else {
+            } else {
                 accessoryContainerHeightConstraint?.isActive = true
             }
 
@@ -176,10 +176,12 @@ final class SearchResultsView: UIView {
 
             // Add padding at the bottom of the screen
             collectionView.contentInset.bottom = bottomInset
-            collectionView.scrollIndicatorInsets.bottom  = bottomInset
+            collectionView.horizontalScrollIndicatorInsets.bottom = bottomInset
+            collectionView.verticalScrollIndicatorInsets.bottom = bottomInset
         } else {
             collectionView.contentInset.bottom = 0
-            collectionView.scrollIndicatorInsets.bottom = 0
+            collectionView.horizontalScrollIndicatorInsets.bottom = 0
+            collectionView.verticalScrollIndicatorInsets.bottom = 0
         }
 
     }

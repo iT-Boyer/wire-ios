@@ -36,6 +36,7 @@ class EmailPasswordTextFieldCell: UITableViewCell {
         backgroundColor = .clear
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -48,8 +49,8 @@ class EmailPasswordTextFieldCell: UITableViewCell {
         textField.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            textField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            textField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            textField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 31),
+            textField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -31),
             textField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
             textField.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 8)
         ])

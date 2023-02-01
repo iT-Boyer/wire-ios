@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 import UIKit
 
 enum CallActionAppearance: Equatable {
+
     case light, dark(blurred: Bool)
 
     var showBlur: Bool {
@@ -42,6 +43,13 @@ enum CallActionAppearance: Equatable {
         }
     }
 
+    var backgroundColorSelectedAndHighlighted: UIColor {
+        switch self {
+        case .light: return UIColor.black.withAlphaComponent(0.16)
+        case .dark: return UIColor.white.withAlphaComponent(0.4)
+        }
+    }
+
     var iconColorNormal: UIColor {
         switch self {
         case .light: return UIColor.from(scheme: .iconNormal, variant: .light)
@@ -53,13 +61,6 @@ enum CallActionAppearance: Equatable {
         switch self {
         case .light: return UIColor.from(scheme: .iconNormal, variant: .dark)
         case .dark: return UIColor.from(scheme: .iconNormal, variant: .light)
-        }
-    }
-
-    var backgroundColorSelectedAndHighlighted: UIColor {
-        switch self {
-        case .light: return UIColor.black.withAlphaComponent(0.16)
-        case .dark: return UIColor.white.withAlphaComponent(0.4)
         }
     }
 }

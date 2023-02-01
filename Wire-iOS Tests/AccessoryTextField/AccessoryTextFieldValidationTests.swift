@@ -44,7 +44,7 @@ final class AccessoryTextFieldValidateionTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        sut = ValidatedTextField()
+        sut = ValidatedTextField(style: .default)
         mockViewController = MockViewController()
         sut.textFieldValidationDelegate = mockViewController
     }
@@ -212,11 +212,12 @@ final class AccessoryTextFieldValidateionTests: XCTestCase {
         // GIVEN
         let type: ValidatedTextField.Kind = .password(isNew: true)
         let text = String(repeating: "a", count: 7)
+        let missingRequiredClassesSet: Set<PasswordCharacterClass> = [.uppercase, .special, .digits]
 
         // WHEN & THEN
         checkError(textFieldType: type, text: text, expectedError:
             .invalidPassword([.tooShort,
-                              .missingRequiredClasses(Set(arrayLiteral: .uppercase, .special, .digits))]))
+                              .missingRequiredClasses(missingRequiredClassesSet)]))
     }
 
     func testThat129CharacterPasswordIsInvalid_New() {

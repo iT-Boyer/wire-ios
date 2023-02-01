@@ -17,7 +17,6 @@
 //
 // General strings
 
-
 "general.ok" = "OK";
 "general.next" = "Další";
 "general.cancel" = "Zrušit";
@@ -53,7 +52,7 @@
 "peoplepicker.search_placeholder" = "Hledat podle jména nebo emailu";
 "peoplepicker.header.top_people" = "Nejaktivnější kontakty";
 "peoplepicker.button.create_conversation" = "Vytvořit skupinu";
-"peoplepicker.button.add_to_conversation" = "Přidat účastníky do skupiny";
+"peoplepicker.button.add_to_conversation" = "Přidat účastníky";
 "peoplepicker.header.conversations" = "Skupiny";
 "peoplepicker.header.team_conversations" = "%@ skupiny";
 "peoplepicker.header.send_invitation" = "Pozvat";
@@ -81,24 +80,20 @@
 
 "peoplepicker.no_contacts_title" = "Žádné kontakty.";
 
-"peoplepicker.no_matching_results_title" = "Žádné výsledky.";
-"peoplepicker.no_matching_results_message" = "Zadejte platnou emailovou adresu.";
 "peoplepicker.no_search_results" = "Žádné odpovídající výsledky. Zkuste jiné jméno.";
 
 "peoplepicker.no_matching_results.action.send_invite" = "Odeslat pozvánku";
 "peoplepicker.no_matching_results.action.share_contacts" = "Sdílet kontakty";
+"peoplepicker.no_matching_results.action.learn_more" = "Dozvědět se více";
+"peoplepicker.no_matching_results.action.manage_services" = "Spravovat služby";
 
-"peoplepicker.no_matching_results_provide_valid_email" = "Zadejte prosím platnou emailovou adresu";
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "Žádné výsledky.";
-"peoplepicker.no_matching_results_services_title" = "Služby pomáhají zlepšit váš workflow. Pro jejich zprovoznění kontaktujte svého administrátora.";
-"peoplepicker.no_matching_results_services_admin_title" = "Služby jsou pomůcky, které mohou zlepšit vaši workflow.";
-"peoplepicker.no_matching_results_services_manage_services_title" = "Spravovat služby";
-/* This sentence ends with button title, contained in peoplepicker.no_matching_results_after_address_book_upload_button */
-"peoplepicker.no_matching_results_after_address_book_upload_message" = "Zadejte platnou emailovou adresu nebo";
-/*  */
-"peoplepicker.no_matching_results_after_address_book_upload_button" = "sdílet kontakty";
-
-"peoplepicker.share_contacts.no_results.title" = "Najít lidi podle jména nebo emailové adresy";
+"peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
+"peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
+"peoplepicker.no_matching_results.message.users_all_added" = "Všichni jsou zde.";
+"peoplepicker.no_matching_results.message.services" = "Žádné výsledky.";
+"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Služby jsou pomůcky, které mohou zlepšit vaši workflow.";
+"peoplepicker.no_matching_results.message.services_not_enabled" = "Služby pomáhají zlepšit váš workflow. Pro jejich zprovoznění kontaktujte svého administrátora.";
 
 "peoplepicker.send_invitation.dialog.title" = "Pozvánka odeslána";
 "peoplepicker.send_invitation.dialog.message" = "Může být použito na 2 týdny. Zašlete novou, pokud její platnost vyprší.";
@@ -112,8 +107,6 @@
 "peoplepicker.quick-action.admin-services" = "Spravovat služby";
 
 "peoplepicker.federation.domain_unvailable" = "The federated domain is currently not available. [Learn more](%@)";
-
-"add_participants.all_contacts_added" = "Všichni jsou zde.";
 
 "add_participants.alert.title" = "Přeplněné kupé";
 "add_participants.alert.message.new_conversation" = "Až %d lidí se může připojit do konverzace.";
@@ -142,6 +135,12 @@
 "conversation_list.header.self_team.accessibility_value.active" = "Právě teď aktivní.";
 "conversation_list.header.self_team.accessibility_value.has_new_messages" = "Má nové zprávy.";
 
+// Conversation List Bottom Bar
+"conversation_list.bottom_bar.contacts.title" = "Kontakty";
+"conversation_list.bottom_bar.conversations.title" = "Konverzace";
+"conversation_list.bottom_bar.folders.title" = "Folders";
+"conversation_list.bottom_bar.archived.title" = "Archivovat";
+
 // Conversation List Data Usage Permission Dialog
 "conversation_list.data_usage_permission_alert.title" = "Pomozte nám Wire vylepšit";
 "conversation_list.data_usage_permission_alert.message" = "Souhlasím s tím, že Wire může vytvářet a používat anonymní uživatelská a chybová hlášení pro zlepšení aplikace Wire. Tento souhlas mohu kdykoliv odvolat.";
@@ -158,19 +157,8 @@
 "conversation_list.voiceover.status.missed_call" = "zmeškaný hovor";
 "conversation_list.voiceover.status.pause_media" = "pozastavit multimédia";
 "conversation_list.voiceover.status.play_media" = "přehrát multimédia";
-"conversation_list.voiceover.status.silenced" = "ztišeno";
 "conversation_list.voiceover.status.typing" = "psaní";
 "conversation_list.voiceover.status.ping" = "ping";
-"conversation_list.voiceover.status.mention" = "jste zmíněn";
-"conversation_list.voiceover.status.reply" = "odpovědět";
-"conversation_list.voiceover.bottom_bar.recent_button.label" = "aktuální";
-"conversation_list.voiceover.bottom_bar.recent_button.hint" = "seznam posledních konverzací";
-"conversation_list.voiceover.bottom_bar.folder_button.label" = "složky";
-"conversation_list.voiceover.bottom_bar.folder_button.hint" = "seznam konverzací organizovaných ve složkách";
-"conversation_list.voiceover.bottom_bar.archived_button.label" = "archivováno";
-"conversation_list.voiceover.bottom_bar.archived_button.hint" = "seznam archivovaných konverzací";
-"conversation_list.voiceover.bottom_bar.contacts_button.label" = "kontakty";
-"conversation_list.voiceover.bottom_bar.contacts_button.hint" = "vyhledávání osob na Wire";
 "conversation_list.voiceover.bottom_bar.compose_button.label" = "vytvořit";
 "conversation_list.voiceover.bottom_bar.compose_button.hint" = "vytvořit koncept a uložit na poději";
 "conversation_list.voiceover.bottom_bar.camera_button.label" = "fotoaparát";
@@ -228,8 +216,6 @@
 "list.section.requests" = "Žádosti";
 "list.section.favorites" = "Oblíbené";
 
-"conversation.voiceover.verified" = "ověřeno";
-"conversation.voiceover.legalhold" = "právní držení";
 "conversation.voiceover.value.active" = "aktivní";
 "conversation.voiceover.value.disabled" = "vypnuto";
 
@@ -278,8 +264,6 @@
 "compose.contact.title" = "Konverzace";
 "compose.message.title" = "Zpráva";
 
-"conversation_details.open_button.accessibility_hint" = "Dvojitým poklepáním zobrazíte podrobnosti konverzace.";
-
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Conversation
 "conversation.invite_more_people.title" = "Propagujte nás!";
@@ -292,7 +276,7 @@
 
 "conversation.input_bar.verified" = "Ověreno";
 "conversation.input_bar.placeholder" = "Napsat zprávu";
-"conversation.input_bar.placeholder_ephemeral" = "Časované zprávy";
+"conversation.input_bar.placeholder_ephemeral" = "Self-deleting message";
 
 "conversation.input_bar.audio_message.tooltip.pull_send" = "Tahem nahoru odeslat";
 "conversation.input_bar.audio_message.tooltip.tap_send" = "Klepnutím odeslat";
@@ -313,7 +297,7 @@
 "conversation.connection_view.in_address_book" = "je v kontaktech";
 
 "conversation.input_bar.shortcut.send" = "Odeslat zprávu";
-"conversation.input_bar.shortcut.newline" = "Vložit lomítko";
+"conversation.input_bar.shortcut.newline" = "Insert Line Break";
 "conversation.input_bar.shortcut.edit_last_message" = "Upravit poslední zprávu";
 "conversation.input_bar.shortcut.cancel_editing_message" = "Zrušit";
 "conversation.input_bar.shortcut.choose_previous_mention" = "Choose previous mention";
@@ -327,9 +311,11 @@
 "conversation.create.guidance.empty" = "Alespoň jeden znak";
 "conversation.create.guidance.toolong" = "Příliš mnoho znaků";
 "conversation.create.options.title" = "Možnosti konverzace";
-"conversation.create.options.subtitle" = "Hosté a služby: %@, Potvrzení o přečtení: %@";
-"conversation.create.guests.title" = "Povolit hosty a služby";
-"conversation.create.guests.subtitle" = "Otevřete tuto konverzaci službám a lidem mimo váš tým.";
+"conversation.create.options.subtitle" = "Guests: %@, Services: %@, Read receipts: %@";
+"conversation.create.guests.title" = "Povolit hosty";
+"conversation.create.guests.subtitle" = "Open this conversation to people outside your team.";
+"conversation.create.services.title" = "Allow services";
+"conversation.create.services.subtitle" = "Open this conversation to services.";
 "conversation.create.receipts.title" = "Potvrzení o přečtení";
 "conversation.create.receipts.subtitle" = "Pokud je tato možnost zapnuta, mohou lidé zjistit, kdy byly jejich zprávy přečteny.";
 
@@ -340,9 +326,15 @@
 
 "conversation.alert.message_deleted" = "The message is deleted.";
 
-"conversation.guests_present" = "Guests are present";
-"conversation.services_present" = "Services are active";
-"conversation.guests_services_present" = "Guests and services are present";
+// Conversation banner
+"conversation.banner.guests" = "Guests";
+"conversation.banner.services" = "Služby";
+"conversation.banner.externals" = "Externals";
+"conversation.banner.remotes" = "Federated users";
+"conversation.banner.are_present" = "%@ are present";
+"conversation.banner.are_active" = "%@ are active";
+"conversation.banner.separator" = " and ";
+
 "conversation.action.search" = "Hledat";
 
 // Reply message preview
@@ -444,16 +436,20 @@
 "content.system.conversation.other.started" = "%@ zahájil(a) konverzaci s %@";
 "content.system.conversation.other.added" = "%@ přidal %@";
 "content.system.conversation.other.removed" = "%@ odebrán %@";
+"content.system.conversation.other.removed.legalhold" = "%@ was removed from this conversation because legal hold has been activated.";
+"content.system.conversation.others.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.other.left" = "%@ opustil(a) konverzaci";
 
 "content.system.conversation.you.started" = "%@ zahájil(a) konverzaci s %@";
 "content.system.conversation.you.added" = "%@ přidán %@";
 "content.system.conversation.you.removed" = "%@ odebrán %@";
+"content.system.conversation.you.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.you.left" = "%@ opustil(a) konverzaci";
 "content.system.conversation.team.member-leave" = "Uživatel %@ byl odstraněn z týmu.";
 "content.system.conversation.guest.joined" = "%@ joined";
+"content.system.conversation.guest.you_joined" = "You joined";
 
-"content.system.conversation.invite.title" = "Services and people outside your team can join this conversation.";
+"content.system.conversation.invite.title" = "Lidé mimo váš tým se mohou připojit do konverzace.";
 "content.system.conversation.invite.button" = "Pozvat další";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ odstranil(a) název konverzace";
@@ -474,8 +470,8 @@
 "content.system.you_wanted_to_talk" = "Volal jste";
 "content.system.ephemeral_time_remaining" = "%@ opustil(a) konverzaci";
 
-"content.system.self_user_new_client" = "**You** started using [a new device](%@)";
-"content.system.self_user_new_self_client" = "**You** started using [this device](%@)";
+"content.system.self_user_new_client" = "You started using [a new device](%@)";
+"content.system.self_user_new_self_client" = "You started using [this device](%@)";
 
 "content.system.you_started" = "Vy";
 
@@ -531,25 +527,25 @@
 "content.system.new_users" = "Nový uživatel připojen.";
 "content.system.verify_devices" = " ověřit zařízení";
 
-"content.system.unverified_self_devices" = "**You** unverified one of [your devices](%@)";
-"content.system.unverified_other_devices" = "**You** unverified one of [%1$@’s devices](%2$@)";
+"content.system.unverified_self_devices" = "You unverified one of [your devices](%@)";
+"content.system.unverified_other_devices" = "You unverified one of [%1$@’s devices](%2$@)";
 
 "content.system.missing_messages.title" = "Toto zařízení jste nějakou dobu nepoužíval(a). Některé zprávy se nemusí zobrazit.";
 "content.system.missing_messages.subtitle_start" = "Mezitím,";
 
-"content.system.cannot_decrypt.self" = "A message from **you** could not be decrypted.";
-"content.system.cannot_decrypt.other" = "A message from **%@** could not be decrypted.";
+"content.system.cannot_decrypt.self" = "A message from you could not be decrypted.";
+"content.system.cannot_decrypt.other" = "A message from %@ could not be decrypted.";
 "content.system.cannot_decrypt.reset_session" = "Fix future messages";
 "content.system.cannot_decrypt.error_details" = "(Fixed error: %d ID: %@)";
 
-"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, **you need to resend them.**";
-"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from **%1$@**. To recover lost messages, **ask %1$@ to resend them.**";
+"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, you need to resend them.";
+"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from %1$@. To recover lost messages, ask %1$@ to resend them.";
 
-"content.system.cannot_decrypt_identity_changed.self" = "**Your** device identity changed. Undelivered message.";
-"content.system.cannot_decrypt_identity_changed.other" = "**%@’s** device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
+"content.system.cannot_decrypt_identity_changed.self" = "Your device identity changed. Undelivered message.";
+"content.system.cannot_decrypt_identity_changed.other" = "%@’s device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
 
-"content.system.session_reset.other" = "**%@ was unable to decrypt some of your messages but has solved the issue**. This affected all conversations you share together.";
-"content.system.session_reset.self" = "**You were unable to decrypt some of your messages but you solved the issue**. This affected all conversations.";
+"content.system.session_reset.other" = "%@ was unable to decrypt some of your messages but has solved the issue. This affected all conversations you share together.";
+"content.system.session_reset.self" = "You were unable to decrypt some of your messages but you solved the issue. This affected all conversations.";
 
 "content.system.unknown_message.body" = "This message can’t be displayed. You may be using an older version of Wire.";
 
@@ -617,8 +613,12 @@
 
 "connection_request_pending_title" = "Žádost o připojení";
 "connection_request.send_button_title" = "Připojit";
+"inbox.title" = "Connection Requests";
 "inbox.connection_request.connect_button_title" = "Připojit";
 "inbox.connection_request.ignore_button_title" = "Ignorovat";
+"error.connection.title" = "Chyba";
+"error.connection.missing_legalhold_consent" = "You cannot connect to this user due to legal hold.";
+"error.connection.generic_error" = "Něco se pokazilo. Zkuste prosím znovu";
 
 // Save image errors
 "library.alert.permission_warning.title" = "Wire potřebuje přístup k vašim fotografiím";
@@ -643,13 +643,15 @@
 "voice.accept_button.title" = "Přijmout";
 "voice.decline_button.title" = "Zamítnout";
 "voice.hang_up_button.title" = "Zavěsit";
-"voice.mute_button.title" = "Ztlumit";
-"voice.video_button.title" = "Video";
-"voice.flip_video_button.title" = "Překlopení";
+"voice.mute_button.title" = "Mikrofon";
+"voice.video_button.title" = "Kamera";
+"voice.flip_video_button.title" = "Switch camera";
 "voice.speaker_button.title" = "Reproduktor";
 "voice.cancel_button.title" = "Zrušit";
 "voice.call_button.title" = "Hovor";
 "voice.end_call_button.title" = "Ukončit hovor";
+"voice.pick_up_button.title" = "Přijmout";
+"voice.calling.title" = "Calling...";
 "voice.call_error.unsupported_version.title" = "Prosím aktualizujte aplikaci";
 "voice.call_error.unsupported_version.message" = "Obdržel jste hovor, které není podporován touto verzí aplikace Wire.\nZískejte nejnovější verzi v App Storu.";
 "voice.call_error.unsupported_version.dismiss" = "Později";
@@ -665,6 +667,8 @@
 "voice.top_overlay.tap_to_return" = "Klepnutím se vrátíte k hovoru";
 "voice.top_overlay.accessibility_title" = "Probíhající hovor";
 
+"voice.flip_camera_button.title" = "Flip";
+
 // Voice New
 
 "call.status.connecting" = "Připojuji…";
@@ -677,7 +681,7 @@
 "call.status.constant_bitrate" = "Konstantní přenosová rychlost";
 "call.status.variable_bitrate" = "Variable Bit Rate";
 
-"call.participants.show_all" = "Zobrazit všechny (%@)";
+"call.participants.show_all" = "Participants (%d)";
 "call.participants.list.title" = "Účastníci";
 
 "call.overlay.switch_to.speakers" = "SPEAKERS";
@@ -687,6 +691,7 @@
 
 "call.grid.hints.fullscreen" = "Double tap on a tile for fullscreen";
 "call.grid.hints.go_back_or_zoom" = "Double tap to go back, pinch to zoom";
+"call.grid.hints.go_back" = "Double tap to go back";
 "call.grid.hints.zoom" = "Pinch to zoom";
 
 "call.video.paused" = "Video pozastaveno";
@@ -719,7 +724,7 @@
 "call.announcement.incoming" = "Příchozí hovor od %@";
 "call.actions.label.toggle_mute_on" = "Ztlumit";
 "call.actions.label.toggle_mute_off" = "Zapnout zvuk";
-"call.actions.label.flip_camera" = "Překlopení fotoaparátu";
+"call.actions.label.flip_camera" = "Switch camera";
 "call.actions.label.toggle_speaker_on" = "Zapnutý reproduktor";
 "call.actions.label.toggle_speaker_off" = "Vypnutý reproduktor";
 "call.actions.label.accept_call" = "Přijmout volání";
@@ -857,7 +862,7 @@
 "profile.block_button_title_action" = "Blokovat";
 "profile.unblock_button_title_action" = "Odblokovat";
 
-"profile.cancel_connection_button_title" = "ZRUŠIT POŽADAVEK";
+"profile.cancel_connection_button_title" = "Zrušit žádost";
 "profile.connection_request_state.blocked" = "BLOKOVÁN(A)";
 "profile.create_conversation_button_title" = "Vytvořit skupinu";
 "profile.open_conversation_button_title" = "Otevřít konverzaci";
@@ -875,10 +880,8 @@
 "profile.details.guest" = "Host";
 "profile.details.group_admin" = "Group admin";
 "profile.details.partner" = "external";
-
-"profile_view.accessibility.handle" = "Uživatelské jméno";
-"profile_view.accessibility.name" = "Zobrazované jméno";
-"profile_view.accessibility.team_name" = "Název týmu";
+"profile.details.federated" = "Federated";
+"profile.details.blocking_reason" = "This user is blocked due to legal hold. [LEARN MORE](%@)";
 
 // Device list
 "profile.devices.title" = "Přístroje";
@@ -906,13 +909,16 @@
 "device.type.unknown" = "Neznámé";
 
 // Bot
-"participants.services.remove_integration.button" = "odstranění integrace";
+"participants.services.remove_integration.button" = "Remove service";
 
 // Group details
-"group_details.guest_options_cell.title" = "Hosté a služby";
+"group_details.guest_options_cell.title" = "Guests";
 "group_details.guest_options_cell.enabled" = "Zapnuto";
 "group_details.guest_options_cell.disabled" = "Vypnout";
-"group_details.timeout_options_cell.title" = "Časované zprávy";
+"group_details.services_options_cell.title" = "Služby";
+"group_details.services_options_cell.enabled" = "Zapnuto";
+"group_details.services_options_cell.disabled" = "Vypnout";
+"group_details.timeout_options_cell.title" = "Self-deleting messages";
 "group_details.notification_options_cell.title" = "Upozornění";
 "group_details.notification_options_cell.description" = "Můžete být upozorněni na vše (včetně volání a videohovorů) nebo pouze pokud vás někdo zmíní nebo odpoví na jednu z vašich zpráv.";
 "group_details.receipt_options_cell.title" = "Potvrzení o přečtení";
@@ -926,8 +932,8 @@
 
 "legalhold.participants.section.title" = "Legal hold subjects";
 "legalhold.header.title" = "Zákonné držení";
-"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.";
-"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.\nYour conversation partners will be aware of the recording.";
+"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.";
+"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.\nYour conversation partners will be aware of the recording.";
 "legalhold.accessibility" = "Legal hold details";
 
 
@@ -944,15 +950,9 @@
 "self.about" = "O aplikaci";
 "self.sign_out" = "Odhlásit";
 "self.report_abuse" = "Nahlásit zneužití";
-"self.voiceover.label" = "Profil";
-"self.voiceover.hint" = "Otevřít profil a nastavení";
 "self.new-device.voiceover.label" = "Profil, nová zařízení přídána";
 
-"self.add_phone_number" = "Přidat telefonní číslo";
 "self.add_email_password" = "Přidat emailovou adresu a heslo";
-
-"self.accessibility.profile_photo_image" = "Profilový obrázek";
-"self.accessibility.profile_photo_edit_button" = "Změnit profilový obrázek";
 
 // About screen
 "about.tos.title" = "Podmínky používání";
@@ -1002,6 +1002,11 @@
 "self.settings.account_section.phone.title" = "Telefon";
 "self.settings.account_section.handle.title" = "Uživatelské jméno";
 "self.settings.account_section.add_handle.title" = "Přidat uživatelské jméno";
+"self.settings.account_section.team.title" = "Team";
+"self.settings.account_section.domain.title" = "Domain";
+"self.settings.account_section.profile_link.title" = "Profile link";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copy Profile Link";
+"self.settings.account_section.profile_link.actions.copied_link" = "Profile Link Copied!";
 
 "self.settings.account_details_group.info.footer" = "Lidé vás mohou najít pod těmito detaily.";
 "self.settings.account_details_group.personal.footer" = "Tato informace se nezobrazí.";
@@ -1020,8 +1025,18 @@
 
 "self.settings.encrypt_messages_at_rest.title" = "Encrypt messages at rest";
 
-"self.settings.account_picture_group.picture" = "Obrázek";
-"self.settings.account_picture_group.color" = "Barva";
+"self.settings.account_picture_group.picture" = "Profilový obrázek";
+"self.settings.account_picture_group.alert.title" = "Change your profile picture";
+"self.settings.account_picture_group.alert.choose_picture" = "Choose from Library";
+"self.settings.account_picture_group.alert.take_picture" = "Take Photo";
+"self.settings.account_picture_group.color" = "Profile color";
+"self.settings.account_picture_group.accent_color.blue" = "Blue";
+"self.settings.account_picture_group.accent_color.green" = "Green";
+"self.settings.account_picture_group.accent_color.yellow" = "Yellow";
+"self.settings.account_picture_group.accent_color.red" = "Red";
+"self.settings.account_picture_group.accent_color.amber" = "Amber";
+"self.settings.account_picture_group.accent_color.turquoise" = "Turquoise";
+"self.settings.account_picture_group.accent_color.purple" = "Purple";
 
 "self.settings.account_personal_information_group.title" = "Osobní údaje";
 
@@ -1120,8 +1135,11 @@
 "self.settings.callkit.caption" = "Sdílet s";
 "self.settings.callkit.description" = "Zobrazit Wire hovory na zamykací obrazovce a v historii hovorů v iOS. Pokud je povolený iCloud, tak bude historie hovorů sdílena v rámci Apple.";
 
+"self.settings.mute_other_call.caption" = "Silence other calls";
+"self.settings.mute_other_call.description" = "Enable to silence incoming calls when you are already in an ongoing call.";
+
 "self.settings.vbr.title" = "Proměnlivý datový tok (VBR)";
-"self.settings.vbr.description" = "Toto umožňuje využít pro hlasové hovory méně dat a funguje lépe v pomalejších sítích. Vypněte pro použití konstantního datového toku.";
+"self.settings.vbr.description" = "This makes audio calls use less data and work better on slower networks. Turn off to use constant bitrate encoding (CBR). This setting only affects 1:1 calls; conference calls always use CBR encoding.";
 
 "self.settings.sound_menu.sounds.wire_call" = "Wire hovor";
 "self.settings.sound_menu.sounds.wire_message" = "Wire zpráva";
@@ -1167,6 +1185,8 @@
 
 // Developer options
 "self.settings.developer_options.title" = "Možnosti pro vývojáře";
+"self.settings.developer_options.loggin.title" = "Nastavení";
+"self.settings.developer_options.database_statistics.title" = "Database Statistics";
 "self.settings.apns_logging.title" = "APNS protokolování";
 
 // Privacy (visibility) options
@@ -1272,7 +1292,7 @@
 
 // Landing screen
 
-"landing.header" = "Wire. Add your Account.";
+"landing.header" = "Wire. Log in or create a personal account.";
 "landing.welcome_message" = "Trying to create a Pro or Enterprise account for your business or organization?";
 "landing.welcome_submessage" = "Unfortunately, that's not possible in the app - once you have created your team, you can log in here";
 "landing.create_account.title" = "Create a Wire personal account";
@@ -1289,19 +1309,11 @@
 "landing.custom_backend.title" = "Connected to \"%@\"";
 "landing.custom_backend.more_info.button.title" = "Show more";
 "landing.custom_backend.more_info.alert.title" = " You are connected to a third-party server: %@";
+"landing.custom_backend.alert.title" = "On-premises Backend";
+"landing.custom_backend.alert.message.backend-name" = "Backend name:";
+"landing.custom_backend.alert.message.backend-url" = "Backend URL:";
 
 // Create team
-
-"team.name.headline" = "Pojmenujte svůj tým";
-"team.name.subheadline" = "Název můžete později kdykoliv změnit.";
-"team.name.textfield.placeholder" = "team name";
-"team.name.textfield.accessibility" = "Set team name";
-"team.name.whatiswireforteams" = "What is Wire Pro?";
-
-"team.email.headline" = "Váš účet";
-"team.email.subheadline" = "Zadejte váš pracovní e-mail.";
-"team.email.textfield.placeholder" = "Your company email";
-"team.email.button.learn_more" = "Dozvědět se více";
 
 "team.activation_code.headline" = "You’ve got mail";
 "team.phone_activation_code.headline" = "Verification";
@@ -1319,28 +1331,13 @@
 "verification.code_label" = "Six-digit code. Text field.";
 "verification.code_hint" = "Double tap to enter the code.";
 
-// Invite Team Members
-
-"team.invite.header.title" = "Vytvořte svůj tým";
-"team.invite.header.subtitle" = "Váš Wire tým je připraven. Nyní do něj pozvěte své kolegy.";
-"team.invite.textfield.placeholder" = "Colleague's email";
-"team.invite.textfield.accesibility" = "Enter email address for colleague to invite.";
-"team.invite.learn_more.title" = "Dozvědět se více";
-"team.invite.top_bar.skip" = "Přeskočit";
-"team.invite.top_bar.done" = "Hotovo";
-
-// Team Invite Errors
-"team.invite.error.generic" = "Něco se pokazilo. Zkuste prosím znovu";
-"team.invite.error.already_registered" = "This email address is already in use";
-"team.invite.error.already_invited" = "Tento e-mail již byl pozván";
-"team.invite.error.too_many_invitations" = "The maximum number of invitations has been sent";
 "team.invite.error.no_internet" = "Nejste připojeni k internetu";
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "Povolit hosty a služby";
-"guest_room.allow_guests.subtitle" = "Otevřete tuto konverzaci službám a lidem mimo váš tým.";
-"guest_room.remove_guests.message" = "Současní hosté a služby budou odstraněny z konverzace. Noví hosté a služby nebudou povoleny.";
+"guest_room.allow_guests.title" = "Povolit hosty";
+"guest_room.allow_guests.subtitle" = "Open this conversation to people outside your team.";
+"guest_room.remove_guests.message" = "Current guests will be removed from the conversation. New guests will not be allowed.";
 "guest_room.remove_guests.action" = "Odstranit";
 "guest_room.revoke_link.message" = "Noví hosté se tímto odkazem nebudou moci připojit do konverzace. Nynějším hostům přístup zůstane.";
 "guest_room.revoke_link.action" = "Zrušit odkaz";
@@ -1348,8 +1345,11 @@
 "guest_room.error.generic.title" = "Něco se pokazilo";
 "guest_room.error.generic.message" = "Check your connection and try again";
 
-"guest_room.link.header.title" = "Invite others with a link";
-"guest_room.link.header.subtitle" = "Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.header.title" = "Guest Links";
+"guest_room.link.header.subtitle" = "Invite others with a link to this conversation. Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.not_allowed.for_self_team.explanation" = "Generating guest links is not allowed in your team.";
+"guest_room.link.not_allowed.for_other_team.explanation" = "You can't generate a guest link in this conversation, as it has been created by someone from another team and this team is not allowed to use guest links.";
+"guest_room.link.disabled.for_other_team.explanation" = "You can't disable the guest option in this conversation, as it has been created by someone from another team.";
 
 "guest_room.link.button.title" = "Vytvořit odkaz";
 
@@ -1362,6 +1362,14 @@
 
 "guest_room.expiration.hours_left" = "%@h left";
 "guest_room.expiration.less_than_minutes_left" = "Less than %@m left";
+
+// Services Options
+
+"services_options.allow_services.title" = "Allow services";
+"services_options.allow_services.subtitle" = "Open this conversation to services.";
+"services_options.remove_services.message" = "Current services will be removed from the conversation. New services will not be allowed.";
+"services_options.remove_services.action" = "Odstranit";
+
 
 // Registration
 
@@ -1575,7 +1583,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Něco se pokazilo. Zkuste prosím znovu";
 "error.user.needs_credentials" = "Zkontrolujte své údaje a zkuste znovu.";
-"error.user.domain_blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"error.user.domain_blocked" = "You can't create this account as your email domain is intentionally blocked.\nPlease ask your team admin to invite you via email.";
 "error.user.invalid_credentials" = "Zkontrolujte své údaje a zkuste znovu.";
 "error.user.account_pending_activation" = "Účet, na který se zkoušíte přihlásit, čeká na aktivaci. Zkontrolujte prosím své údaje.";
 "error.user.network_error" = "Zdá se, že došlo k problému s připojením. Prosím zkuste to znovu později.";
@@ -1613,6 +1621,9 @@
 "error.conversation.cannot_remove" = "Odebrání uživatele se nezdařilo";
 "error.conversation.too_many_members" = "Konverzace je plná";
 "error.conversation.offline" = "Zdá se, že je zde problém s vaším připojením k internetu. Prosím ujistěte se, že je funguje.";
+"error.conversation.missing_legalhold_consent" = "Due to legal hold, only team members can be added to this conversation";
+"error.message.send.missing_legalhold_consent" = "You cannot send this message because you have at least one outdated device that does not support legal hold. Please update all your devices or remove them from the app settings";
+"error.message.send.title" = "Messages cannot be sent";
 
 "sketchpad.initial_hint" = "Klepnutím na tlačítko barvy můžete měnit velikost stopy";
 
@@ -1624,13 +1635,49 @@
 "push.notification.new_user" = "%@ se připojil k Wire";
 "push.notification.new_message" = "Nová zpráva";
 
-
-//Force Update
+// Force Update
 "force.update.title" = "Je nutná aktualizace";
 "force.update.message" = "Přicházíte o nové funkce. Získejte v App Store nejnovější verzi Wire.";
 "force.update.ok_button" = "Přejít do App Storu";
 
-//Jailbroken alert
+// Feature configs
+"feature_config.alert.generic_title" = "Team settings changed";
+
+// Feature configs: file sharing
+"feature_config.update.file_sharing.alert.title" = "There has been a change in Wire";
+"feature_config.update.file_sharing.alert.message.disabled" = "Sharing and receiving files of any type is now disabled.";
+"feature_config.update.file_sharing.alert.message.enabled" = "Sharing and receiving files of any type is now enabled.";
+"feature_config.file_sharing_restrictions.file" = "Receiving files is prohibited";
+"feature_config.file_sharing_restrictions.picture" = "Receiving images is prohibited";
+"feature_config.file_sharing_restrictions.video" = "Receiving videos is prohibited";
+"feature_config.file_sharing_restrictions.audio" = "Receiving audio files is prohibited";
+
+//Feature flag - Conference calling
+"feature_config.update.conference_calling.alert.title" = "Enterprise plan";
+"feature_config.update.conference_calling.alert.message" = "Your team was upgraded to the Enterprise plan. You now have access to features such as starting conference calls.";
+"feature_config.update.conference_calling.alert.message.learn_more" = "Learn more about the Enterprise plan";
+
+"feature_config.conference_calling_restrictions.admins.alert.title" = "Upgrade to Enterprise";
+"feature_config.conference_calling_restrictions.admins.alert.message" = "Your team is currently on the free Basic plan. Upgrade to Enterprise to access features such as starting conference calls.";
+"feature_config.conference_calling_restrictions.admins.alert.message.learn_more" = "Learn more about Wire’s pricing";
+"feature_config.conference_calling_restrictions.admins.alert.action.upgrade" = "Upgrade now";
+
+"feature_config.conference_calling_restrictions.members.alert.title" = "Feature unavailable";
+"feature_config.conference_calling_restrictions.members.alert.message" = "To start a conference call, your team needs to upgrade to the Enterprise plan.";
+
+"feature_config.conference_calling_restrictions.personal.alert.title" = "Feature unavailable";
+"feature_config.conference_calling_restrictions.personal.alert.message" = "The option to initiate a conference call is only available in the paid version of Wire.";
+
+// Feature configs: self-deleting messages
+"feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timer before writing a message.";
+"feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Generating guest links is now disabled for all group admins.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Generating guest links is now enabled for all group admins.";
+
+// Jailbroken alert
 "jailbrokendevice.alert.title" = "Detekován jailbreak";
 "jailbrokendevice.alert.message" = "Z bezpečnostních důvodů nelze aplikaci Wire použít na tomto zařízení. Všechna existující data byla smazána.";
 
@@ -1641,6 +1688,10 @@
 "databaseloadingfailure.alert.delete_database" = "Delete Database";
 "databaseloadingfailure.alert.delete_database.message" = "By deleting the database, all local data and messages for this account will be permanently deleted.";
 "databaseloadingfailure.alert.delete_database.continue" = "Pokračovat";
+
+// Backend not supported alert
+"backend_not_supported.alert.title" = "Server version not supported";
+"backend_not_supported.alert.message" = "The server version is not supported by this app. Please contact your system administrator.";
 
 // Third Party
 "giphy.conversation.message" = "%@ · přes giphy.com";
@@ -1657,7 +1708,7 @@
 "invite_banner.invite_button_title" = "Pozvat další osoby";
 
 // Collections
-"collections.section.images.title" = "Obrázky";
+"collections.section.images.title" = "Images";
 "collections.section.files.title" = "Soubory";
 "collections.section.videos.title" = "Videa";
 "collections.section.links.title" = "Odkazy";
@@ -1689,8 +1740,6 @@
 
 "availability.message.cancel" = "Zrušit";
 "availability.message.set_status" = "Set a status";
-"availability.accessibility_label.change_status" = "Change Status";
-"availability.accessibility_label.status" = "Status";
 
 "availability.none" = "Žádné";
 "availability.available" = "Dostupný";
@@ -1736,6 +1785,14 @@
 "url_action.switch_backend.error.invalid_backend.title" = "Server neodpovídá";
 "url_action.switch_backend.error.invalid_backend" = "Zkontrolujte prosím své internetové připojení, ověřte odkaz a zkuste to znovu.";
 
+// Placeholder: conversation name
+"url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
+"url_action.join_conversation.confirmation.confirm_button" = "Vstoupit";
+
+"url_action.join_conversation.error.alert.title" = "You could not join the conversation";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "The conversation is full.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "The conversation link is invalid.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Learn more about guest links";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire nemůže nalézt tento kontakt.";
@@ -1791,14 +1848,14 @@
 // Legal hold - alert
 "legalhold_request.button.accessibility" = "Pending approval.";
 "legalhold_request.alert.title" = "Legal Hold Requested";
-"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and timed messages in all conversations.";
+"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and self-deleting messages in all conversations.";
 "legalhold_request.alert.detail.enter_password" = "Enter your password to confirm.";
 "legalhold_request.alert.error_wrong_password" = "Špatné heslo";
 
 // Legal hold activated
 "legalhold_active.alert.title" = "Legal Hold is Active";
 "legalhold_active.alert.learn_more" = "Dozvědět se více";
-"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and timed messages.\n\nYour conversation partners will be aware of the recording.";
+"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and self-deleting messages.\n\nYour conversation partners will be aware of the recording.";
 
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Your session expired";
@@ -1820,10 +1877,10 @@
 
 // Custom app lock - create passcode
 "create_passcode.textfield.placeholder" = "";
-"create_passcode.title_label" = "Create a passcode";
-"create_passcode.info_label" = "It will be used to unlock Wire. If you forget this passcode **it can not be recovered.**";
-"create_passcode.info_label_forced_applock" = "Create a passcode to unlock Wire. Please remember it, as **it can not be recovered.**";
-"create_passcode.create_button.title" = "create passcode";
+"create_passcode.title_label" = "Set a passcode";
+"create_passcode.info_label" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.info_label_forced_applock" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.create_button.title" = "Set a Passcode";
 
 // Custom app lock - create passcode validation
 "create_passcode.validation.too_short" = "At least eight characters long";
@@ -1835,9 +1892,9 @@
 // Custom app lock - unlock
 "unlock.textfield.placeholder" = "Enter your passcode";
 "unlock.title_label" = "Enter passcode to unlock Wire";
-"unlock.wipe_button" = "Access as new device";
+"unlock.wipe_button" = "Forgot your app lock passcode?";
 "unlock.error_label" = "Wrong passcode";
-"unlock.submit_button.title" = "unlock";
+"unlock.submit_button.title" = "Odemknout";
 
 // Custom app lock - warning screen
 "warning_screen.title_label" = "There was a change in Wire";
@@ -1847,16 +1904,16 @@
 
 // Wipe database
 
-"wipe_database.title_label" = "Access as new device";
-"wipe_database.info_label" = "The data stored on this device can only be accessed with your passcode.\n\nIf you have forgotten your passcode, you can delete the database to log in again as a new device.\n\nBy deleting the database, ";
+"wipe_database.title_label" = "Forgot your app lock passcode?";
+"wipe_database.info_label" = "The data stored on this device can only be accessed with your app lock passcode. If you have forgotten your passpcode, you can reset this device. Please enter your Wire account password to reset this device and log in again. By resetting your device,";
 "wipe_database.info_label.highlighted" = "all local data and messages for this account will be permanently deleted.";
 
-"wipe_database.button.title" = "I want to delete the database";
+"wipe_database.button.title" = "Reset Device";
 
 // Wipe database alert
 
-"wipe_database.alert.description" = "Confirm database deletion";
-"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device.";
+"wipe_database.alert.description" = "Reset Device";
+"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device,\nto reset this device and log in again";
 "wipe_database.alert.placeholder" = "Type 'Delete'";
 "wipe_database.alert.confirm" = "Smazat";
 "wipe_database.alert.confirm_input" = "Smazat";
@@ -1873,4 +1930,30 @@
 "appLockModule.message.passcode" = "Odemkněte Wire pomocí hesla";
 "appLockModule.message.passcodeUnavailable" = "K odemknutí aplikace Wire, zapněte Heslo v nastavení zařízení";
 "appLockModule.unlockButton.title" = "Odemknout";
-"appLockModule.goToSettingsButton.title" = "Go to settings";
+"appLockModule.goToSettingsButton.title" = "Přejít do nastavení";
+
+//MARK: - Keyboard shortcut
+"keyboardshortcut.scrollToBottom" = "Scroll to Bottom";
+"keyboardshortcut.conversationDetail" = "Conversation Details...";
+"keyboardshortcut.searchInConversation" = "Search in Conversation...";
+"keyboardshortcut.openPeople" = "Kontakty";
+
+// MARK: - Security classification
+"security_classification.security_level" = "Security level:";
+"security_classification.level.bund" = "VS-NfD";
+"security_classification.level.not_classified" = "UNCLASSIFIED";
+
+"proxy-credentials.title" = "Proxy Credentials";
+// url of proxy server as backend
+"proxy-credentials.caption" = "This backend is configured to use the following proxy server: %@.";
+"proxy-credentials.username.label" = "Proxy Email or Username";
+"proxy-credentials.username.placeholder" = "Email or Username";
+"proxy-credentials.password.label" = "Proxy Password";
+"proxy-credentials.password.placeholder" = "Heslo";
+
+"landing.alert.create-new-account.not-supported.title" = "Not supported";
+"landing.alert.create-new-account.not-supported.message" = "You can't create a personal account on an on-premises backend with proxy support.";
+"landing.alert.sso.not-supported.title" = "Not supported";
+"landing.alert.sso.not-supported.message" = "You can't log in via SSO on an on-premises backend with proxy support.";
+"credentials.general-error.alert.title" = "Invalid Information";
+"credentials.general-error.alert.message" = "These account credentials are incorrect. Please verify your details and try again.";

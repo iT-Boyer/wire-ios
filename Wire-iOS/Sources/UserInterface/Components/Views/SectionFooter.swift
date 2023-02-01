@@ -19,24 +19,17 @@
 import Foundation
 import UIKit
 
-final class SectionFooterView: UIView, Themeable {
+final class SectionFooterView: UIView {
 
     let titleLabel = UILabel()
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
         createConstraints()
-        applyColorScheme(colorSchemeVariant)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -45,6 +38,7 @@ final class SectionFooterView: UIView, Themeable {
         titleLabel.font = .preferredFont(forTextStyle: .footnote)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 0
+        titleLabel.applyStyle(.footerLabel)
         addSubview(titleLabel)
     }
 
@@ -54,16 +48,12 @@ final class SectionFooterView: UIView, Themeable {
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
-            ])
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        titleLabel.textColor = UIColor.from(scheme: .textDimmed, variant: colorSchemeVariant)
+        ])
     }
 
 }
 
-final class SectionFooter: UICollectionReusableView, Themeable {
+final class SectionFooter: UICollectionReusableView {
 
     let footerView = SectionFooterView()
 
@@ -75,25 +65,12 @@ final class SectionFooter: UICollectionReusableView, Themeable {
         super.init(frame: frame)
         addSubview(footerView)
         footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.fitInSuperview()
+        footerView.fitIn(view: self)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        addSubview(footerView)
-        footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.fitInSuperview()
-    }
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        footerView.applyColorScheme(colorSchemeVariant)
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     class func register(collectionView: UICollectionView) {
@@ -101,7 +78,7 @@ final class SectionFooter: UICollectionReusableView, Themeable {
     }
 }
 
-class SectionTableFooter: UITableViewHeaderFooterView, Themeable {
+class SectionTableFooter: UITableViewHeaderFooterView {
 
     let footerView = SectionFooterView()
 
@@ -113,25 +90,12 @@ class SectionTableFooter: UITableViewHeaderFooterView, Themeable {
         super.init(reuseIdentifier: reuseIdentifier)
         addSubview(footerView)
         footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.fitInSuperview()
+        footerView.fitIn(view: self)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        addSubview(footerView)
-        footerView.translatesAutoresizingMaskIntoConstraints = false
-        footerView.fitInSuperview()
-    }
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        footerView.applyColorScheme(colorSchemeVariant)
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
 }

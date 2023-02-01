@@ -20,7 +20,7 @@ import XCTest
 import SnapshotTesting
 @testable import Wire
 
-final class ConversationListTopBarViewControllerSnapshotTests: XCTestCase {
+final class ConversationListTopBarViewControllerSnapshotTests: ZMSnapshotTestCase {
 
     var sut: ConversationListTopBarViewController!
     var mockAccount: Account!
@@ -44,6 +44,7 @@ final class ConversationListTopBarViewControllerSnapshotTests: XCTestCase {
         sut = ConversationListTopBarViewController(account: mockAccount, selfUser: mockSelfUser)
         sut.view.frame = CGRect(x: 0, y: 0, width: 375, height: 48)
         sut.view.backgroundColor = .black
+        sut.overrideUserInterfaceStyle = .dark
     }
 
     // MARK: - legal hold

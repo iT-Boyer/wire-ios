@@ -19,7 +19,7 @@
 import UIKit
 import WireDataModel
 
-protocol GroupDetailsFooterViewDelegate: class {
+protocol GroupDetailsFooterViewDelegate: AnyObject {
     func footerView(_ view: GroupDetailsFooterView, shouldPerformAction action: GroupDetailsFooterView.Action)
 }
 
@@ -38,10 +38,11 @@ final class GroupDetailsFooterView: ConversationDetailFooterView {
 
     override func setupButtons() {
         leftIcon = .plus
-        leftButton.setTitle("participants.footer.add_title".localized(uppercased: true), for: .normal)
+        leftButton.setTitle("participants.footer.add_title".localized, for: .normal)
         leftButton.accessibilityIdentifier = "OtherUserMetaControllerLeftButton"
         rightIcon = .ellipsis
         rightButton.accessibilityIdentifier = "OtherUserMetaControllerRightButton"
+        rightButton.accessibilityLabel = L10n.Accessibility.ConversationDetails.MoreButton.description
     }
 
     override func leftButtonTapped(_ sender: IconButton) {

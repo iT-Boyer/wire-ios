@@ -34,6 +34,12 @@ class AuthenticationInterfaceBuilder {
     /// The object to use when checking for features.
     let featureProvider: AuthenticationFeatureProvider
 
+    var backendEnvironmentProvider: () -> BackendEnvironmentProvider
+
+    var backendEnvironment: BackendEnvironmentProvider {
+        return backendEnvironmentProvider()
+    }
+
     // MARK: - Initialization
 
     /**
@@ -41,8 +47,10 @@ class AuthenticationInterfaceBuilder {
      * - parameter featureProvider: The object to use when checking for features
      */
 
-    init(featureProvider: AuthenticationFeatureProvider) {
+    init(featureProvider: AuthenticationFeatureProvider,
+         backendEnvironmentProvider: @escaping () -> BackendEnvironmentProvider = { BackendEnvironment.shared }) {
         self.featureProvider = featureProvider
+        self.backendEnvironmentProvider = backendEnvironmentProvider
     }
 
     // MARK: - Interface Building
@@ -61,7 +69,7 @@ class AuthenticationInterfaceBuilder {
     func makeViewController(for step: AuthenticationFlowStep) -> AuthenticationStepViewController? {
         switch step {
         case .landingScreen:
-            let landingViewController = LandingViewController()
+            let landingViewController = LandingViewController(backendEnvironmentProvider: backendEnvironmentProvider)
             landingViewController.configure(with: featureProvider)
             return landingViewController
 
@@ -95,8 +103,8 @@ class AuthenticationInterfaceBuilder {
         case .provideCredentials(let credentialsFlowType, let prefill):
             return makeCredentialsViewController(for: .login(credentialsFlowType, prefill))
 
-        case .createCredentials(_, let credentialsFlowType):
-            return makeCredentialsViewController(for: .registration(credentialsFlowType))
+        case .createCredentials:
+            return makeCredentialsViewController(for: .registration)
 
         case .clientManagement:
             let manageClientsInvitation = ClientUnregisterInvitationStepDescription()
@@ -111,9 +119,13 @@ class AuthenticationInterfaceBuilder {
             let backupStep = BackupRestoreStepDescription(context: context)
             return makeViewController(for: backupStep)
 
-        case .enterLoginCode(let phoneNumber):
+        case .enterPhoneVerificationCode(let phoneNumber):
             let verifyPhoneStep = VerifyPhoneStepDescription(phoneNumber: phoneNumber, allowChange: false)
             return makeViewController(for: verifyPhoneStep)
+
+        case .enterEmailVerificationCode(let email, _, _):
+            let verifyEmailStep = VerifyEmailStepDescription(email: email, canChangeEmail: false)
+            return makeViewController(for: verifyEmailStep)
 
         case .addEmailAndPassword:
             let addCredentialsStep = AddEmailPasswordStepDescription()
@@ -142,9 +154,6 @@ class AuthenticationInterfaceBuilder {
 
         case .incrementalUserCreation(let user, let registrationStep):
             return makeRegistrationStepViewController(for: registrationStep, user: user)
-
-        case .teamCreation(let state):
-            return makeTeamCreationStepViewController(for: state)
 
         case .switchBackend(let url):
             let viewController = PreBackendSwitchViewController()
@@ -179,37 +188,6 @@ class AuthenticationInterfaceBuilder {
     }
 
     /**
-     * Returns the view controller that displays the interface for the given team creation step.
-     *
-     * - parameter state: The team creation step to create an interface for.
-     * - returns: The view controller to use for this state, or `nil` if the interface builder
-     * does not support this state.
-     */
-
-    private func makeTeamCreationStepViewController(for state: TeamCreationState) -> AuthenticationStepViewController? {
-        var stepDescription: AuthenticationStepDescription
-
-        switch state {
-        case .setTeamName:
-            stepDescription = SetTeamNameStepDescription()
-        case .setEmail:
-            stepDescription = SetEmailStepDescription()
-        case let .verifyEmail(teamName: _, email: email):
-            stepDescription = VerifyEmailStepDescription(email: email)
-        case .setFullName:
-            stepDescription = SetFullNameStepDescription()
-        case .setPassword:
-            stepDescription = SetPasswordStepDescription()
-        case .inviteMembers:
-            return TeamMemberInviteViewController()
-        default:
-            return nil
-        }
-
-        return makeViewController(for: stepDescription)
-    }
-
-    /**
      * Creates a view controller for a step view description.
      *
      * - parameter description: The step to create an interface for.
@@ -240,7 +218,7 @@ class AuthenticationInterfaceBuilder {
      */
 
     private func makeCredentialsViewController(for flowType: AuthenticationCredentialsViewController.FlowType) -> AuthenticationCredentialsViewController {
-        let viewController = AuthenticationCredentialsViewController(flowType: flowType)
+        let viewController = AuthenticationCredentialsViewController(flowType: flowType, backendEnvironmentProvider: backendEnvironmentProvider)
         viewController.configure(with: featureProvider)
         return viewController
     }

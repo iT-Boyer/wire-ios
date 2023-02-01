@@ -21,9 +21,16 @@ import UIKit
 
 extension UIBarButtonItem {
 
-    convenience init(icon: StyleKitIcon, style: UIBarButtonItem.Style = .plain, target: Any?, action: Selector?) {
+    typealias IconColors = SemanticColors.Icon
+    typealias General = L10n.Localizable.General
+
+    convenience init(icon: StyleKitIcon,
+                     style: UIBarButtonItem.Style = .plain,
+                     target: Any?,
+                     action: Selector?) {
         self.init(
-            image: icon.makeImage(size: .tiny, color: UIColor.from(scheme: .textForeground)),
+            image: icon.makeImage(size: .tiny,
+                                  color: IconColors.foregroundDefaultBlack),
             style: style,
             target: target,
             action: action
@@ -32,9 +39,73 @@ extension UIBarButtonItem {
 
     static func createCloseItem() -> UIBarButtonItem {
         let item = UIBarButtonItem(icon: .cross, target: nil, action: nil)
+        item.tintColor = IconColors.foregroundDefault
         item.accessibilityIdentifier = "close"
-        item.accessibilityLabel = "general.close".localized
+        item.accessibilityLabel = General.close
         return item
     }
 
+    static func createNavigationRightBarButtonItem(
+        title: String? = nil,
+        systemImage: Bool,
+        target buttonTarget: Any?,
+        action buttonAction: Selector?,
+        font buttonFont: UIFont = .preferredFont(forTextStyle: .body)) -> UIBarButtonItem {
+
+            var rightBarButtonItem: UIBarButtonItem
+            if systemImage {
+                rightBarButtonItem = UIBarButtonItem(
+                    barButtonSystemItem: .done,
+                    target: buttonTarget,
+                    action: buttonAction)
+            } else {
+                rightBarButtonItem = UIBarButtonItem(
+                    title: title,
+                    style: .plain,
+                    target: buttonTarget,
+                    action: buttonAction)
+            }
+
+            let buttonStates: [UIControl.State] = [.normal, .highlighted, .disabled, .selected, .focused, .application, .reserved]
+
+            buttonStates.forEach { buttonState in
+                rightBarButtonItem.setTitleTextAttributes(
+                    [NSAttributedString.Key.font: buttonFont],
+                    for: buttonState)
+            }
+            return rightBarButtonItem
+
+        }
+
+    static func createNavigationLeftBarButtonItem(
+        title: String? = nil,
+        systemImage: Bool,
+        target buttonTarget: Any?,
+        action buttonAction: Selector?,
+        font buttonFont: UIFont = .preferredFont(forTextStyle: .body)) -> UIBarButtonItem {
+
+            var leftBarButtonItem: UIBarButtonItem
+            if systemImage {
+                leftBarButtonItem = UIBarButtonItem(
+                    barButtonSystemItem: .done,
+                    target: buttonTarget,
+                    action: buttonAction)
+            } else {
+                leftBarButtonItem = UIBarButtonItem(
+                    title: title,
+                    style: .plain,
+                    target: buttonTarget,
+                    action: buttonAction)
+            }
+
+            let buttonStates: [UIControl.State] = [.normal, .highlighted, .disabled, .selected, .focused, .application, .reserved]
+
+            buttonStates.forEach { buttonState in
+                leftBarButtonItem.setTitleTextAttributes(
+                    [NSAttributedString.Key.font: buttonFont],
+                    for: buttonState)
+            }
+            return leftBarButtonItem
+
+        }
 }

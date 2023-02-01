@@ -24,7 +24,7 @@ enum AppState: Equatable {
     case locked
     case authenticated(completedRegistration: Bool)
     case unauthenticated(error: NSError?)
-    case blacklisted
+    case blacklisted(reason: BlacklistReason)
     case jailbroken
     case databaseFailure
     case migrating
@@ -40,8 +40,8 @@ enum AppState: Equatable {
             return true
         case let (.unauthenticated(error1), .unauthenticated(error2)):
             return error1 === error2
-        case (blacklisted, blacklisted):
-            return true
+        case let (.blacklisted(reason1), .blacklisted(reason2)):
+            return reason1 == reason2
         case (jailbroken, jailbroken):
             return true
         case (databaseFailure, databaseFailure):
@@ -56,18 +56,7 @@ enum AppState: Equatable {
     }
 }
 
-extension AppState {
-    var canProcessDeepLinks: Bool {
-      switch self {
-      case .unauthenticated, .authenticated:
-        return true
-      default:
-        return false
-      }
-    }
-}
-
-protocol AppStateCalculatorDelegate: class {
+protocol AppStateCalculatorDelegate: AnyObject {
     func appStateCalculator(_: AppStateCalculator,
                             didCalculate appState: AppState,
                             completion: @escaping () -> Void)
@@ -90,10 +79,6 @@ class AppStateCalculator {
             return false
         }
         return true
-    }
-
-    var canProcessDeepLinks: Bool {
-        return appState.canProcessDeepLinks
     }
 
     // MARK: - Private Set Property
@@ -119,6 +104,11 @@ class AppStateCalculator {
         }
 
         guard self.appState != appState else {
+            completion?()
+            return
+        }
+
+        if case .blacklisted = self.appState, BackendInfo.apiVersion == nil {
             completion?()
             return
         }
@@ -150,6 +140,23 @@ extension AppStateCalculator: ApplicationStateObserving {
 
 // MARK: - SessionManagerDelegate
 extension AppStateCalculator: SessionManagerDelegate {
+    var isInAuthenticatedAppState: Bool {
+        switch appState {
+        case .authenticated:
+            return true
+        default:
+            return false
+        }
+    }
+    var isInUnathenticatedAppState: Bool {
+        switch appState {
+        case .unauthenticated:
+            return true
+        default:
+            return false
+        }
+    }
+
     func sessionManagerWillLogout(error: Error?,
                                   userSessionCanBeTornDown: (() -> Void)?) {
         let appState: AppState = .unauthenticated(error: error as NSError?)
@@ -161,8 +168,8 @@ extension AppStateCalculator: SessionManagerDelegate {
         transition(to: .unauthenticated(error: error as NSError?))
     }
 
-    func sessionManagerDidBlacklistCurrentVersion() {
-        transition(to: .blacklisted)
+    func sessionManagerDidBlacklistCurrentVersion(reason: BlacklistReason) {
+        transition(to: .blacklisted(reason: reason))
     }
 
     func sessionManagerDidBlacklistJailbrokenDevice() {
@@ -196,6 +203,17 @@ extension AppStateCalculator: SessionManagerDelegate {
         } else {
             transition(to: .authenticated(completedRegistration: false))
         }
+    }
+
+    func sessionManagerDidPerformFederationMigration(authenticated: Bool) {
+        let state: AppState = authenticated ?
+            .authenticated(completedRegistration: false) :
+            .unauthenticated(error: NSError(code: .needsAuthenticationAfterMigration, userInfo: nil))
+        transition(to: state)
+    }
+
+    func sessionManagerDidPerformAPIMigrations() {
+        transition(to: .authenticated(completedRegistration: false))
     }
 }
 

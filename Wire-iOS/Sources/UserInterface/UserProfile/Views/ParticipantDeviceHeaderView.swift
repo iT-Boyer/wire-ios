@@ -18,13 +18,13 @@
 import Foundation
 import UIKit
 
-protocol ParticipantDeviceHeaderViewDelegate: class {
+protocol ParticipantDeviceHeaderViewDelegate: AnyObject {
     func participantsDeviceHeaderViewDidTapLearnMore(_ headerView: ParticipantDeviceHeaderView)
 }
 
 final class ParticipantDeviceHeaderView: UIView {
     private var font: UIFont = .normalLightFont
-    private var textColor: UIColor = .from(scheme: .textForeground)
+    private var textColor: UIColor = SemanticColors.Label.textSectionHeader
     private var linkAttributeColor: UIColor = .accent()
     private var textView: WebLinkTextView = WebLinkTextView()
     let userName: String
@@ -53,6 +53,7 @@ final class ParticipantDeviceHeaderView: UIView {
         backgroundColor = .clear
         setupViews()
         setupConstraints()
+        setupAccessibility()
     }
 
     func setupViews() {
@@ -111,9 +112,18 @@ final class ParticipantDeviceHeaderView: UIView {
 
     private func setupConstraints() {
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.fitInSuperview(with: EdgeInsets(top: 16, leading: 24, bottom: 16, trailing: 24))
+        NSLayoutConstraint.activate([
+            textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
+            textView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+            textView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            textView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
+        ])
     }
 
+    private func setupAccessibility() {
+        textView.accessibilityTraits = .link
+        textView.accessibilityHint = L10n.Accessibility.DeviceDetails.WhyVerifyFingerprint.hint
+    }
 }
 
 extension ParticipantDeviceHeaderView: UITextViewDelegate {

@@ -19,13 +19,14 @@
 import XCTest
 @testable import Wire
 
-class LocationSendViewControllerTests: ZMSnapshotTestCase {
+final class LocationSendViewControllerTests: ZMSnapshotTestCase {
 
     var sut: LocationSendViewController! = nil
 
     override func setUp() {
         super.setUp()
         sut = LocationSendViewController()
+        sut.overrideUserInterfaceStyle = .light
     }
 
     override func tearDown() {

@@ -17,9 +17,10 @@
 //
 
 import XCTest
+import WireCommonComponents
 @testable import Wire
 
-final class UserCellTests: XCTestCase {
+final class UserCellTests: ZMSnapshotTestCase {
 
     var sut: UserCell!
     var teamID = UUID()
@@ -35,6 +36,7 @@ final class UserCellTests: XCTestCase {
         mockUser.handle = "james_hetfield_1"
 
         conversation = MockGroupDetailsConversation()
+        UserDefaults.applicationGroup.set(true, forKey: DeveloperFlag.deprecatedCallingUI.rawValue)
     }
 
     override func tearDown() {
@@ -122,7 +124,7 @@ final class UserCellTests: XCTestCase {
     }
 
     func testUserInsideOngoingVideoCall() {
-        let config = CallParticipantsCellConfiguration.callParticipant(user: HashBox(value: mockUser), videoState: .started, microphoneState: .unmuted, activeSpeakerState: .inactive)
+        let config = CallParticipantsListCellConfiguration.callParticipant(user: HashBox(value: mockUser), videoState: .started, microphoneState: .unmuted, activeSpeakerState: .inactive)
 
         sut = UserCell(frame: CGRect(x: 0, y: 0, width: 320, height: 56))
         sut.configure(with: config, variant: .dark, selfUser: SelfUser.current)
@@ -131,7 +133,7 @@ final class UserCellTests: XCTestCase {
     }
 
     func testUserScreenSharingInsideOngoingVideoCall() {
-        let config = CallParticipantsCellConfiguration.callParticipant(user: HashBox(value: mockUser), videoState: .screenSharing, microphoneState: .unmuted, activeSpeakerState: .inactive)
+        let config = CallParticipantsListCellConfiguration.callParticipant(user: HashBox(value: mockUser), videoState: .screenSharing, microphoneState: .unmuted, activeSpeakerState: .inactive)
         sut = UserCell(frame: CGRect(x: 0, y: 0, width: 320, height: 56))
         sut.configure(with: config, variant: .dark, selfUser: SelfUser.current)
 

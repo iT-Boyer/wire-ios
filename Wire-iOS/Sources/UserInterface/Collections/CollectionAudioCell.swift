@@ -17,63 +17,99 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
-import WireSystem
 import WireDataModel
 import WireCommonComponents
 
 final class CollectionAudioCell: CollectionCell {
+    private var containerView = UIView()
     private let audioMessageView = AudioMessageView()
+    private let restrictionView = AudioMessageRestrictionView()
     private let headerView = CollectionCellHeader()
 
-    public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        self.loadView()
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.loadView()
+        loadView()
+        setupAccessibility()
     }
 
     override func updateForMessage(changeInfo: MessageChangeInfo?) {
+        typealias ConversationSearch = L10n.Accessibility.ConversationSearch
         super.updateForMessage(changeInfo: changeInfo)
 
-        guard let message = self.message else {
-            return
+        guard let message = self.message else { return }
+        headerView.message = message
+
+        if message.canBeShared {
+            audioMessageView.delegate = self
+
+            setup(audioMessageView)
+            audioMessageView.configure(for: message, isInitial: true)
+        } else {
+            setup(restrictionView)
+            restrictionView.configure()
         }
 
-        headerView.message = message
-        audioMessageView.configure(for: message, isInitial: true)
+        accessibilityLabel = ConversationSearch.SentBy.description(message.senderName)
+                            + ", \(message.serverTimestamp?.formattedDate ?? ""), "
+                            + ConversationSearch.AudioMessage.description
+        accessibilityHint = ConversationSearch.ItemPlay.hint
     }
 
     func loadView() {
-        self.audioMessageView.delegate = self
-        self.audioMessageView.layer.cornerRadius = 4
-        self.audioMessageView.clipsToBounds = true
+        headerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.translatesAutoresizingMaskIntoConstraints = false
 
-        self.secureContentsView.layoutMargins = UIEdgeInsets(top: 16, left: 4, bottom: 4, right: 4)
-        self.secureContentsView.addSubview(self.headerView)
-        self.secureContentsView.addSubview(self.audioMessageView)
+        secureContentsView.addSubview(headerView)
+        secureContentsView.addSubview(containerView)
 
-        constrain(self.secureContentsView, self.audioMessageView, self.headerView) { contentView, audioMessageView, headerView in
-            headerView.top == contentView.topMargin
-            headerView.leading == contentView.leadingMargin + 12
-            headerView.trailing == contentView.trailingMargin - 12
+        NSLayoutConstraint.activate([
+            // headerView
+            headerView.topAnchor.constraint(equalTo: secureContentsView.topAnchor, constant: 16),
+            headerView.leadingAnchor.constraint(equalTo: secureContentsView.leadingAnchor, constant: 16),
+            headerView.trailingAnchor.constraint(equalTo: secureContentsView.trailingAnchor, constant: -16),
 
-            audioMessageView.top == headerView.bottom + 4
-
-            audioMessageView.left == contentView.leftMargin
-            audioMessageView.right == contentView.rightMargin
-            audioMessageView.bottom == contentView.bottomMargin
-        }
+            // containerView
+            containerView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 4),
+            containerView.leadingAnchor.constraint(equalTo: secureContentsView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: secureContentsView.trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: secureContentsView.bottomAnchor)
+        ])
     }
 
     override var obfuscationIcon: StyleKitIcon {
         return .microphone
     }
 
+    private func setup(_ view: UIView) {
+        containerView.removeSubviews()
+        containerView.addSubview(view)
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: containerView.topAnchor),
+            view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 4),
+            view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -4),
+            view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -4)
+        ])
+
+        secureContentsView.layer.borderColor = SemanticColors.View.borderCollectionCell.cgColor
+        secureContentsView.layer.cornerRadius = 12
+        secureContentsView.layer.borderWidth = 1
+        obfuscationView.layer.borderColor = SemanticColors.View.borderCollectionCell.cgColor
+        obfuscationView.layer.cornerRadius = 12
+        obfuscationView.layer.borderWidth = 1
+    }
+
+    private func setupAccessibility() {
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
 }
 
 extension CollectionAudioCell: TransferViewDelegate {

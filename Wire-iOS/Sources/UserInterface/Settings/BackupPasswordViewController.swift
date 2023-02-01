@@ -18,6 +18,7 @@
 
 import UIKit
 import WireUtilities
+import WireCommonComponents
 
 struct Password {
     let value: String
@@ -47,24 +48,28 @@ extension BackupViewController {
 final class BackupPasswordViewController: UIViewController {
 
     typealias Completion = (BackupPasswordViewController, Password?) -> Void
+    typealias LabelColors = SemanticColors.Label
+    typealias HistoryBackup = L10n.Localizable.Self.Settings.HistoryBackup
+    typealias ViewColors = SemanticColors.View
     var completion: Completion?
 
     fileprivate var password: Password?
     private let passwordView = SimpleTextField()
 
-    private let subtitleLabel = UILabel(
-        key: "self.settings.history_backup.password.description",
-        size: .medium,
-        weight: .regular,
-        color: .textDimmed,
-        variant: .light
-    )
+    private let subtitleLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(text: HistoryBackup.Password.description,
+                                     fontSpec: .mediumRegularFont,
+                                     color: LabelColors.textSectionHeader)
+        label.numberOfLines = 0
+        return label
+    }()
 
-    private let passwordRulesLabel = UILabel(key: nil,
-                                             size: .medium,
-                                             weight: .regular,
-                                             color: .textDimmed,
-                                             variant: .light)
+    private let passwordRulesLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(fontSpec: .mediumRegularFont,
+                                     color: LabelColors.textSectionHeader)
+        label.numberOfLines = 0
+        return label
+    }()
 
     init(completion: @escaping Completion) {
         self.completion = completion
@@ -73,6 +78,7 @@ final class BackupPasswordViewController: UIViewController {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -92,11 +98,7 @@ final class BackupPasswordViewController: UIViewController {
     }
 
     private func setupViews() {
-        view.backgroundColor = UIColor.from(scheme: .contentBackground, variant: .light)
-
-        subtitleLabel.numberOfLines = 0
-
-        passwordRulesLabel.numberOfLines = 0
+        view.backgroundColor = SemanticColors.View.backgroundDefault
         passwordRulesLabel.text = PasswordRuleSet.localizedErrorMessage
 
         [passwordView, subtitleLabel, passwordRulesLabel].forEach {
@@ -104,12 +106,17 @@ final class BackupPasswordViewController: UIViewController {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
 
-        passwordView.colorSchemeVariant = .light
-        passwordView.placeholder = "self.settings.history_backup.password.placeholder".localized.localizedUppercase
+        passwordView.placeholder = HistoryBackup.Password.placeholder.capitalized
         passwordView.accessibilityIdentifier = "password input"
+        passwordView.accessibilityHint = PasswordRuleSet.localizedErrorMessage
         passwordView.returnKeyType = .done
         passwordView.isSecureTextEntry = true
         passwordView.delegate = self
+        passwordView.textColor = LabelColors.textSectionHeader
+        passwordView.backgroundColor = ViewColors.backgroundUserCell
+        let attributes: [NSAttributedString.Key: Any] = [.foregroundColor: SemanticColors.SearchBar.textInputViewPlaceholder,
+                                                        .font: FontSpec.smallRegularFont.font!]
+        passwordView.updatePlaceholderAttributedText(attributes: attributes)
     }
 
     private func createConstraints() {
@@ -128,27 +135,32 @@ final class BackupPasswordViewController: UIViewController {
     }
 
     private func setupNavigationBar() {
-        navigationController?.navigationBar.backgroundColor = UIColor.from(scheme: .barBackground, variant: .light)
-        navigationController?.navigationBar.setBackgroundImage(.singlePixelImage(with: UIColor.from(scheme: .barBackground, variant: .light)), for: .default)
-        navigationController?.navigationBar.tintColor = UIColor.from(scheme: .textForeground, variant: .light)
-        navigationController?.navigationBar.barTintColor = UIColor.from(scheme: .textForeground, variant: .light)
-        navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: .light)
+        let textColor = LabelColors.textDefault
+        navigationController?.navigationBar.backgroundColor = ViewColors.backgroundDefault
+        navigationController?.navigationBar.tintColor = textColor
+        navigationController?.navigationBar.barTintColor = textColor
+        navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: textColor)
 
-        title = "self.settings.history_backup.password.title".localized(uppercased: true)
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            title: "self.settings.history_backup.password.cancel".localized(uppercased: true),
-            style: .plain,
+        navigationItem.setupNavigationBarTitle(title: HistoryBackup.Password.title.capitalized)
+
+        let cancelButtonItem: UIBarButtonItem = .createNavigationLeftBarButtonItem(
+            title: HistoryBackup.Password.cancel.capitalized,
+            systemImage: false,
             target: self,
             action: #selector(cancel)
         )
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "self.settings.history_backup.password.next".localized(uppercased: true),
-            style: .done,
+
+        let nextButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(
+            title: HistoryBackup.Password.next.capitalized,
+            systemImage: false,
             target: self,
             action: #selector(completeWithCurrentResult)
-        )
-        navigationItem.rightBarButtonItem?.tintColor = .accent()
-        navigationItem.rightBarButtonItem?.isEnabled = false
+       )
+        nextButtonItem.tintColor = UIColor.accent()
+        nextButtonItem.isEnabled = false
+
+        navigationItem.leftBarButtonItem = cancelButtonItem
+        navigationItem.rightBarButtonItem = nextButtonItem
     }
 
     fileprivate func updateState(with text: String) {

@@ -32,7 +32,7 @@ extension SearchGroup {
         case .people:
             return true
         case .services:
-            return ZMUser.selfUser().canCreateService
+            return SelfUser.current.canCreateService
         }
     }
 
@@ -55,7 +55,7 @@ extension SearchGroup {
     }
 }
 
-protocol SearchResultsViewControllerDelegate: class {
+protocol SearchResultsViewControllerDelegate: AnyObject {
 
     func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController, didTapOnUser user: UserType, indexPath: IndexPath, section: SearchResultsViewControllerSection)
     func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController, didDoubleTapOnUser user: UserType, indexPath: IndexPath)
@@ -215,6 +215,7 @@ final class SearchResultsViewController: UIViewController {
         servicesSection.delegate = self
         createGroupSection.delegate = self
         inviteTeamMemberSection.delegate = self
+        federationSection.delegate = self
     }
 
     @available(*, unavailable)
@@ -380,10 +381,10 @@ final class SearchResultsViewController: UIViewController {
             teamMemberAndContactsSection.contacts = teamContacts
         }
 
-        directorySection.suggestions = searchResult.directory
+        directorySection.suggestions = searchResult.directory.filter { !$0.isFederated }
         conversationsSection.groupConversations = searchResult.conversations
         servicesSection.services = searchResult.services
-        federationSection.result = searchResult.federation
+        federationSection.users = searchResult.directory.filter { $0.isFederated }
 
         sectionController.collectionView?.reloadData()
     }
@@ -434,6 +435,10 @@ extension SearchResultsViewController: SearchSectionControllerDelegate {
             delegate?.searchResultsViewController(self, wantsToPerformAction: .createGuestRoom)
         }
 
+    }
+
+    func searchSectionController(_ searchSectionController: CollectionViewSectionController, wantsToDisplayError error: LocalizedError) {
+        presentLocalizedErrorAlert(error)
     }
 
 }

@@ -18,8 +18,9 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
-final class ProfileHeaderViewController: UIViewController, Themeable {
+final class ProfileHeaderViewController: UIViewController {
 
     /**
      * The options to customize the appearance and behavior of the view.
@@ -72,18 +73,15 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         }
     }
 
-    dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard colorSchemeVariant != oldValue else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
     var stackView: CustomSpacingStackView!
 
-    let nameLabel: UILabel = {
-        let label = UILabel()
-        label.accessibilityLabel = "profile_view.accessibility.name".localized
+    typealias AccountPageStrings = L10n.Accessibility.AccountPage
+    typealias LabelColors = SemanticColors.Label
+
+    let nameLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(fontSpec: .accountName,
+                                     color: LabelColors.textDefault)
+        label.accessibilityLabel = AccountPageStrings.Name.description
         label.accessibilityIdentifier = "name"
 
         label.setContentHuggingPriority(UILayoutPriority.required, for: .vertical)
@@ -92,25 +90,29 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         label.setContentHuggingPriority(.required, for: .horizontal)
         label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        label.font = FontSpec(.large, .light).font!
         label.accessibilityTraits.insert(.header)
         label.lineBreakMode = .byTruncatingTail
         label.numberOfLines = 3
         label.textAlignment = .center
-        label.adjustsFontSizeToFitWidth = true
 
         return label
     }()
-    let handleLabel = UILabel()
-    let teamNameLabel = UILabel()
+
+    let handleLabel = DynamicFontLabel(fontSpec: .mediumRegularFont,
+                                       color: LabelColors.textDefault)
+    let teamNameLabel = DynamicFontLabel(fontSpec: .accountTeam,
+                                         color: LabelColors.textDefault)
+    let remainingTimeLabel = DynamicFontLabel(fontSpec: .mediumSemiboldFont,
+                                              color: LabelColors.textDefault)
     let imageView =  UserImageView(size: .big)
     let availabilityTitleViewController: AvailabilityTitleViewController
 
     let guestIndicatorStack = UIStackView()
-    let guestIndicator = LabelIndicator(context: .guest)
-    let remainingTimeLabel = UILabel()
     let groupRoleIndicator = LabelIndicator(context: .groupRole)
+
+    let guestIndicator = LabelIndicator(context: .guest)
     let externalIndicator = LabelIndicator(context: .external)
+    let federatedIndicator = LabelIndicator(context: .federated)
 
     private var tokens: [Any?] = []
     private var teamObserver: NSObjectProtocol?
@@ -157,28 +159,25 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
             tokens.append(UserChangeInfo.add(observer: self, for: user, in: session))
         }
 
-        handleLabel.accessibilityLabel = "profile_view.accessibility.handle".localized
+        handleLabel.accessibilityLabel = AccountPageStrings.Handle.description
         handleLabel.accessibilityIdentifier = "username"
         handleLabel.setContentHuggingPriority(UILayoutPriority.required, for: .vertical)
         handleLabel.setContentCompressionResistancePriority(UILayoutPriority.required, for: .vertical)
-        handleLabel.font = FontSpec(.small, .regular).font!
 
         let nameHandleStack = UIStackView(arrangedSubviews: [nameLabel, handleLabel])
         nameHandleStack.axis = .vertical
         nameHandleStack.alignment = .center
         nameHandleStack.spacing = 2
 
-        teamNameLabel.accessibilityLabel = "profile_view.accessibility.team_name".localized
+        teamNameLabel.accessibilityLabel = AccountPageStrings.TeamName.description
         teamNameLabel.accessibilityIdentifier = "team name"
         teamNameLabel.setContentHuggingPriority(UILayoutPriority.required, for: .vertical)
         teamNameLabel.setContentCompressionResistancePriority(UILayoutPriority.required, for: .vertical)
-        teamNameLabel.font = FontSpec(.small, .regular).font!
 
         nameLabel.text = user.name
         nameLabel.accessibilityValue = nameLabel.text
 
         let remainingTimeString = user.expirationDisplayString
-        remainingTimeLabel.font = UIFont.mediumSemiboldFont
         remainingTimeLabel.text = remainingTimeString
         remainingTimeLabel.isHidden = remainingTimeString == nil
 
@@ -190,6 +189,7 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
 
         updateGuestIndicator()
         updateExternalIndicator()
+        updateFederatedIndicator()
         updateGroupRoleIndicator()
         updateHandleLabel()
         updateTeamLabel()
@@ -202,6 +202,7 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
                                                                           availabilityTitleViewController.view,
                                                                           guestIndicatorStack,
                                                                           externalIndicator,
+                                                                          federatedIndicator,
                                                                           groupRoleIndicator])
 
         stackView.alignment = .center
@@ -212,9 +213,13 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         stackView.wr_addCustomSpacing(24, after: imageView)
         stackView.wr_addCustomSpacing(20, after: guestIndicatorStack)
         stackView.wr_addCustomSpacing(20, after: externalIndicator)
+        stackView.wr_addCustomSpacing(20, after: federatedIndicator)
 
         view.addSubview(stackView)
-        applyColorScheme(colorSchemeVariant)
+
+        guestIndicator.tintColor = SemanticColors.Icon.foregroundDefault
+        view.backgroundColor = UIColor.clear
+
         configureConstraints()
         applyOptions()
 
@@ -223,6 +228,7 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         if let team = (user as? ZMUser)?.team {
             teamObserver = TeamChangeInfo.add(observer: self, for: team)
         }
+        view.backgroundColor = UIColor.clear
     }
 
     private func configureConstraints() {
@@ -238,17 +244,7 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         NSLayoutConstraint.activate([
             // stackView
             widthImageConstraint, leadingSpaceConstraint, topSpaceConstraint, trailingSpaceConstraint, bottomSpaceConstraint
-            ])
-    }
-
-    func applyColorScheme(_ variant: ColorSchemeVariant) {
-        availabilityTitleViewController.availabilityTitleView?.colorSchemeVariant = variant
-        guestIndicator.colorSchemeVariant = variant
-
-        handleLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
-        nameLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
-        teamNameLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
-        remainingTimeLabel.textColor = ColorScheme.default.color(named: .textForeground, variant: variant)
+        ])
     }
 
     private func updateGuestIndicator() {
@@ -261,6 +257,10 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
 
     private func updateExternalIndicator() {
         externalIndicator.isHidden = !user.isExternalPartner
+    }
+
+    private func updateFederatedIndicator() {
+        federatedIndicator.isHidden = !user.isFederated
     }
 
     private func updateGroupRoleIndicator() {
@@ -287,15 +287,14 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         if let handle = user.handle, !handle.isEmpty, !options.contains(.hideHandle) {
             handleLabel.text = "@" + handle
             handleLabel.accessibilityValue = handleLabel.text
-        }
-        else {
+        } else {
             handleLabel.isHidden = true
         }
     }
 
     private func updateTeamLabel() {
         if let teamName = user.teamName, !options.contains(.hideTeamName) {
-            teamNameLabel.text = teamName.localizedUppercase
+            teamNameLabel.text = teamName.localized
             teamNameLabel.accessibilityValue = teamNameLabel.text
             teamNameLabel.isHidden = false
         } else {
@@ -310,11 +309,12 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
 
     private func updateImageButton() {
         if options.contains(.allowEditingProfilePicture) {
-            imageView.accessibilityLabel = "self.accessibility.profile_photo_edit_button".localized
-            imageView.accessibilityTraits = [.image, .button]
+            imageView.accessibilityLabel = AccountPageStrings.ProfilePicture.description
+            imageView.accessibilityHint = AccountPageStrings.ProfilePicture.hint
+            imageView.accessibilityTraits = .button
             imageView.isUserInteractionEnabled = true
         } else {
-            imageView.accessibilityLabel = "self.accessibility.profile_photo_image".localized
+            imageView.accessibilityLabel = AccountPageStrings.ProfilePicture.description
             imageView.accessibilityTraits = [.image]
             imageView.isUserInteractionEnabled = false
         }

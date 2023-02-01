@@ -19,9 +19,7 @@
 import XCTest
 @testable import Wire
 
-final class SettingsTableViewControllerSnapshotTests: XCTestCase {
-    var coreDataFixture: CoreDataFixture!
-
+final class SettingsTableViewControllerSnapshotTests: ZMSnapshotTestCase {
     var sut: SettingsTableViewController!
 	var settingsCellDescriptorFactory: SettingsCellDescriptorFactory!
     var settingsPropertyFactory: SettingsPropertyFactory!
@@ -31,11 +29,18 @@ final class SettingsTableViewControllerSnapshotTests: XCTestCase {
 	override func setUp() {
 		super.setUp()
 
-        coreDataFixture = CoreDataFixture()
         userSessionMock = MockZMUserSession()
         selfUser = MockZMEditableUser()
+        selfUser.teamName = "Wire"
+        selfUser.handle = "johndoe"
+        selfUser.name = "John Doe"
+        selfUser.domain = "wire.com"
+        selfUser.emailAddress = "john.doe@wire.com"
+        selfUser.remoteIdentifier = UUID(uuidString: "AFBDFB29-AA40-4444-94D2-F484D0A44600")
 
-		settingsPropertyFactory = SettingsPropertyFactory(userSession: userSessionMock, selfUser: nil)
+        SelfUser.provider = SelfProvider(selfUser: selfUser)
+
+		settingsPropertyFactory = SettingsPropertyFactory(userSession: userSessionMock, selfUser: selfUser)
 		settingsCellDescriptorFactory = SettingsCellDescriptorFactory(settingsPropertyFactory: settingsPropertyFactory, userRightInterfaceType: MockUserRight.self)
 
 		MockUserRight.isPermitted = true
@@ -46,30 +51,47 @@ final class SettingsTableViewControllerSnapshotTests: XCTestCase {
 		settingsCellDescriptorFactory = nil
 		settingsPropertyFactory = nil
 
-        coreDataFixture = nil
         userSessionMock = nil
         selfUser = nil
-
+        SelfUser.provider = nil
+        Settings.shared.reset()
+        BackendInfo.isFederationEnabled = false
         super.tearDown()
 	}
 
     func testForSettingGroup() {
         // prevent app crash when checking Analytics.shared.isOptout
         Analytics.shared = Analytics(optedOut: true)
-        let group = settingsCellDescriptorFactory.settingsGroup(isTeamMember: coreDataFixture.selfUser.isTeamMember)
+        let group = settingsCellDescriptorFactory.settingsGroup(isTeamMember: true)
         verify(group: group)
     }
 
-    func testForAccountGroup() {
-        let group = settingsCellDescriptorFactory.accountGroup(isTeamMember: coreDataFixture.selfUser.isTeamMember)
-        verify(group: group)
+    private func testForAccountGroup(federated: Bool,
+                                     disabledEditing: Bool = false,
+                                     file: StaticString = #file,
+                                     testName: String = #function,
+                                     line: UInt = #line) {
+        BackendInfo.isFederationEnabled = federated
+
+        MockUserRight.isPermitted = !disabledEditing
+        let group = settingsCellDescriptorFactory.accountGroup(isTeamMember: true)
+        verify(group: group, file: file, testName: testName, line: line)
     }
 
-    func testForAccountGroupWithDisabledEditing() {
-		MockUserRight.isPermitted = false
+    func testForAccountGroup_Federated() {
+        testForAccountGroup(federated: true)
+    }
 
-        let group = settingsCellDescriptorFactory.accountGroup(isTeamMember: coreDataFixture.selfUser.isTeamMember)
-        verify(group: group)
+    func testForAccountGroup_NotFederated() {
+        testForAccountGroup(federated: false)
+    }
+
+    func testForAccountGroupWithDisabledEditing_Federated() {
+        testForAccountGroup(federated: true, disabledEditing: true)
+    }
+
+    func testForAccountGroupWithDisabledEditing_NotFederated() {
+        testForAccountGroup(federated: false, disabledEditing: true)
     }
 
     // MARK: - options
@@ -86,6 +108,7 @@ final class SettingsTableViewControllerSnapshotTests: XCTestCase {
         sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
 
         sut.view.backgroundColor = .black
+        sut.view.overrideUserInterfaceStyle = .dark
 
         // set the width of the VC, to calculate the height on content size
         sut.view.frame = CGRect(origin: .zero, size: CGSize.iPhoneSize.iPhone4_7)
@@ -137,6 +160,7 @@ final class SettingsTableViewControllerSnapshotTests: XCTestCase {
         sut = SettingsTableViewController(group: group as! SettingsInternalGroupCellDescriptorType)
 
         sut.view.backgroundColor = .black
+        sut.overrideUserInterfaceStyle = .dark
 
         verify(matching: sut, file: file, testName: testName, line: line)
     }

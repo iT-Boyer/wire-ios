@@ -20,7 +20,7 @@
 
 import XCTest
 
-final class ConversationAudioMessageCellTests: XCTestCase {
+final class ConversationAudioMessageCellTests: ZMSnapshotTestCase {
 
     var message: MockMessage!
     var mockSelfUser: MockUserType!
@@ -217,6 +217,15 @@ final class ConversationAudioMessageCellTests: XCTestCase {
         message.backingFileMessageData.transferState = .uploaded
 
         verify(message: message)
+    }
+
+    // MARK: - Receiving restrictions
+
+    func testRestrictionMessageCell() {
+        message.backingIsRestricted = true
+        message.backingFileMessageData.mimeType = "audio/x-m4a"
+
+        verify(message: message, allColorSchemes: true)
     }
 
 }

@@ -19,6 +19,7 @@
 import UIKit
 import WireSyncEngine
 import WireUtilities
+import WireCommonComponents
 
 private enum Section: Int {
     static var count: Int {
@@ -29,7 +30,7 @@ private enum Section: Int {
     case buttons = 1
 }
 
-protocol ConfirmPhoneDelegate: class {
+protocol ConfirmPhoneDelegate: AnyObject {
     func resendVerificationCode(inController controller: ConfirmPhoneViewController)
     func didConfirmPhone(inController controller: ConfirmPhoneViewController)
 }
@@ -56,6 +57,7 @@ final class ConfirmPhoneViewController: SettingsBaseTableViewController {
         timer?.cancel()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -149,13 +151,7 @@ final class ConfirmPhoneViewController: SettingsBaseTableViewController {
         case .buttons:
             let cell = tableView.dequeueReusableCell(withIdentifier: SettingsButtonCell.zm_reuseIdentifier, for: indexPath) as! SettingsButtonCell
             cell.titleText = "self.settings.account_section.phone_number.change.verify.resend".localized
-            if resendEnabled {
-                cell.titleColor = .white
-                cell.selectionStyle = .default
-            } else {
-                cell.titleColor = UIColor(white: 1, alpha: 0.4)
-                cell.selectionStyle = .none
-            }
+            cell.selectionStyle = resendEnabled ? .default : .none
             return cell
         }
     }

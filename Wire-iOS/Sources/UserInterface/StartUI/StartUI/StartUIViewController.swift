@@ -18,6 +18,7 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "StartUIViewController")
 
@@ -28,9 +29,9 @@ final class StartUIViewController: UIViewController, SpinnerCapable {
 
     weak var delegate: StartUIDelegate?
 
-    let searchHeaderViewController: SearchHeaderViewController = SearchHeaderViewController(userSelection: UserSelection(), variant: .dark)
+    let searchHeaderViewController: SearchHeaderViewController = SearchHeaderViewController(userSelection: UserSelection())
 
-    let groupSelector: SearchGroupSelector = SearchGroupSelector(style: .dark)
+    let groupSelector: SearchGroupSelector = SearchGroupSelector()
 
     let searchResultsViewController: SearchResultsViewController
 
@@ -54,11 +55,13 @@ final class StartUIViewController: UIViewController, SpinnerCapable {
         fatalError("init(coder:) has not been implemented")
     }
 
+    let backgroundColor = SemanticColors.View.backgroundDefault
+
     /// init method for injecting mock addressBookHelper
     ///
     /// - Parameter addressBookHelperType: a class type conforms AddressBookHelperProtocol
     init(addressBookHelperType: AddressBookHelperProtocol.Type = AddressBookHelper.self,
-         isFederationEnabled: Bool = Settings.shared[.federationEnabled] == true) {
+         isFederationEnabled: Bool = BackendInfo.isFederationEnabled) {
         self.isFederationEnabled = isFederationEnabled
         self.addressBookHelperType = addressBookHelperType
         self.searchResultsViewController = SearchResultsViewController(userSelection: UserSelection(),
@@ -92,26 +95,21 @@ final class StartUIViewController: UIViewController, SpinnerCapable {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        navigationController?.navigationBar.barTintColor = UIColor.clear
-        navigationController?.navigationBar.isTranslucent = true
-        navigationController?.navigationBar.tintColor = UIColor.from(scheme: .textForeground, variant: .dark)
-        navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: .dark)
+        navigationController?.navigationBar.barTintColor = backgroundColor
+        navigationController?.navigationBar.isTranslucent = false
+        navigationController?.navigationBar.tintColor = SemanticColors.Label.textDefault
+        navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes()
 
-    }
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
     }
 
     private func configGroupSelector() {
         groupSelector.translatesAutoresizingMaskIntoConstraints = false
-        groupSelector.backgroundColor = UIColor.from(scheme: .searchBarBackground, variant: .dark)
+        groupSelector.backgroundColor = backgroundColor
     }
 
     func setupViews() {
         configGroupSelector()
-        emptyResultView = EmptySearchResultsView(variant: .dark,
-                                                 isSelfUserAdmin: selfUser.canManageTeam,
+        emptyResultView = EmptySearchResultsView(isSelfUserAdmin: selfUser.canManageTeam,
                                                  isFederationEnabled: isFederationEnabled)
 
         emptyResultView.delegate = self
@@ -120,15 +118,15 @@ final class StartUIViewController: UIViewController, SpinnerCapable {
         searchResultsViewController.searchResultsView.emptyResultView = self.emptyResultView
         searchResultsViewController.searchResultsView.collectionView.accessibilityIdentifier = "search.list"
 
-        if let team = (selfUser as? ZMUser)?.team {
-            title = team.name?.uppercased()
-        } else {
-            title = selfUser.name?.uppercased()
+        if let title = (selfUser as? ZMUser)?.team?.name {
+            navigationItem.setupNavigationBarTitle(title: title.capitalized)
+        } else if let title = selfUser.name {
+            navigationItem.setupNavigationBarTitle(title: title.capitalized)
         }
 
         searchHeader.delegate = self
         searchHeader.allowsMultipleSelection = false
-        searchHeader.view.backgroundColor = UIColor.from(scheme: .searchBarBackground, variant: .dark)
+        searchHeader.view.backgroundColor = backgroundColor
 
         addToSelf(searchHeader)
 
@@ -162,15 +160,52 @@ final class StartUIViewController: UIViewController, SpinnerCapable {
 
         let closeButton = UIBarButtonItem(icon: .cross, style: UIBarButtonItem.Style.plain, target: self, action: #selector(onDismissPressed))
 
-        closeButton.accessibilityLabel = "general.close".localized
+        closeButton.accessibilityLabel = L10n.Accessibility.ContactsList.CloseButton.description
         closeButton.accessibilityIdentifier = "close"
 
         navigationItem.rightBarButtonItem = closeButton
         view.accessibilityViewIsModal = true
     }
 
+    private func createConstraints() {
+        [searchHeaderViewController.view, groupSelector, searchResultsViewController.view].forEach { $0?.translatesAutoresizingMaskIntoConstraints = false }
+
+        NSLayoutConstraint.activate([
+            searchHeaderViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchHeaderViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            searchHeaderViewController.view.topAnchor.constraint(equalTo: view.topAnchor)
+        ])
+
+        if showsGroupSelector {
+            NSLayoutConstraint.activate([
+                groupSelector.topAnchor.constraint(equalTo: searchHeaderViewController.view.bottomAnchor),
+                searchResultsViewController.view.topAnchor.constraint(equalTo: groupSelector.bottomAnchor)
+            ])
+
+            NSLayoutConstraint.activate([
+                groupSelector.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                groupSelector.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+            searchResultsViewController.view.topAnchor.constraint(equalTo: searchHeaderViewController.view.bottomAnchor)
+                ])
+        }
+
+        NSLayoutConstraint.activate([
+            searchResultsViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchResultsViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            searchResultsViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+
+    var showsGroupSelector: Bool {
+        return SearchGroup.all.count > 1 && ZMUser.selfUser().canSeeServices
+    }
+
     func showKeyboardIfNeeded() {
-        let conversationCount = ZMConversationList.conversations(inUserSession: ZMUserSession.shared()!).count /// TODO: unwrap
+        // TODO: unwrap
+        let conversationCount = ZMConversationList.conversations(inUserSession: ZMUserSession.shared()!).count
         if conversationCount > StartUIViewController.InitiallyShowsKeyboardConversationThreshold {
             _ = searchHeader.tokenField.becomeFirstResponder()
         }

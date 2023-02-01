@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireDataModel
 import WireCommonComponents
@@ -36,7 +35,9 @@ final class VideoMessageView: UIView, TransferView {
     private let progressView = CircularProgressView()
     private let playButton: IconButton = {
         let button = IconButton()
-        button.setIconColor(.white, for: .normal)
+        button.setIconColor(
+            SemanticColors.Icon.foregroundDefaultWhite,
+            for: .normal)
         return button
     }()
     private let bottomGradientView = GradientView()
@@ -58,11 +59,11 @@ final class VideoMessageView: UIView, TransferView {
 
         self.previewImageView.contentMode = .scaleAspectFill
         self.previewImageView.clipsToBounds = true
-        self.previewImageView.backgroundColor = UIColor.from(scheme: .placeholderBackground)
+        self.previewImageView.backgroundColor = SemanticColors.View.backgroundCollectionCell
 
         self.playButton.addTarget(self, action: #selector(VideoMessageView.onActionButtonPressed(_:)), for: .touchUpInside)
         self.playButton.accessibilityIdentifier = "VideoActionButton"
-        self.playButton.accessibilityLabel = "VideoActionButton"
+        self.playButton.accessibilityLabel = L10n.Accessibility.AudioMessage.Play.value
         self.playButton.layer.masksToBounds = true
 
         self.progressView.isUserInteractionEnabled = false
@@ -80,14 +81,12 @@ final class VideoMessageView: UIView, TransferView {
         self.allViews.forEach(self.addSubview)
 
         createConstraints()
-        var currentElements = self.accessibilityElements ?? []
-        currentElements.append(contentsOf: [previewImageView, playButton, timeLabel, progressView])
-        self.accessibilityElements = currentElements
 
         setNeedsLayout()
         layoutIfNeeded()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -163,7 +162,7 @@ final class VideoMessageView: UIView, TransferView {
 
         if let viewsState = state.viewsStateForVideo() {
             self.playButton.setIcon(viewsState.playButtonIcon, size: 28, for: .normal)
-            self.playButton.backgroundColor = viewsState.playButtonBackgroundColor
+            self.playButton.backgroundColor = SemanticColors.Icon.backgroundDefault
         }
 
         updateVisibleViews()

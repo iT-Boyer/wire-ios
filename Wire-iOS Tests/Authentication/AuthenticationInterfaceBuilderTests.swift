@@ -19,7 +19,7 @@
 import XCTest
 @testable import Wire
 
-final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTestHelper {
+final class AuthenticationInterfaceBuilderTests: ZMSnapshotTestCase, CoreDataFixtureTestHelper {
     var coreDataFixture: CoreDataFixture!
     var featureProvider: MockAuthenticationFeatureProvider!
     var builder: AuthenticationInterfaceBuilder!
@@ -28,9 +28,16 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
         super.setUp()
 
         coreDataFixture = CoreDataFixture()
+        accentColor = .strongBlue
 
         featureProvider = MockAuthenticationFeatureProvider()
-        builder = AuthenticationInterfaceBuilder(featureProvider: featureProvider)
+        builder = AuthenticationInterfaceBuilder(featureProvider: featureProvider, backendEnvironmentProvider: {
+            let backendEnvironmentProvider = MockEnvironment()
+            let proxy: FakeProxySettings? = nil
+            backendEnvironmentProvider.proxy = proxy
+            backendEnvironmentProvider.environmentType = EnvironmentTypeProvider(environmentType: .staging)
+            return backendEnvironmentProvider
+        })
     }
 
     override func tearDown() {
@@ -54,12 +61,8 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
 
     // MARK: - User Registration
 
-    func testRegistrationScreen_Phone() {
-        runSnapshotTest(for: .createCredentials(UnregisteredUser(), .phone))
-    }
-
-    func testRegistrationScreen_Email() {
-        runSnapshotTest(for: .createCredentials(UnregisteredUser(), .email))
+    func testRegistrationScreen() {
+        runSnapshotTest(for: .createCredentials(UnregisteredUser()))
     }
 
     func testActivationScreen_Phone() {
@@ -84,44 +87,41 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
         runSnapshotTest(for: .incrementalUserCreation(UnregisteredUser(), .provideMarketingConsent))
     }
 
-    // MARK: - Team Registration
-
-    func testTeamNameScreen() {
-        let state: TeamCreationState = .setTeamName
-        runSnapshotTest(for: .teamCreation(state))
-    }
-
-    func testTeamEmailScreen() {
-        let state: TeamCreationState = .setEmail(teamName: "Example")
-        runSnapshotTest(for: .teamCreation(state))
-    }
-
-    func testTeamVerificationScreen() {
-        let state: TeamCreationState = .verifyEmail(teamName: "Example", email: "test@example.com")
-        runSnapshotTest(for: .teamCreation(state))
-    }
-
-    func testTeamAdminNameScreen() {
-        let state: TeamCreationState = .setFullName(teamName: "Example", email: "test@example.com", activationCode: "123456", marketingConsent: false)
-        runSnapshotTest(for: .teamCreation(state))
-    }
-
-    func testTeamAdminPasswordScreen() {
-        let state: TeamCreationState = .setPassword(teamName: "Example", email: "example@wire.com", activationCode: "123456", marketingConsent: false, fullName: "Val")
-        runSnapshotTest(for: .teamCreation(state))
-    }
-
-    func testTeamInviteScreen() {
-        runSnapshotTest(for: .teamCreation(.inviteMembers))
-    }
-
     // MARK: - Login
 
-    func testLoginScreen_Phone() {
+    func testLoginScreen_Phone() throws {
         runSnapshotTest(for: .provideCredentials(.phone, nil))
     }
 
     func testLoginScreen_Email() {
+        runSnapshotTest(for: .provideCredentials(.email, nil))
+    }
+
+    func testLoginScreen_Email_WithProxyAuthenticated() {
+        let backendEnvironmentProvider = MockEnvironment()
+        backendEnvironmentProvider.environmentType = EnvironmentTypeProvider(environmentType: .custom(url: URL(string: "https://api.example.org")!))
+        backendEnvironmentProvider.proxy = FakeProxySettings(host: "api.example.org", port: 1345, needsAuthentication: true)
+        backendEnvironmentProvider.backendURL = URL(string: "https://api.example.org")!
+        builder = AuthenticationInterfaceBuilder(featureProvider: featureProvider, backendEnvironmentProvider: { backendEnvironmentProvider })
+        runSnapshotTest(for: .provideCredentials(.email, nil), customSize: .init(width: CGSize.iPhoneSize.iPhone4_7Inch.width, height: 1000)) // setting higher value for scrollview content
+    }
+
+    func testLoginScreen_Email_WithConfig() {
+        let backendEnvironmentProvider = MockEnvironment()
+        backendEnvironmentProvider.environmentType = EnvironmentTypeProvider(environmentType: .custom(url: URL(string: "https://api.example.org")!))
+        backendEnvironmentProvider.proxy = nil
+        backendEnvironmentProvider.backendURL = URL(string: "https://api.example.org")!
+        builder = AuthenticationInterfaceBuilder(featureProvider: featureProvider, backendEnvironmentProvider: { backendEnvironmentProvider })
+        runSnapshotTest(for: .provideCredentials(.email, nil))
+    }
+
+    func testLoginScreen_Email_WithProxyNoAuthentication() {
+        let backendEnvironmentProvider = MockEnvironment()
+        backendEnvironmentProvider.environmentType = EnvironmentTypeProvider(environmentType: .custom(url: URL(string: "https://api.example.org")!))
+        backendEnvironmentProvider.proxy = FakeProxySettings(host: "api.example.org", port: 1345, needsAuthentication: false)
+        backendEnvironmentProvider.backendURL = URL(string: "https://api.example.org")!
+
+        builder = AuthenticationInterfaceBuilder(featureProvider: featureProvider, backendEnvironmentProvider: { backendEnvironmentProvider })
         runSnapshotTest(for: .provideCredentials(.email, nil))
     }
 
@@ -131,7 +131,7 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
     }
 
     func testLoginScreen_PhoneNumberVerification() {
-        runSnapshotTest(for: .enterLoginCode(phoneNumber: "+0123456789"))
+        runSnapshotTest(for: .enterPhoneVerificationCode(phoneNumber: "+0123456789"))
     }
 
     func testBackupScreen_NewDevice() {
@@ -197,7 +197,9 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
     private func runSnapshotTest(for step: AuthenticationFlowStep,
                                  file: StaticString = #file,
                                  testName: String = #function,
-                                 line: UInt = #line) {
+                                 line: UInt = #line,
+                                 customSize: CGSize? = nil
+        ) {
         if let viewController = builder.makeViewController(for: step) {
             if !step.needsInterface {
                 return XCTFail("An interface was generated but we didn't expect one.", file: file, line: line)
@@ -207,6 +209,7 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
             navigationController.viewControllers = [viewController]
 
             verify(matching: navigationController,
+                   customSize: customSize,
                    file: file,
                    testName: testName,
                    line: line)

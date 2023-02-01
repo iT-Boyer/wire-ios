@@ -18,7 +18,7 @@
 
 import UIKit
 
-protocol TokenizedTextViewDelegate: class {
+protocol TokenizedTextViewDelegate: AnyObject {
     func tokenizedTextView(_ textView: TokenizedTextView, didTapTextRange range: NSRange, fraction: CGFloat)
     func tokenizedTextView(_ textView: TokenizedTextView, textContainerInsetChanged textContainerInset: UIEdgeInsets)
 }
@@ -27,7 +27,7 @@ protocol TokenizedTextViewDelegate: class {
 // ! Shouldn't be used anywhere else.
 // TODO: as a inner class of TokenField
 
-final class TokenizedTextView: TextView {
+class TokenizedTextView: TextView {
 
     weak var tokenizedTextViewDelegate: TokenizedTextViewDelegate?
 

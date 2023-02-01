@@ -17,21 +17,24 @@
 //
 
 import Foundation
-import Cartography
+import UIKit
 
-protocol CharacterInputFieldDelegate: class {
+protocol CharacterInputFieldDelegate: AnyObject {
     func shouldAcceptChanges(_ inputField: CharacterInputField) -> Bool
     func didChangeText(_ inputField: CharacterInputField, to: String)
     func didFillInput(inputField: CharacterInputField, text: String)
 }
 
-protocol TextContainer: class {
+protocol TextContainer: AnyObject {
     var text: String? { get set }
 }
 
 /// Custom input field implementation. Allows entering the characters from @c characterSet up to @c maxLength characters
 /// Allows pasting the text.
 final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
+
+    typealias ViewColors = SemanticColors.View
+
     fileprivate var storage = String() {
         didSet {
             if storage.count > maxLength {
@@ -70,8 +73,7 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
 
             if let character = storage.count > index ? storage[storage.index(storage.startIndex, offsetBy: index)] : nil {
                 characterView.character = character
-            }
-            else {
+            } else {
                 characterView.character = .none
             }
         }
@@ -94,8 +96,7 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
 
     fileprivate func showMenu() {
         let menuController = UIMenuController.shared
-        menuController.setTargetRect(bounds, in: self)
-        menuController.setMenuVisible(true, animated: true)
+        menuController.showMenu(from: self, rect: bounds)
     }
 
     final class CharacterView: UIView {
@@ -107,8 +108,7 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
                 if let character = self.character {
                     label.text = String(character)
                     label.isHidden = false
-                }
-                else {
+                } else {
                     label.isHidden = true
                 }
             }
@@ -119,17 +119,26 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
 
             super.init(frame: .zero)
 
-            self.layer.cornerRadius = 4
-            self.backgroundColor = .white
+            layer.cornerRadius = 4
+            layer.borderColor = ViewColors.borderCharacterInputField.cgColor
+            backgroundColor = ViewColors.backgroundUserCell
 
             label.font = UIFont.systemFont(ofSize: 32)
-            self.addSubview(label)
+            label.textColor = SemanticColors.Label.textDefault
+            addSubview(label)
 
-            constrain(self, label) { selfView, label in
-                label.center == selfView.center
-            }
+            createConstraints()
         }
 
+        private func createConstraints() {
+            label.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: centerYAnchor)
+            ])
+        }
+
+        @available(*, unavailable)
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
@@ -157,10 +166,12 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
         self.isAccessibilityElement = true
         self.shouldGroupAccessibilityChildren = true
 
-        accessibilityHint = "verification.code_hint".localized
+        accessibilityHint = L10n.Localizable.Verification.codeHint
 
         accessibilityCustomActions = [
-            UIAccessibilityCustomAction(name: "general.paste".localized, target: self, selector: #selector(UIResponderStandardEditActions.paste))
+            UIAccessibilityCustomAction(name: L10n.Localizable.General.paste,
+                                        target: self,
+                                        selector: #selector(UIResponderStandardEditActions.paste))
         ]
 
         stackView.spacing = 8
@@ -169,18 +180,30 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
 
         characterViews.forEach(self.stackView.addArrangedSubview)
 
-        self.addSubview(stackView)
+        addSubview(stackView)
 
-        constrain(self, stackView) { selfView, stackView in
-            stackView.edges == selfView.edges
-        }
+        createConstraints()
 
-        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(onLongPress(_:)))
-        self.addGestureRecognizer(longPressGestureRecognizer)
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self,
+                                                                      action: #selector(onLongPress(_:)))
+        addGestureRecognizer(longPressGestureRecognizer)
 
-        self.storage = String()
+        storage = String()
     }
 
+    private func createConstraints() {
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: topAnchor),
+            stackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            stackView.leftAnchor.constraint(equalTo: leftAnchor),
+            stackView.rightAnchor.constraint(equalTo: rightAnchor)
+        ])
+
+    }
+
+    @available(*, unavailable)
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -208,6 +231,7 @@ final class CharacterInputField: UIControl, UITextInputTraits, TextContainer {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         self.becomeFirstResponder()
+        self.layer.borderColor = ViewColors.borderCharacterInputFieldEnabled.cgColor
     }
 
     override func accessibilityActivate() -> Bool {
@@ -278,6 +302,8 @@ extension CharacterInputField: UIKeyInput {
         notifyingDelegate {
             self.storage.append(String(allowedChars))
         }
+
+        layer.borderColor = ViewColors.borderCharacterInputFieldEnabled.cgColor
     }
 
     func deleteBackward() {

@@ -17,18 +17,23 @@
 //
 
 import Foundation
-import Cartography
+import UIKit
 import WireCommonComponents
 
 class StartUIIconCell: UICollectionViewCell {
 
+    typealias CellColors = SemanticColors.View
+    typealias PeoplePicker = L10n.Localizable.Peoplepicker
+
     fileprivate let iconView = UIImageView()
-    fileprivate let titleLabel = UILabel()
+    fileprivate let titleLabel = DynamicFontLabel(fontSpec: .bodyTwoSemibold,
+                                                  color: SemanticColors.Label.textDefault)
     fileprivate let separator = UIView()
 
     fileprivate var icon: StyleKitIcon? {
         didSet {
-            iconView.image = icon?.makeImage(size: .tiny, color: .white)
+            iconView.image = icon?.makeImage(size: .tiny, color: SemanticColors.Icon.foregroundDefault).withRenderingMode(.alwaysTemplate)
+            iconView.tintColor = SemanticColors.Icon.foregroundDefault
         }
     }
 
@@ -40,7 +45,7 @@ class StartUIIconCell: UICollectionViewCell {
 
     override var isHighlighted: Bool {
         didSet {
-            backgroundColor = isHighlighted ? .init(white: 0, alpha: 0.08) : .clear
+            backgroundColor = isHighlighted ? CellColors.backgroundUserCellHightLighted : CellColors.backgroundUserCell
         }
     }
 
@@ -50,37 +55,38 @@ class StartUIIconCell: UICollectionViewCell {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     fileprivate func setupViews() {
         iconView.contentMode = .center
-        titleLabel.font = FontSpec(.normal, .light).font
-        titleLabel.textColor = .white
+        separator.backgroundColor = CellColors.backgroundSeparatorCell
+        backgroundColor = CellColors.backgroundUserCell
         [iconView, titleLabel, separator].forEach(contentView.addSubview)
-        separator.backgroundColor = UIColor.from(scheme: .cellSeparator, variant: .dark)
     }
 
-    fileprivate  func createConstraints() {
+    fileprivate func createConstraints() {
         let iconSize: CGFloat = 32.0
 
-        constrain(contentView, iconView, titleLabel, separator) { container, iconView, titleLabel, separator in
-            iconView.width == iconSize
-            iconView.height == iconSize
-            iconView.leading == container.leading + 16
-            iconView.centerY == container.centerY
+        [iconView, titleLabel, separator].prepareForLayout()
+        NSLayoutConstraint.activate([
+            iconView.widthAnchor.constraint(equalToConstant: iconSize),
+            iconView.heightAnchor.constraint(equalToConstant: iconSize),
+            iconView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-            titleLabel.leading == container.leading + 64
-            titleLabel.trailing == container.trailing
-            titleLabel.top == container.top
-            titleLabel.bottom == container.bottom
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 64),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            separator.leading == titleLabel.leading
-            separator.trailing == container.trailing
-            separator.bottom == container.bottom
-            separator.height == .hairline
-        }
+            separator.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: .hairline)
+        ])
     }
 
 }
@@ -90,7 +96,7 @@ final class InviteTeamMemberCell: StartUIIconCell {
     override func setupViews() {
         super.setupViews()
         icon = .envelope
-        title = "peoplepicker.invite_team_members".localized
+        title = PeoplePicker.inviteTeamMembers
         isAccessibilityElement = true
         accessibilityLabel = title
         accessibilityTraits.insert(.button)
@@ -104,7 +110,7 @@ final class CreateGroupCell: StartUIIconCell {
     override func setupViews() {
         super.setupViews()
         icon = .createConversation
-        title = "peoplepicker.quick-action.create-conversation".localized
+        title = PeoplePicker.QuickAction.createConversation
         isAccessibilityElement = true
         accessibilityLabel = title
         accessibilityTraits.insert(.button)
@@ -118,7 +124,7 @@ final class CreateGuestRoomCell: StartUIIconCell {
     override func setupViews() {
         super.setupViews()
         icon = .guest
-        title = "peoplepicker.quick-action.create-guest-room".localized
+        title = PeoplePicker.QuickAction.createGuestRoom
         isAccessibilityElement = true
         accessibilityLabel = title
         accessibilityTraits.insert(.button)
@@ -127,48 +133,15 @@ final class CreateGuestRoomCell: StartUIIconCell {
 
 }
 
-final class OpenServicesAdminCell: StartUIIconCell, Themeable {
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    @objc dynamic var contentBackgroundColor: UIColor? = nil {
-        didSet {
-            guard oldValue != contentBackgroundColor else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-        separator.backgroundColor = UIColor.from(scheme: .cellSeparator, variant: colorSchemeVariant)
-        titleLabel.textColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        iconView.image = icon?.makeImage(size: .tiny, color: UIColor.from(scheme: .iconNormal, variant: colorSchemeVariant))
-    }
-
-    func contentBackgroundColor(for colorSchemeVariant: ColorSchemeVariant) -> UIColor {
-        return contentBackgroundColor ?? UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
-    }
-
-    override var isHighlighted: Bool {
-        didSet {
-            backgroundColor = isHighlighted
-                ? UIColor(white: 0, alpha: 0.08)
-                : contentBackgroundColor(for: colorSchemeVariant)
-        }
-    }
+final class OpenServicesAdminCell: StartUIIconCell {
 
     override func setupViews() {
         super.setupViews()
         icon = .bot
-        title = "peoplepicker.quick-action.admin-services".localized
+        title = PeoplePicker.QuickAction.adminServices
         isAccessibilityElement = true
         accessibilityLabel = title
         accessibilityIdentifier = "button.searchui.open-services"
-        applyColorScheme(ColorScheme.default.variant)
     }
 
 }

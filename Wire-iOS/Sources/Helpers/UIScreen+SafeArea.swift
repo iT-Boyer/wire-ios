@@ -21,40 +21,26 @@ import UIKit
 extension UIScreen {
 
     static var safeArea: UIEdgeInsets {
-        if #available(iOS 11, *), hasNotch {
-            return UIApplication.shared.keyWindow!.safeAreaInsets
+        if hasNotch {
+            return UIApplication.shared.firstKeyWindow!.safeAreaInsets
         }
         return UIEdgeInsets(top: 20.0, left: 0.0, bottom: 0.0, right: 0.0)
     }
 
     static var hasBottomInset: Bool {
-        if #available(iOS 11, *) {
-            guard let window = UIApplication.shared.keyWindow else { return false }
-            let insets = window.safeAreaInsets
+        guard let window = UIApplication.shared.firstKeyWindow else { return false }
+        let insets = window.safeAreaInsets
 
-            return insets.bottom > 0
-        }
-
-        return false
+        return insets.bottom > 0
     }
 
     static var hasNotch: Bool {
-        if #available(iOS 12, *) {
-            // On iOS12 insets.top == 20 on device without notch.
-            // insets.top == 44 on device with notch.
-            guard let window = UIApplication.shared.keyWindow else { return false }
-            let insets = window.safeAreaInsets
+        // On iOS12 insets.top == 20 on device without notch.
+        // insets.top == 44 on device with notch.
+        guard let window = UIApplication.shared.firstKeyWindow else { return false }
+        let insets = window.safeAreaInsets
 
-            return insets.top > 20 || insets.bottom > 0
-        } else if #available(iOS 11, *) {
-            guard let window = UIApplication.shared.keyWindow else { return false }
-            let insets = window.safeAreaInsets
-            // if top or bottom insets are greater than zero, it means that
-            // the screen has a safe area (e.g. iPhone X)
-            return insets.top > 0 || insets.bottom > 0
-        } else {
-            return false
-        }
+        return insets.top > 20 || insets.bottom > 0
     }
 
     var isCompact: Bool {

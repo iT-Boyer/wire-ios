@@ -24,12 +24,34 @@ final class MockConversationList: ConversationListHelperType {
     static var hasArchivedConversations: Bool = false
 }
 
-final class ConversationListViewControllerTests: XCTestCase {
+final class MockConversationListDelegate: ConversationListTabBarControllerDelegate {
+    func didChangeTab(with type: TabBarItemType) {
+        switch type {
+        case .archive:
+            self.archiveTabCallCount += 1
+        case .startUI:
+            self.startUITabCallCount += 1
+        case .list:
+            self.listTabCallCount += 1
+        case .folder:
+            self.folderTabCallCount += 1
+        }
+    }
+
+    var startUITabCallCount: Int = 0
+    var archiveTabCallCount: Int = 0
+    var listTabCallCount: Int = 0
+    var folderTabCallCount: Int = 0
+}
+
+final class ConversationListViewControllerTests: ZMSnapshotTestCase {
 
     var sut: ConversationListViewController!
+    var mockDelegate: MockConversationListDelegate!
 
     override func setUp() {
         super.setUp()
+        accentColor = .strongBlue
 
         MockConversationList.hasArchivedConversations = false
         let selfUser = MockUserType.createSelfUser(name: "Johannes Chrysostomus Wolfgangus Theophilus Mozart", inTeam: UUID())
@@ -37,12 +59,17 @@ final class ConversationListViewControllerTests: XCTestCase {
         let viewModel = ConversationListViewController.ViewModel(account: account, selfUser: selfUser, conversationListType: MockConversationList.self)
         sut = ConversationListViewController(viewModel: viewModel)
         viewModel.viewController = sut
-
+        sut.onboardingHint.arrowPointToView = sut.tabBar
+        sut.overrideUserInterfaceStyle = .dark
         sut.view.backgroundColor = .black
+        mockDelegate = MockConversationListDelegate()
+        sut.delegate = self.mockDelegate
     }
 
     override func tearDown() {
         sut = nil
+        mockDelegate = nil
+
         super.tearDown()
 
     }
@@ -66,4 +93,42 @@ final class ConversationListViewControllerTests: XCTestCase {
 
         verify(matching: sut)
     }
+
+    // MARK: - TabBar actions
+    func testThatItCallsTheDelegateWhenTheContactsTabIsTapped() {
+        // when
+        let item = UITabBarItem(type: .startUI)
+        sut.tabBar(sut.tabBar, didSelect: item)
+
+        // then
+        XCTAssertEqual(mockDelegate.startUITabCallCount, 1)
+    }
+
+    func testThatItCallsTheDelegateWhenTheArchivedTabIsTapped() {
+        // when
+        let item = UITabBarItem(type: .archive)
+        sut.tabBar(sut.tabBar, didSelect: item)
+
+        // then
+        XCTAssertEqual(mockDelegate.archiveTabCallCount, 1)
+    }
+
+    func testThatItCallsTheDelegateWhenTheListTabIsTapped() {
+        // when
+        let item = UITabBarItem(type: .list)
+        sut.tabBar(sut.tabBar, didSelect: item)
+
+        // then
+        XCTAssertEqual(mockDelegate.listTabCallCount, 1)
+    }
+
+    func testThatItCallsTheDelegateWhenTheFolderTabIsTapped() {
+        // when
+        let item = UITabBarItem(type: .folder)
+        sut.tabBar(sut.tabBar, didSelect: item)
+
+        // then
+        XCTAssertEqual(mockDelegate.folderTabCallCount, 1)
+    }
+
 }

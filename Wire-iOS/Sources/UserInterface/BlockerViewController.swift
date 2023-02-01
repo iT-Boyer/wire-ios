@@ -24,6 +24,7 @@ enum BlockerViewControllerContext {
     case blacklist
     case jailbroken
     case databaseFailure
+    case backendNotSupported
 }
 
 final class BlockerViewController: LaunchImageViewController {
@@ -37,8 +38,9 @@ final class BlockerViewController: LaunchImageViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -53,7 +55,18 @@ final class BlockerViewController: LaunchImageViewController {
             showJailbrokenMessage()
         case .databaseFailure:
             showDatabaseFailureMessage()
+        case .backendNotSupported:
+            showBackendNotSupportedMessage()
         }
+    }
+
+    func showBackendNotSupportedMessage() {
+        typealias BackendNotSupported = L10n.Localizable.BackendNotSupported.Alert
+
+        presentAlertWithOKButton(
+            title: BackendNotSupported.title,
+            message: BackendNotSupported.message
+        )
     }
 
     func showBlacklistMessage() {

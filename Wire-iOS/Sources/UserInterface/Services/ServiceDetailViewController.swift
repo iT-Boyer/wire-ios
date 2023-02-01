@@ -23,7 +23,7 @@ extension ConversationLike where Self: SwiftConversationLike {
     var botCanBeAdded: Bool {
         return conversationType != .oneOnOne &&
                teamType != nil &&
-               allowGuests
+               allowServices
     }
 }
 
@@ -39,11 +39,6 @@ extension Service {
         self.serviceUserDetails = nil
         self.provider = nil
     }
-}
-
-struct ServiceDetailVariant {
-    let colorScheme: ColorSchemeVariant
-    let opaque: Bool
 }
 
 final class ServiceDetailViewController: UIViewController {
@@ -64,12 +59,7 @@ final class ServiceDetailViewController: UIViewController {
         return wr_supportedInterfaceOrientations
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-
     let completion: Completion?
-    let variant: ServiceDetailVariant
     weak var viewControllerDismisser: ViewControllerDismisser?
 
     private let detailView: ServiceDetailView
@@ -88,14 +78,13 @@ final class ServiceDetailViewController: UIViewController {
     ///   - completion: completion handler
     init(serviceUser: ServiceUser,
          actionType: ActionType,
-         variant: ServiceDetailVariant,
          selfUser: UserType = ZMUser.selfUser(),
          completion: Completion? = nil) {
         self.service = Service(serviceUser: serviceUser)
         self.completion = completion
         self.selfUser = selfUser
 
-        detailView = ServiceDetailView(service: service, variant: variant.colorScheme)
+        detailView = ServiceDetailView(service: service)
 
         switch actionType {
         case let .addService(conversation):
@@ -109,28 +98,36 @@ final class ServiceDetailViewController: UIViewController {
             actionButton.isHidden = !selfUser.canCreateService
         }
 
-        self.variant = variant
         self.actionType = actionType
 
         super.init(nibName: nil, bundle: nil)
 
-        self.title = self.service.serviceUser.name?.localizedUppercase
+        if let title = self.service.serviceUser.name {
+            navigationItem.setupNavigationBarTitle(title: title.capitalized)
+        }
 
         setupViews()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(icon: .cross,
+                                                                 target: self,
+                                                                 action: #selector(ServiceDetailViewController.dismissButtonTapped(_:)))
+        self.navigationItem.rightBarButtonItem?.accessibilityIdentifier = "close"
+        self.navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.ServiceDetails.CloseButton.description
     }
 
     private func setupViews() {
         actionButton.addCallback(for: .touchUpInside, callback: callback(for: actionType, completion: self.completion))
 
-        if variant.opaque {
-            view.backgroundColor = UIColor.from(scheme: .background, variant: self.variant.colorScheme)
-        } else {
             view.backgroundColor = .clear
-        }
 
         [detailView, actionButton].forEach(view.addSubview)
 
@@ -152,24 +149,16 @@ final class ServiceDetailViewController: UIViewController {
     private func createConstraints() {
         [detailView, actionButton].prepareForLayout()
 
-        detailView.fitInSuperview(with: EdgeInsets(margin: 16), exclude: [.top, .bottom])
-
-        actionButton.fitInSuperview(with: EdgeInsets(top: 0, leading: 16, bottom: 16 + UIScreen.safeArea.bottom, trailing: 16), exclude: [.top])
-
         NSLayoutConstraint.activate([
+            detailView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            detailView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            actionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            actionButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            actionButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -(16 + UIScreen.safeArea.bottom)),
             detailView.topAnchor.constraint(equalTo: safeTopAnchor, constant: 16),
             actionButton.topAnchor.constraint(equalTo: detailView.bottomAnchor, constant: 16),
             actionButton.heightAnchor.constraint(equalToConstant: 48)
-            ])
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(icon: .cross,
-                                                                 target: self,
-                                                                 action: #selector(ServiceDetailViewController.dismissButtonTapped(_:)))
-        self.navigationItem.rightBarButtonItem?.accessibilityIdentifier = "close"
+        ])
     }
 
     @objc
@@ -184,7 +173,7 @@ final class ServiceDetailViewController: UIViewController {
         })
     }
 
-    func callback(for type: ActionType, completion: Completion?) -> Callback<Button> {
+    func callback(for type: ActionType, completion: Completion?) -> Callback<LegacyButton> {
         return { [weak self] _ in
             guard let `self` = self, let userSession = ZMUserSession.shared() else {
                 return
@@ -228,22 +217,27 @@ final class ServiceDetailViewController: UIViewController {
 
 fileprivate extension Button {
 
+    typealias PeoplePickerServices = L10n.Localizable.Peoplepicker.Services
+
     static func openServiceConversationButton() -> Button {
-        return Button(style: .full, title: "peoplepicker.services.open_conversation.item".localized)
+        return Button(style: .accentColorTextButtonStyle,
+                      title: PeoplePickerServices.OpenConversation.item.capitalized)
     }
 
     static func createAddServiceButton() -> Button {
-        return Button(style: .full, title: "peoplepicker.services.add_service.button".localized)
+        return Button(style: .accentColorTextButtonStyle,
+                      title: PeoplePickerServices.AddService.button.capitalized)
     }
 
     static func createDestructiveServiceButton() -> Button {
-        let button = Button(style: .full, title: "participants.services.remove_integration.button".localized)
-        button.setBackgroundImageColor(.vividRed, for: .normal)
+        let button = Button(style: .accentColorTextButtonStyle,
+                            title: L10n.Localizable.Participants.Services.RemoveIntegration.button.capitalized)
+
         return button
     }
 
     convenience init(style: ButtonStyle, title: String) {
-        self.init(style: style)
-        setTitle(title, for: .normal)
+        self.init(style: style, cornerRadius: 16, fontSpec: .normalSemiboldFont)
+        self.setTitle(title, for: .normal)
     }
 }

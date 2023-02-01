@@ -47,12 +47,12 @@ final class RemoveClientStepViewController: UIViewController, AuthenticationCoor
         clientListController = ClientListViewController(clientsList: clients,
                                                         credentials: emailCredentials,
                                                         showTemporary: false,
-                                                        showLegalHold: false,
-                                                        variant: .light)
+                                                        showLegalHold: false)
 
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -61,14 +61,14 @@ final class RemoveClientStepViewController: UIViewController, AuthenticationCoor
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "registration.signin.too_many_devices.manage_screen.title".localized(uppercased: true)
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Registration.Signin.TooManyDevices.ManageScreen.title.capitalized)
         configureSubviews()
         configureConstraints()
         updateBackButton()
     }
 
     private func configureSubviews() {
-        view.backgroundColor = UIColor.Team.background
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         clientListController.view.backgroundColor = .clear
         clientListController.editingList = true

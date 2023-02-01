@@ -17,11 +17,10 @@
 //
 
 import UIKit
-import Cartography
+import WireCommonComponents
 
-final class IconActionCell: UITableViewCell, CellConfigurationConfigurable {
+final class IconActionCell: SettingsTableCell, CellConfigurationConfigurable {
 
-    private let separator = UIView()
     private let imageContainer = UIView()
     private let iconImageView = UIImageView()
     private let label = UILabel()
@@ -32,47 +31,49 @@ final class IconActionCell: UITableViewCell, CellConfigurationConfigurable {
         createConstraints()
     }
 
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     private func setupViews() {
-        let backgroundView = UIView()
-        backgroundView.backgroundColor = .init(white: 0, alpha: 0.08)
-        selectedBackgroundView = backgroundView
-        backgroundColor = .clear
+
         imageContainer.addSubview(iconImageView)
-        label.font = FontSpec(.normal, .light).font
-        [imageContainer, label, separator].forEach(contentView.addSubview)
+        label.font = FontSpec(.normal, .semibold).font
+        [imageContainer, label].forEach(contentView.addSubview)
+        accessibilityTraits = .button
     }
 
     private func createConstraints() {
-        constrain(contentView, label, separator, imageContainer, iconImageView) { contentView, label, separator, imageContainer, imageView in
-            imageContainer.top == contentView.top
-            imageContainer.bottom == contentView.bottom
-            imageContainer.leading == contentView.leading
-            imageContainer.width == CGFloat.IconCell.IconWidth
-            imageView.center == imageContainer.center
+        [label,
+         imageContainer,
+         iconImageView].prepareForLayout()
+        NSLayoutConstraint.activate([
+            imageContainer.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageContainer.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            imageContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageContainer.widthAnchor.constraint(equalToConstant: CGFloat.IconCell.IconWidth),
+            iconImageView.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
+            iconImageView.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
 
-            label.leading == imageContainer.trailing
-            label.top == contentView.top
-            label.trailing == contentView.trailing
-            label.bottom == contentView.bottom
-            label.height == 56
-
-            separator.height == .hairline
-            separator.leading == label.leading
-            separator.trailing == label.trailing
-            separator.bottom == contentView.bottom
-        }
+            label.leadingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
+            label.topAnchor.constraint(equalTo: contentView.topAnchor),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            label.heightAnchor.constraint(equalToConstant: 56)
+        ])
     }
 
     func configure(with configuration: CellConfiguration, variant: ColorSchemeVariant) {
-        guard case let .iconAction(title, icon, color, _) = configuration else { preconditionFailure() }
-        let mainColor = variant.mainColor(color: color)
-        iconImageView.setIcon(icon, size: .tiny, color: mainColor)
-        label.textColor = mainColor
+        guard case let .iconAction(title, icon, _, _) = configuration else { preconditionFailure() }
+        iconImageView.setTemplateIcon(icon, size: .tiny)
+        iconImageView.tintColor = SemanticColors.Icon.foregroundDefault
+        label.textColor = SemanticColors.Label.textDefault
         label.text = title
-        separator.backgroundColor = UIColor.from(scheme: .cellSeparator, variant: variant)
+
     }
+
+}
+
+extension IconActionCell: IconActionCellDelegate {
+
+    func updateLayout() {
+        descriptor?.featureCell(self)
+    }
+
 }

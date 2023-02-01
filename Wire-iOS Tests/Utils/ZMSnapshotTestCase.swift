@@ -18,6 +18,7 @@
 
 @testable import Wire
 import FBSnapshotTestCase
+import WireCommonComponents
 import UIKit
 
 extension UITableViewCell: UITableViewDelegate, UITableViewDataSource {
@@ -72,6 +73,7 @@ class ZMSnapshotTestCase: FBSnapshotTestCase {
     typealias Configuration = (_ view: UIView) -> Void
 
     var uiMOC: NSManagedObjectContext!
+    var coreDataStack: CoreDataStack!
 
     /// The color of the container view in which the view to
     /// be snapshot will be placed, defaults to UIColor.lightGrayColor
@@ -92,6 +94,8 @@ class ZMSnapshotTestCase: FBSnapshotTestCase {
             XCTFail("Snapshot tests need to be run on a device running at least iOS 13")
         }
         AppRootRouter.configureAppearance()
+        FontScheme.configure(with: .large)
+
         UIView.setAnimationsEnabled(false)
         accentColor = .vividRed
         snapshotBackgroundColor = UIColor.clear
@@ -100,21 +104,23 @@ class ZMSnapshotTestCase: FBSnapshotTestCase {
         recordMode = strcmp(getenv("RECORDING_SNAPSHOTS"), "YES") == 0
 
         usesDrawViewHierarchyInRect = true
-        let contextExpectation: XCTestExpectation = expectation(description: "It should create a context")
-        StorageStack.reset()
-        StorageStack.shared.createStorageAsInMemory = true
+
         do {
             documentsDirectory = try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         } catch {
             XCTAssertNil(error, "Unexpected error \(error)")
         }
 
-        StorageStack.shared.createManagedObjectContextDirectory(accountIdentifier: UUID(), applicationContainer: documentsDirectory!, dispatchGroup: nil, startedMigrationCallback: nil, completionHandler: { contextDirectory in
-            self.uiMOC = contextDirectory.uiContext
-            contextExpectation.fulfill()
-        })
+        let account = Account(userName: "", userIdentifier: UUID())
+        let coreDataStack = CoreDataStack(account: account,
+                                          applicationContainer: documentsDirectory!,
+                                          inMemoryStore: true)
 
-        wait(for: [contextExpectation], timeout: 0.1)
+        coreDataStack.loadStores(completionHandler: { error in
+            XCTAssertNil(error)
+        })
+        self.coreDataStack = coreDataStack
+        self.uiMOC = coreDataStack.viewContext
 
         if needsCaches {
             setUpCaches()
@@ -128,6 +134,7 @@ class ZMSnapshotTestCase: FBSnapshotTestCase {
         // Needs to be called before setting self.documentsDirectory to nil.
         removeContentsOfDocumentsDirectory()
         uiMOC = nil
+        coreDataStack = nil
         documentsDirectory = nil
         snapshotBackgroundColor = nil
         UIColor.setAccentOverride(.undefined)
@@ -371,19 +378,14 @@ extension ZMSnapshotTestCase {
                                  tolerance: CGFloat = tolerance,
                                  file: StaticString = #file,
                                  line: UInt = #line) {
-        if var themeable = view as? Themeable {
-            themeable.colorSchemeVariant = .light
+            view.overrideUserInterfaceStyle = .light
             snapshotBackgroundColor = .white
             verify(view: view, tolerance: tolerance, identifier: "LightTheme", file: file, line: line)
-            themeable.colorSchemeVariant = .dark
+            view.overrideUserInterfaceStyle = .light
             snapshotBackgroundColor = .black
             verify(view: view, tolerance: tolerance, identifier: "DarkTheme", file: file, line: line)
-        } else {
-            XCTFail("View doesn't support Themable protocol")
-        }
     }
 
-    @available(iOS 11.0, *)
     func verifySafeAreas(
         viewController: UIViewController,
         tolerance: Float = 0,
@@ -507,7 +509,7 @@ extension ZMSnapshotTestCase {
             break
         }
 
-        /// restore to default light scheme
+        // Restore to default light scheme
         ColorScheme.default.variant = .light
     }
 
@@ -563,7 +565,7 @@ extension ZMSnapshotTestCase {
             break
         }
 
-        /// restore to default light scheme
+        // Restore to default light scheme
         ColorScheme.default.variant = .light
         snapshotBackgroundColor = UIColor.lightGray
     }

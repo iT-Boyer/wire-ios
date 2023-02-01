@@ -17,52 +17,79 @@
 //
 
 import XCTest
+import SnapshotTesting
 @testable import Wire
 
 class ChangeHandleViewControllerTests: ZMSnapshotTestCase {
 
     override func setUp() {
         super.setUp()
-        snapshotBackgroundColor = .darkGray
+
+        accentColor = .strongBlue
+        let mockSelfUser = MockUserType.createSelfUser(name: "selfUser")
+        mockSelfUser.handle = nil
+        mockSelfUser.domain = "wire.com"
+        SelfUser.provider = SelfProvider(selfUser: mockSelfUser)
     }
 
     func testThatItRendersCorrectInitially() {
-        let state = HandleChangeState(currentHandle: "bruno", newHandle: nil, availability: .unknown)
-        let sut = ChangeHandleViewController(state: state)
-        verify(view: sut.prepareForSnapshots())
+        verify(newHandle: nil, availability: .unknown)
+    }
+
+    func testThatItRendersCorrectInitially_Federated() {
+        verify(newHandle: nil, availability: .unknown, federationEnabled: true)
     }
 
     func testThatItRendersCorrectNewHandleUnavailable() {
-        let state = HandleChangeState(currentHandle: "bruno", newHandle: "james", availability: .taken)
-        let sut = ChangeHandleViewController(state: state)
-        verify(view: sut.prepareForSnapshots())
+        verify(newHandle: "james", availability: .taken)
     }
 
     func testThatItRendersCorrectNewHandleAvailable() {
-        let state = HandleChangeState(currentHandle: "bruno", newHandle: "james_xXx", availability: .available)
-        let sut = ChangeHandleViewController(state: state)
-        verify(view: sut.prepareForSnapshots())
+        verify(newHandle: "james_xXx", availability: .available)
     }
 
     func testThatItRendersCorrectNewHandleNotYetChecked() {
-        let state = HandleChangeState(currentHandle: "bruno", newHandle: "vanessa92", availability: .unknown)
-        let sut = ChangeHandleViewController(state: state)
-        verify(view: sut.prepareForSnapshots())
+        verify(newHandle: "vanessa92", availability: .unknown)
     }
 
+    private func verify(currentHandle: String = "bruno",
+                        newHandle: String?,
+                        availability: HandleChangeState.HandleAvailability,
+                        federationEnabled: Bool = false,
+                        file: StaticString = #file,
+                        testName: String = #function,
+                        line: UInt = #line) {
+        let state = HandleChangeState(currentHandle: currentHandle, newHandle: newHandle, availability: availability)
+        let sut = ChangeHandleViewController(state: state, federationEnabled: federationEnabled)
+        sut.overrideUserInterfaceStyle = .light
+        verify(matching: sut.prepareForSettingsSnapshots(), file: file, testName: testName, line: line)
+    }
 }
 
 fileprivate extension UIViewController {
 
     func prepareForSnapshots() -> UIView {
-        let navigationController = wrapInNavigationController(navigationControllerClass: ClearBackgroundNavigationController.self)
-        navigationController.navigationBar.tintColor = .brightOrange
+        let navigationController = wrapInNavigationController(navigationControllerClass: NavigationController.self)
+        navigationController.navigationBar.tintColor = SemanticColors.LegacyColors.brightOrange
 
         beginAppearanceTransition(true, animated: false)
         endAppearanceTransition()
 
         view.setNeedsLayout()
         view.layoutIfNeeded()
+        navigationController.view.backgroundColor = .darkGray
+        return navigationController.view
+    }
+
+    func prepareForSettingsSnapshots() -> UIView {
+        let navigationController = wrapInNavigationController(navigationControllerClass: NavigationController.self)
+
+        beginAppearanceTransition(true, animated: false)
+        endAppearanceTransition()
+
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
         return navigationController.view
     }
 

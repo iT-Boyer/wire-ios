@@ -20,7 +20,7 @@ import Foundation
 import UIKit
 import WireSystem
 
-protocol SketchColorPickerControllerDelegate: class {
+protocol SketchColorPickerControllerDelegate: AnyObject {
     func sketchColorPickerController(_ controller: SketchColorPickerController, changedSelectedColor color: UIColor)
 }
 
@@ -149,7 +149,7 @@ final class SketchColorPickerController: UIViewController {
 
     private func setUpColorsCollectionView() {
         colorsCollectionView.showsHorizontalScrollIndicator = false
-        colorsCollectionView.backgroundColor = .from(scheme: .background)
+        colorsCollectionView.backgroundColor = SemanticColors.View.backgroundDefaultWhite
         view.addSubview(colorsCollectionView)
 
         SketchColorCollectionViewCell.register(in: colorsCollectionView)
@@ -158,7 +158,7 @@ final class SketchColorPickerController: UIViewController {
         colorsCollectionView.delegate = self
 
         colorsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        colorsCollectionView.fitInSuperview()
+        colorsCollectionView.fitIn(view: view)
     }
 }
 

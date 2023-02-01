@@ -1,38 +1,32 @@
 //
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
-// 
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 import UIKit
-import Cartography
 
 final class ArchivedNavigationBar: UIView {
 
-    let separatorView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.from(scheme: .separator, variant: .light)
-
-        return view
-    }()
+    typealias NavigationColors = SemanticColors.Label
 
     let titleLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .from(scheme: .textForeground, variant: .dark)
-        label.font = .mediumSemiboldFont
-
+        let label = DynamicFontLabel(
+            fontSpec: .headerSemiboldFont,
+            color: NavigationColors.textDefault
+        )
         return label
     }()
     let dismissButton = IconButton()
@@ -41,12 +35,6 @@ final class ArchivedNavigationBar: UIView {
 
     var dismissButtonHandler: (() -> Void)? = .none
 
-    var showSeparator: Bool = false {
-        didSet {
-            separatorView.fadeAndHide(!showSeparator)
-        }
-    }
-
     init(title: String) {
         super.init(frame: CGRect.zero)
         titleLabel.text = title
@@ -54,37 +42,35 @@ final class ArchivedNavigationBar: UIView {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     func createViews() {
         titleLabel.accessibilityTraits.insert(.header)
-        separatorView.isHidden = true
         dismissButton.setIcon(.cross, size: .tiny, for: [])
         dismissButton.addTarget(self, action: #selector(ArchivedNavigationBar.dismissButtonTapped(_:)), for: .touchUpInside)
         dismissButton.accessibilityIdentifier = "archiveCloseButton"
-        dismissButton.accessibilityLabel = "general.close".localized
-        dismissButton.setIconColor(.from(scheme: .textForeground, variant: .dark), for: .normal)
-        [titleLabel, dismissButton, separatorView].forEach(addSubview)
+        dismissButton.accessibilityLabel = L10n.Localizable.General.close
+        dismissButton.setIconColor(NavigationColors.textDefault, for: .normal)
+        [titleLabel, dismissButton].forEach(addSubview)
+        addBorder(for: .bottom)
     }
 
-    func createConstraints() {
-        constrain(self, separatorView, titleLabel, dismissButton) { view, separator, title, button in
-            separator.height == .hairline
-            separator.left == view.left
-            separator.right == view.right
-            separator.bottom == view.bottom
+    private func createConstraints() {
+        [titleLabel, dismissButton].prepareForLayout()
+        NSLayoutConstraint.activate([
 
-            title.centerX == view.centerX
-            title.centerY == view.centerY
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
 
-            button.centerY == title.centerY
-            button.right == view.right - 16
-            button.left >= title.right + 8
+            dismissButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            dismissButton.rightAnchor.constraint(equalTo: rightAnchor, constant: -16),
+            dismissButton.leftAnchor.constraint(greaterThanOrEqualTo: titleLabel.rightAnchor, constant: 8),
 
-            view.height == barHeight
-        }
+            heightAnchor.constraint(equalToConstant: barHeight)
+        ])
     }
 
     @objc func dismissButtonTapped(_ sender: IconButton) {

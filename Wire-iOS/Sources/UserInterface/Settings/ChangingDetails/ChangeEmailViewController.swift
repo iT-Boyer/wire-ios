@@ -87,6 +87,8 @@ struct ChangeEmailState {
 
 final class ChangeEmailViewController: SettingsBaseTableViewController {
 
+    typealias EmailAccountSection = L10n.Localizable.Self.Settings.AccountSection.Email
+
     fileprivate weak var userProfile = ZMUserSession.shared()?.userProfile
     var state: ChangeEmailState
     private var observerToken: Any?
@@ -123,14 +125,14 @@ final class ChangeEmailViewController: SettingsBaseTableViewController {
     }
 
     private func setupViews() {
-        title = "self.settings.account_section.email.change.title".localized(uppercased: true)
+        navigationItem.setupNavigationBarTitle(title: EmailAccountSection.Change.title.capitalized)
         view.backgroundColor = .clear
         tableView.isScrollEnabled = false
 
         emailCell.textField.kind = .email
         emailCell.textField.showConfirmButton = false
         emailCell.textField.backgroundColor = .clear
-        emailCell.textField.textColor = .white
+        emailCell.textField.textColor = SemanticColors.Label.textDefault
         emailCell.textField.accessibilityIdentifier = "EmailField"
         emailCell.textField.textFieldValidationDelegate = self
         emailCell.textField.addTarget(self, action: #selector(emailTextFieldEditingChanged), for: .editingChanged)
@@ -141,15 +143,13 @@ final class ChangeEmailViewController: SettingsBaseTableViewController {
 
         emailPasswordCell.textField.setBackgroundColor(.clear)
         emailPasswordCell.textField.setTextColor(.white)
-        emailPasswordCell.textField.setSeparatorColor(.white)
 
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "self.settings.account_section.email.change.save".localized(uppercased: true),
-            style: .done,
-            target: self,
-            action: #selector(saveButtonTapped)
-        )
-
+        let saveButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(title: EmailAccountSection.Change.save.capitalized,
+                                                                                  systemImage: false,
+                                                                                  target: self,
+                                                                                  action: #selector(saveButtonTapped))
+        saveButtonItem.tintColor = UIColor.accent()
+        navigationItem.rightBarButtonItem = saveButtonItem
         updateSaveButtonState()
     }
 
@@ -164,7 +164,6 @@ final class ChangeEmailViewController: SettingsBaseTableViewController {
     @objc func saveButtonTapped(sender: UIBarButtonItem) {
         if let passwordError = state.passwordValidationError {
             validationCell.updateValidation(.error(passwordError, showVisualFeedback: true))
-            emailPasswordCell.textField.passwordField.showGuidanceDot()
             return
         }
 
@@ -280,7 +279,6 @@ extension ChangeEmailViewController: EmailPasswordTextFieldDelegate {
         // Re-enable the buttons if needed
         updateSaveButtonState()
         validationCell.updateValidation(nil)
-        textField.passwordField.hideGuidanceDot()
     }
 
     func textFieldDidSubmitWithValidationError(_ textField: EmailPasswordTextField) {

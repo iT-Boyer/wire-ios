@@ -49,10 +49,9 @@ final class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell,
         configureConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
-        configureConstraints()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {
@@ -62,7 +61,7 @@ final class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell,
 
     private func configureConstraints() {
         articleView.translatesAutoresizingMaskIntoConstraints = false
-        articleView.fitInSuperview()
+        articleView.fitIn(view: self)
     }
 
     func configure(with object: Configuration, animated: Bool) {
@@ -113,10 +112,11 @@ final class ConversationLinkPreviewArticleCellDescription: ConversationMessageCe
         return configuration.isObfuscated ? "ObfuscatedLinkPreviewCell" : "LinkPreviewCell"
     }
 
-    let accessibilityLabel: String? = nil
+    let accessibilityLabel: String?
 
     init(message: ZMConversationMessage, data: ZMTextMessageData) {
         let showImage = data.linkPreviewHasImage
         configuration = View.Configuration(textMessageData: data, showImage: showImage, message: message)
+        accessibilityLabel = L10n.Accessibility.ConversationSearch.LinkMessage.description
     }
 }

@@ -20,7 +20,10 @@ import Foundation
 import WireSyncEngine
 import WireCommonComponents
 import AppCenter
+#if DISABLE_APPCENTER_CRASH_LOGGING
+#else
 import AppCenterCrashes
+#endif
 import AppCenterDistribute
 import avs
 
@@ -109,32 +112,34 @@ final class AppCenterOperation: NSObject, LaunchSequenceOperation {
 
     func execute() {
         guard AutomationHelper.sharedHelper.useAppCenter || Bundle.useAppCenter else {
-            MSAppCenter.setTrackingEnabled(false)
+            AppCenter.setTrackingEnabled(false)
             return
         }
         UserDefaults.standard.set(true, forKey: "kBITExcludeApplicationSupportFromBackup") // check
 
         guard !TrackingManager.shared.disableCrashSharing else {
-            MSAppCenter.setTrackingEnabled(false)
+            AppCenter.setTrackingEnabled(false)
             return
         }
 
-        MSCrashes.setDelegate(self)
-        MSDistribute.setDelegate(self)
+#if DISABLE_APPCENTER_CRASH_LOGGING
+#else
+        Crashes.delegate = self
+#endif
+        Distribute.delegate = self
 
-        MSAppCenter.start()
+        AppCenter.start()
 
-        MSAppCenter.setLogLevel(.verbose)
+        AppCenter.logLevel = .verbose
 
         // This method must only be used after Services have been started.
-        MSAppCenter.setTrackingEnabled(true)
+        AppCenter.setTrackingEnabled(true)
 
     }
 }
 
-extension AppCenterOperation: MSDistributeDelegate {
-    func distribute(_ distribute: MSDistribute!,
-                    releaseAvailableWith details: MSReleaseDetails!) -> Bool {
+extension AppCenterOperation: DistributeDelegate {
+    func distribute(_ distribute: Distribute, releaseAvailableWith details: ReleaseDetails) -> Bool {
 
         guard
             let appDelegate = UIApplication.shared.delegate as? AppDelegate,
@@ -144,17 +149,17 @@ extension AppCenterOperation: MSDistributeDelegate {
             return false
         }
 
-        let alertController = UIAlertController(title: "Update available \(details?.shortVersion ?? "") (\(details?.version ?? ""))",
-            message: "Release Note:\n\n\(details?.releaseNotes ?? "")\n\nDo you want to update?",
-            preferredStyle: .actionSheet)
+        let alertController = UIAlertController(title: "Update available \(details.shortVersion ?? "") (\(details.version ?? ""))",
+                                                message: "Release Note:\n\n\(details.releaseNotes ?? "")\n\nDo you want to update?",
+                                                preferredStyle: .actionSheet)
         alertController.configPopover(pointToView: window)
 
         alertController.addAction(UIAlertAction(title: "Update", style: .cancel) {_ in
-            MSDistribute.notify(.update)
+            Distribute.notify(.update)
         })
 
         alertController.addAction(UIAlertAction(title: "Postpone", style: .default) {_ in
-            MSDistribute.notify(.postpone)
+            Distribute.notify(.postpone)
         })
 
         if let url = details.releaseNotesUrl {
@@ -172,17 +177,68 @@ extension AppCenterOperation: MSDistributeDelegate {
     }
 }
 
-extension AppCenterOperation: MSCrashesDelegate {
+#if DISABLE_APPCENTER_CRASH_LOGGING
+#else
+extension AppCenterOperation: CrashesDelegate {
 
-    func crashes(_ crashes: MSCrashes!, shouldProcessErrorReport errorReport: MSErrorReport!) -> Bool {
+    func crashes(_ crashes: Crashes, shouldProcess errorReport: ErrorReport) -> Bool {
         return !TrackingManager.shared.disableCrashSharing
     }
 
-    func crashes(_ crashes: MSCrashes!, didSucceedSending errorReport: MSErrorReport!) {
+    internal func crashes(_ crashes: Crashes, didSucceedSending errorReport: ErrorReport) {
         zmLog.error("AppCenter: finished sending the crash report")
     }
 
-    func crashes(_ crashes: MSCrashes!, didFailSending errorReport: MSErrorReport!, withError error: Error!) {
-        zmLog.error("AppCenter: failed sending the crash report with error: \(error.localizedDescription)")
+    internal func crashes(_ crashes: Crashes, didFailSending errorReport: ErrorReport, withError error: Error?) {
+        zmLog.error("AppCenter: failed sending the crash report with error: \(String(describing: error?.localizedDescription))")
     }
+}
+#endif
+
+// MARK: - BackendInfoOperation
+
+final class BackendInfoOperation: LaunchSequenceOperation {
+
+    func execute() {
+        BackendInfo.storage = .applicationGroup
+    }
+
+}
+
+final class FontSchemeOperation: LaunchSequenceOperation {
+
+    func execute() {
+        FontScheme.configure(with: UIApplication.shared.preferredContentSizeCategory)
+    }
+
+}
+
+final class VoIPPushHelperOperation: LaunchSequenceOperation {
+
+    func execute() {
+        VoIPPushHelper.storage = .applicationGroup
+    }
+
+}
+
+/// This operation cleans up any state that may have been set in debug builds so that
+/// release builds don't exhibit any debugging behaviour.
+///
+/// This is a safety precaution: users of release builds likely won't ever run a debug
+/// build, but it's better to be sure.
+
+final class CleanUpDebugStateOperation: LaunchSequenceOperation {
+
+    func execute() {
+        guard !Bundle.developerModeEnabled else { return }
+
+        // Clearing this ensures that the api version is negotiated with the backend
+        // and not set explicitly.
+        BackendInfo.preferredAPIVersion = nil
+
+        // Clearing all developer flags ensures that no custom behavior is
+        // present in the app.
+        DeveloperFlag.clearAllFlags()
+    }
+
 }

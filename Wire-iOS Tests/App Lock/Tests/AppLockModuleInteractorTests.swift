@@ -245,6 +245,8 @@ final class AppLockModuleInteractorTests: XCTestCase {
         XCTAssertEqual(appLock.methodCalls.open.count, 1)
     }
 
+    // @SF.Locking @SF.Storage @TSFI.FS-IOS @TSFI.Enclave-IOS @S0.1
+    // Check that database and screen is not unlocked when user denies authentication
     func test_EvaluateAuthentication_Denied() {
         // Given
         session.lock = .database
@@ -276,6 +278,8 @@ final class AppLockModuleInteractorTests: XCTestCase {
         XCTAssertEqual(presenter.results, [.customPasscodeNeeded])
     }
 
+    // @SF.Locking @SF.Storage @TSFI.FS-IOS @TSFI.Enclave-IOS @S0.1
+    // Check that database and screen is not unlocked if user disables all authentication types
     func test_EvaluateAuthentication_Unavailable() {
         // Given
         session.lock = .screen

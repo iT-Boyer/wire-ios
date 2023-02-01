@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -35,13 +35,22 @@ extension Notification.Name {
 }
 
 private let zmLog = ZMSLog(tag: "AppDelegate")
-
-// TO DO: Move out this code from here
-var defaultFontScheme: FontScheme = FontScheme(contentSizeCategory: UIApplication.shared.preferredContentSizeCategory)
+private let pushLog = ZMSLog(tag: "Push")
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     // MARK: - Private Property
+
+    private lazy var voIPPushManager: VoIPPushManager = {
+        return VoIPPushManager(
+            application: UIApplication.shared,
+            requiredPushTokenType: requiredPushTokenType,
+            pushTokenService: pushTokenService
+        )
+    }()
+
+    private let pushTokenService = PushTokenService()
+
     private var launchOperations: [LaunchSequenceOperation] = [
         BackendEnvironmentOperation(),
         TrackingOperation(),
@@ -51,7 +60,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AVSLoggingOperation(),
         AutomationHelperOperation(),
         MediaManagerOperation(),
-        FileBackupExcluderOperation()
+        FileBackupExcluderOperation(),
+        BackendInfoOperation(),
+        FontSchemeOperation(),
+        VoIPPushHelperOperation(),
+        CleanUpDebugStateOperation()
     ]
     private var appStateCalculator = AppStateCalculator()
 
@@ -94,15 +107,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         zmLog.info("application:willFinishLaunchingWithOptions \(String(describing: launchOptions)) (applicationState = \(application.applicationState.rawValue))")
-
+        DatadogWrapper.shared?.startMonitoring()
+        DatadogWrapper.shared?.log(level: .info, message: "start app")
         // Initial log line to indicate the client version and build
         zmLog.info("Wire-ios version \(String(describing: Bundle.main.shortVersionString)) (\(String(describing: Bundle.main.infoDictionary?[kCFBundleVersionKey as String])))")
 
         return true
     }
 
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        pushLog.safePublic("application did register for remote notifications, storing standard token")
+        pushTokenService.storeLocalToken(.createAPNSToken(from: deviceToken))
+    }
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        voIPPushManager.registerForVoIPPushes()
+
+        ZMSLog.switchCurrentLogToPrevious()
+
         zmLog.info("application:didFinishLaunchingWithOptions START \(String(describing: launchOptions)) (applicationState = \(application.applicationState.rawValue))")
 
         NotificationCenter.default.addObserver(self,
@@ -118,7 +140,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         zmLog.info("application:didFinishLaunchingWithOptions END \(String(describing: launchOptions))")
         zmLog.info("Application was launched with arguments: \(ProcessInfo.processInfo.arguments)")
-
         return true
     }
 
@@ -255,14 +276,26 @@ private extension AppDelegate {
         configuration.blacklistDownloadInterval = Settings.shared.blacklistDownloadInterval
         let jailbreakDetector = JailbreakDetector()
 
-        let sessionManager = SessionManager(appVersion: appVersion,
-                                            mediaManager: mediaManager,
-                                            analytics: Analytics.shared,
-                                            delegate: appStateCalculator,
-                                            application: UIApplication.shared,
-                                            environment: BackendEnvironment.shared,
-                                            configuration: configuration,
-                                            detector: jailbreakDetector)
+        // Get maxNumberAccounts form SecurityFlags or SessionManager.defaultMaxNumberAccounts if no MAX_NUMBER_ACCOUNTS flag defined
+        let maxNumberAccounts = SecurityFlags.maxNumberAccounts.intValue ?? SessionManager.defaultMaxNumberAccounts
+
+        let sessionManager = SessionManager(
+            maxNumberAccounts: maxNumberAccounts,
+            appVersion: appVersion,
+            mediaManager: mediaManager,
+            analytics: Analytics.shared,
+            delegate: appStateCalculator,
+            application: UIApplication.shared,
+            environment: BackendEnvironment.shared,
+            configuration: configuration,
+            detector: jailbreakDetector,
+            requiredPushTokenType: requiredPushTokenType,
+            pushTokenService: pushTokenService,
+            callKitManager: voIPPushManager.callKitManager,
+            isDeveloperModeEnabled: Bundle.developerModeEnabled
+        )
+
+        voIPPushManager.delegate = sessionManager
         return sessionManager
     }
 
@@ -281,4 +314,16 @@ private extension AppDelegate {
     private func startAppRouter(launchOptions: LaunchOptions) {
         appRootRouter?.start(launchOptions: launchOptions)
     }
+
+    private var requiredPushTokenType: PushToken.TokenType {
+        // From iOS 15 our "unrestricted-voip" entitlement is no longer supported,
+        // so users should register for standard push tokens instead and use the
+        // notification service extension.
+        if #available(iOS 15.0, *) {
+            return .standard
+        } else {
+            return .voip
+        }
+    }
+
 }

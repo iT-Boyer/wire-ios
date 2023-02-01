@@ -25,7 +25,8 @@ final class GroupDetailsNotificationOptionsCell: GroupDetailsDisclosureOptionsCe
     override func setUp() {
         super.setUp()
         accessibilityIdentifier = "cell.groupdetails.notificationsoptions"
-        title = "group_details.notification_options_cell.title".localized
+        title = L10n.Localizable.GroupDetails.NotificationOptionsCell.title
+        accessibilityHint = L10n.Accessibility.ConversationDetails.OptionButton.hint
     }
 
     func configure(with conversation: GroupDetailsConversationType) {
@@ -38,9 +39,19 @@ final class GroupDetailsNotificationOptionsCell: GroupDetailsDisclosureOptionsCe
 
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
+        iconColor = SemanticColors.Icon.foregroundDefault
+        guard let iconColor = iconColor else { return }
 
         icon = StyleKitIcon.alerts.makeImage(size: .tiny,
-                       color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant))
+                                             color: iconColor).withRenderingMode(.alwaysTemplate)
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            backgroundColor = isHighlighted
+            ? SemanticColors.View.backgroundUserCellHightLighted
+            : SemanticColors.View.backgroundUserCell
+        }
     }
 
 }

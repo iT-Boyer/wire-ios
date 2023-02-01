@@ -504,7 +504,7 @@ final class ConversationListViewModel: NSObject {
 
             newValue[sectionNumber].items = newList
 
-            /// Refresh the section header(since it may be hidden if the sectio is empty) when a section becomes empty/from empty to non-empty
+            // Refresh the section header(since it may be hidden if the sectio is empty) when a section becomes empty/from empty to non-empty
             if sections[sectionNumber].items.isEmpty || newList.isEmpty {
                 sections = newValue
                 delegate?.listViewModel(self, didUpdateSectionForReload: sectionNumber, animated: true)
@@ -520,11 +520,11 @@ final class ConversationListViewModel: NSObject {
         } else {
             delegate?.reload(using: changeset, interrupt: { _ in
                 return false
-            }) { data in
+            }, setData: { data in
                 if let data = data {
                     self.sections = data
                 }
-            }
+            })
         }
 
         if let kind = kind,
@@ -617,11 +617,11 @@ final class ConversationListViewModel: NSObject {
 
             delegate?.reload(using: changeset, interrupt: { _ in
                 return false
-            }) { data in
+            }, setData: { data in
                 if let data = data {
                     self.sections = data
                 }
-            }
+            })
         } else {
             sections = newValue
             delegate?.listViewModel(self, didUpdateSectionForReload: sectionIndex, animated: true)
@@ -698,10 +698,10 @@ extension ConversationListViewModel: ConversationDirectoryObserver {
             // so we prefer to do the simple reload instead.
             update()
         } else {
-            /// TODO: When 2 sections are visible and a conversation belongs to both, the lower section's update
-            /// animation is missing since it started after the top section update animation started. To fix this
-            /// we should calculate the change set in one batch.
-            /// TODO: wait for SE update for returning multiple items in changeInfo.updatedLists
+            // TODO: When 2 sections are visible and a conversation belongs to both, the lower section's update
+            // animation is missing since it started after the top section update animation started. To fix this
+            // we should calculate the change set in one batch.
+            // TODO: wait for SE update for returning multiple items in changeInfo.updatedLists
             for updatedList in changeInfo.updatedLists {
                 if let kind = self.kind(of: updatedList) {
                     update(for: kind)

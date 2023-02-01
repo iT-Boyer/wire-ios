@@ -19,18 +19,21 @@ import XCTest
 @testable import Wire
 import SnapshotTesting
 
-final class TokenFieldTests: XCTestCase {
+final class TokenFieldTests: ZMSnapshotTestCase {
     var sut: TokenField!
 
     override func setUp() {
+        super.setUp()
         sut = TokenField()
         sut.frame = CGRect(origin: .zero, size: CGSize(width: 320, height: 44))
         sut.backgroundColor = .black
+        sut.overrideUserInterfaceStyle = .dark
         sut.textView.placeholder = "Dummy placeholder"
     }
 
     override func tearDown() {
         sut = nil
+        super.tearDown()
     }
 
     private func createTokens() {
@@ -131,7 +134,7 @@ final class TokenFieldTests: XCTestCase {
         sut.addToken(token1)
 
         // when
-        sut.tokenTitleColor = .brightOrange
+        sut.tokenTitleColor = SemanticColors.LegacyColors.brightOrange
         sut.updateTokenAttachments()
         // then
 

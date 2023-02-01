@@ -17,7 +17,6 @@
 //
 
 import UIKit
-import Cartography
 import WireSyncEngine
 
 final class GroupDetailsViewController: UIViewController, ZMConversationObserver, GroupDetailsFooterViewDelegate {
@@ -67,25 +66,24 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
         fatalError("init(coder:) has not been implemented")
     }
 
-    func createSubviews() {
+    private func createSubviews() {
         let collectionView = UICollectionView(forGroupedSections: ())
         collectionView.accessibilityIdentifier = "group_details.list"
 
-        if #available(iOS 11.0, *) {
-            collectionView.contentInsetAdjustmentBehavior = .never
-        }
+        collectionView.contentInsetAdjustmentBehavior = .never
 
         [collectionView, footerView].forEach(view.addSubview)
 
-        constrain(view, collectionView, footerView) { container, collectionView, footerView in
-            collectionView.top == container.top
-            collectionView.leading == container.leading
-            collectionView.trailing == container.trailing
-            collectionView.bottom == footerView.top
-            footerView.leading == container.leading
-            footerView.trailing == container.trailing
-            footerView.bottom == container.bottom
-        }
+        [collectionView, footerView].prepareForLayout()
+        NSLayoutConstraint.activate([
+          collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+          collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+          collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+          collectionView.bottomAnchor.constraint(equalTo: footerView.topAnchor),
+          footerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+          footerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+          footerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         collectionViewController.collectionView = collectionView
         footerView.delegate = self
@@ -97,8 +95,8 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "participants.title".localized(uppercased: true)
-        view.backgroundColor = UIColor.from(scheme: .contentBackground)
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Participants.title.capitalized)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -106,6 +104,8 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
 
         updateLegalHoldIndicator()
         navigationItem.rightBarButtonItem = navigationController?.closeItem()
+        navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.ConversationDetails.CloseButton.description
+        navigationItem.backBarButtonItem?.accessibilityLabel = L10n.Accessibility.Profile.BackButton.description
         collectionViewController.collectionView?.reloadData()
     }
 
@@ -213,6 +213,7 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
             changeInfo.participantsChanged ||
             changeInfo.nameChanged ||
             changeInfo.allowGuestsChanged ||
+            changeInfo.allowServicesChanged ||
             changeInfo.destructionTimeoutChanged ||
             changeInfo.mutedMessageTypesChanged ||
             changeInfo.legalHoldStatusChanged
@@ -232,8 +233,9 @@ final class GroupDetailsViewController: UIViewController, ZMConversationObserver
         switch action {
         case .invite:
             let addParticipantsViewController = AddParticipantsViewController(conversation: conversation)
-            let navigationController = addParticipantsViewController.wrapInNavigationController()
+            let navigationController = addParticipantsViewController.wrapInNavigationController(setBackgroundColor: true)
             navigationController.modalPresentationStyle = .currentContext
+
             present(navigationController, animated: true)
         case .more:
             actionController = ConversationActionController(conversation: conversation,
@@ -261,7 +263,7 @@ extension GroupDetailsViewController {
     fileprivate var legalholdItem: UIBarButtonItem {
         let item = UIBarButtonItem(icon: .legalholdactive, target: self, action: #selector(presentLegalHoldDetails))
         item.setLegalHoldAccessibility()
-        item.tintColor = .vividRed
+        item.tintColor = SemanticColors.Icon.foregroundDefaultRed
         return item
     }
 
@@ -314,7 +316,14 @@ extension GroupDetailsViewController: GroupDetailsSectionControllerDelegate, Gro
     func presentGuestOptions(animated: Bool) {
         guard let conversation = conversation as? ZMConversation else { return }
 
-        let menu = ConversationOptionsViewController(conversation: conversation, userSession: ZMUserSession.shared()!)
+        let menu = ConversationGuestOptionsViewController(conversation: conversation, userSession: ZMUserSession.shared()!)
+        navigationController?.pushViewController(menu, animated: animated)
+    }
+
+    func presentServicesOptions(animated: Bool) {
+        guard let conversation = conversation as? ZMConversation else { return }
+
+        let menu = ConversationServicesOptionsViewController(conversation: conversation, userSession: ZMUserSession.shared()!)
         navigationController?.pushViewController(menu, animated: animated)
     }
 

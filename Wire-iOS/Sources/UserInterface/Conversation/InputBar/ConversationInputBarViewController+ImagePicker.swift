@@ -29,7 +29,7 @@ extension ConversationInputBarViewController {
                             allowsEditing: Bool,
                             pointToView: UIView?) {
 
-        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController as? PopoverPresenterViewController else { return }
+        guard let rootViewController = UIApplication.shared.firstKeyWindow?.rootViewController as? PopoverPresenterViewController else { return }
 
         if !UIImagePickerController.isSourceTypeAvailable(sourceType) {
             if UIDevice.isSimulator {
@@ -52,9 +52,7 @@ extension ConversationInputBarViewController {
             pickerController.allowsEditing = allowsEditing
             pickerController.mediaTypes = mediaTypes
             pickerController.videoMaximumDuration = ZMUserSession.shared()!.maxVideoLength
-            if #available(iOS 11.0, *) {
-                pickerController.videoExportPreset = AVURLAsset.defaultVideoQuality
-            }
+            pickerController.videoExportPreset = AVURLAsset.defaultVideoQuality
 
             if let popover = pickerController.popoverPresentationController,
                 let imageView = pointToView {
@@ -104,7 +102,8 @@ extension ConversationInputBarViewController {
             return
         }
 
-        if picker.sourceType == UIImagePickerController.SourceType.camera && UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(videoTempURL.path) {
+        if picker.sourceType == UIImagePickerController.SourceType.camera && UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(videoTempURL.path),
+           MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).hasAccessToCameraRoll {
             UISaveVideoAtPathToSavedPhotosAlbum(videoTempURL.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
         }
 

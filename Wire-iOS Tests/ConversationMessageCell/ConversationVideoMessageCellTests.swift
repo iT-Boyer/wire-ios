@@ -16,11 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import XCTest
 @testable import Wire
 
-import XCTest
-
-final class ConversationVideoMessageCellTests: XCTestCase {
+final class ConversationVideoMessageCellTests: ZMSnapshotTestCase {
 
     var message: MockMessage!
     var mockSelfUser: MockUserType!
@@ -216,6 +215,15 @@ final class ConversationVideoMessageCellTests: XCTestCase {
         message.backingFileMessageData.fileURL = Bundle.main.bundleURL
 
         verify(message: message, waitForImagesToLoad: true)
+    }
+
+    // MARK: - Receiving restrictions
+
+    func testRestrictionMessageCell() {
+        message.backingIsRestricted = true
+        message.backingFileMessageData.mimeType = "video/mp4"
+
+        verify(message: message, allColorSchemes: true)
     }
 
 }

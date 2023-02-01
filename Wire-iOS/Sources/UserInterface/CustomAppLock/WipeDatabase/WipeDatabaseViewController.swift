@@ -16,8 +16,9 @@
 //
 
 import UIKit
+import WireCommonComponents
 
-protocol WipeDatabaseUserInterface: class {
+protocol WipeDatabaseUserInterface: AnyObject {
     func presentConfirmAlert()
 }
 
@@ -41,9 +42,11 @@ final class WipeDatabaseViewController: UIViewController {
 
     private let stackView: UIStackView = UIStackView.verticalStackView()
 
+    typealias WipeDatabase = L10n.Localizable.WipeDatabase
+
     private let titleLabel: UILabel = {
         let label = UILabel.createMultiLineCenterdLabel()
-        label.text = "wipe_database.title_label".localized
+        label.text = L10n.Localizable.WipeDatabase.titleLabel
 
         return label
     }()
@@ -52,7 +55,7 @@ final class WipeDatabaseViewController: UIViewController {
         let label = UILabel()
         label.configMultipleLineLabel()
 
-        let textColor = UIColor.from(scheme: .textForeground)
+        let textColor = SemanticColors.Label.textDefault
 
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .center
@@ -61,11 +64,11 @@ final class WipeDatabaseViewController: UIViewController {
             .paragraphStyle: paragraphStyle,
             .foregroundColor: textColor]
 
-        let headingText =  NSAttributedString(string: "wipe_database.info_label".localized) &&
+        let headingText =  NSAttributedString(string: WipeDatabase.infoLabel) &&
                                 UIFont.normalRegularFont &&
                                 baseAttributes
-        let highlightText = NSAttributedString(string: "wipe_database.info_label.highlighted".localized) &&
-                                FontSpec(.normal, .bold).font! &&
+        let highlightText = NSAttributedString(string: WipeDatabase.InfoLabel.highlighted) &&
+                                FontSpec.normalBoldFont.font! &&
                                 baseAttributes
 
         label.text = " "
@@ -75,18 +78,9 @@ final class WipeDatabaseViewController: UIViewController {
     }()
 
     private lazy var confirmButton: Button = {
-        let button: Button
+        let button = Button(style: .primaryTextButtonStyle, cornerRadius: 16, fontSpec: .mediumSemiboldFont)
 
-        switch ColorScheme.default.variant {
-        case .light:
-            button = Button(style: .full, titleLabelFont: .smallSemiboldFont)
-            button.setBackgroundImageColor(UIColor.WipeDatabase.buttonRed, for: .normal)
-        case .dark:
-            button = Button(style: .fullMonochrome, titleLabelFont: .smallSemiboldFont)
-            button.setTitleColor(UIColor.WipeDatabase.buttonRed, for: .normal)
-        }
-
-        button.setTitle("wipe_database.button.title".localized(uppercased: true), for: .normal)
+        button.setTitle(WipeDatabase.Button.title, for: .normal)
 
         button.addTarget(self, action: #selector(onConfirmButtonPressed(sender:)), for: .touchUpInside)
 
@@ -94,14 +88,14 @@ final class WipeDatabaseViewController: UIViewController {
     }()
 
     @objc
-    private func onConfirmButtonPressed(sender: Button?) {
+    private func onConfirmButtonPressed(sender: LegacyButton?) {
         presentConfirmAlert()
     }
 
     convenience init() {
         self.init(nibName: nil, bundle: nil)
 
-        view.backgroundColor = UIColor.from(scheme: .background)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         [stackView,
          confirmButton].forEach {
@@ -122,7 +116,7 @@ final class WipeDatabaseViewController: UIViewController {
     private func createConstraints() {
 
         [stackView,
-         confirmButton].disableAutoresizingMaskTranslation()
+         confirmButton].prepareForLayout()
 
         let widthConstraint = stackView.widthAnchor.constraint(equalToConstant: CGFloat.iPhone4_7Inch.width)
         widthConstraint.priority = .defaultHigh

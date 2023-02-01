@@ -1,5 +1,5 @@
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -56,9 +56,10 @@ enum SettingKey: String, CaseIterable {
 
     // MARK: Features disable keys
     case disableCallKit = "UserDefaultDisableCallKit"
+    case muteIncomingCallsWhileInACall = "MuteIncomingCallsWhileInACall"
     case enableBatchCollections = "UserDefaultEnableBatchCollections"
     case callingProtocolStrategy = "CallingProtocolStrategy"
-    case federationEnabled = "FederationEnabled"
+
     // MARK: Link opening options
     case twitterOpeningRawValue = "TwitterOpeningRawValue"
     case mapsOpeningRawValue = "MapsOpeningRawValue"
@@ -89,6 +90,8 @@ class Settings {
                 AVSMediaManager.sharedInstance().configureSounds()
             case .disableCallKit:
                 SessionManager.shared?.updateCallNotificationStyleFromSettings()
+            case .muteIncomingCallsWhileInACall:
+                SessionManager.shared?.updateMuteOtherCallsFromSettings()
             case .callingConstantBitRate where !SecurityFlags.forceConstantBitRateCalls.isEnabled:
                 SessionManager.shared?.useConstantBitRateAudio = newValue as? Bool ?? false
             default:
@@ -133,7 +136,7 @@ class Settings {
         return .standard
     }
 
-    /// These settings are not actually persisted, just kept in memory
+    // These settings are not actually persisted, just kept in memory
     // Max audio recording duration in seconds
     var maxRecordingDurationDebug: TimeInterval = 0.0
 
@@ -202,6 +205,8 @@ class Settings {
         loadEnabledLogs()
         #endif
 
+        #if !DISABLE_LOGGING
         ZMSLog.startRecording(isInternal: Bundle.developerModeEnabled)
+        #endif
     }
 }

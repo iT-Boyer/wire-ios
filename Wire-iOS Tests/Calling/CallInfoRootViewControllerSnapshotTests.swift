@@ -1,5 +1,5 @@
 // Wire
-// Copyright (C) 2019 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,9 +17,21 @@
 
 import SnapshotTesting
 import XCTest
+import WireCommonComponents
 @testable import Wire
 
-final class CallInfoViewControllerSnapshotTests: XCTestCase {
+final class CallInfoViewControllerSnapshotTests: ZMSnapshotTestCase {
+
+    override func setUp() {
+        super.setUp()
+        CallingConfiguration.config = .largeConferenceCalls
+        UserDefaults.applicationGroup.set(true, forKey: DeveloperFlag.deprecatedCallingUI.rawValue)
+    }
+
+    override func tearDown() {
+        CallingConfiguration.resetDefaultConfig()
+        super.tearDown()
+    }
 
     // MARK: - OneToOne Audio
 
@@ -27,7 +39,7 @@ final class CallInfoViewControllerSnapshotTests: XCTestCase {
         // given
         let otherUser = MockUserType.createConnectedUser(name: "Bruno")
         let selfUser = MockUserType.createSelfUser(name: "Alice")
-        let fixture = CallInfoTestFixture(otherUser: otherUser, mockUsers: SwiftMockLoader.mockUsers())
+        let fixture = CallInfoTestFixture(otherUser: otherUser, selfUser: selfUser, mockUsers: SwiftMockLoader.mockUsers())
 
         // when
         let sut = CallInfoViewController(configuration: fixture.oneToOneIncomingAudioRinging, selfUser: selfUser)

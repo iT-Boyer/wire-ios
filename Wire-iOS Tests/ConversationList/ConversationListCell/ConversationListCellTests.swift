@@ -64,7 +64,7 @@ private final class MockConversation: MockStableRandomParticipantsConversation, 
     }
 }
 
-final class ConversationListCellTests: XCTestCase {
+final class ConversationListCellTests: ZMSnapshotTestCase {
 
     // MARK: - Setup
 
@@ -79,7 +79,7 @@ final class ConversationListCellTests: XCTestCase {
         otherUserConversation = MockConversation.createOneOnOneConversation(otherUser: otherUser)
 
         accentColor = .strongBlue
-        /// The cell must higher than 64, otherwise it breaks the constraints.
+        // The cell must higher than 64, otherwise it breaks the constraints.
         sut = ConversationListCell(frame: CGRect(x: 0, y: 0, width: 375, height: ConversationListItemView.minHeight))
 
     }
@@ -115,10 +115,12 @@ final class ConversationListCellTests: XCTestCase {
         line: UInt = #line) {
         sut.conversation = conversation
 
+        sut.overrideUserInterfaceStyle = .dark
+
         if let icon = icon {
             sut.itemView.rightAccessory.icon = icon
         }
-        sut.backgroundColor = .darkGray
+
         verify(matching: sut, file: file, testName: testName, line: line)
     }
 
@@ -151,7 +153,7 @@ final class ConversationListCellTests: XCTestCase {
 
     func testThatItRendersBlockedConversation() {
         // when
-        otherUserConversation.connectedUserType?.toggleBlocked()
+        otherUserConversation.connectedUserType?.block(completion: { _ in })
 
         let status = ConversationStatus(isGroup: false,
                                         hasMessages: false,

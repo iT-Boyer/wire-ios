@@ -27,18 +27,21 @@ extension NSAttributedString {
         let result: NSMutableAttributedString
 
         if let attrStr = try? down.toAttributedString(using: style) {
-            result = NSMutableAttributedString(attributedString: attrStr)
+            result = .init(attributedString: attrStr)
         } else {
             result = NSMutableAttributedString(string: text)
         }
 
         if result.string.last == "\n" {
-            result.deleteCharacters(in: NSMakeRange(result.length - 1, 1))
+            result.deleteCharacters(in: NSRange(location: result.length - 1, length: 1))
+        }
+
+        guard !result.string.isEmpty else {
+            return .init(string: text)
         }
 
         return result
     }
-
 }
 
 extension NSAttributedString {
@@ -48,12 +51,12 @@ extension NSAttributedString {
     /// - Parameter numberOfLinesLimit: number of line reserved
     /// - Returns: the trimmed NSAttributedString. If not excess limit, return the original NSAttributedString
     func trimmedToNumberOfLines(numberOfLinesLimit: Int) -> NSAttributedString {
-        /// trim the string to first four lines to prevent last line narrower spacing issue
+        // Trim the string to first four lines to prevent last line narrower spacing issue
         let lines = string.components(separatedBy: ["\n"])
         if lines.count > numberOfLinesLimit {
             let headLines = lines.prefix(numberOfLinesLimit).joined(separator: "\n")
 
-            return attributedSubstring(from: NSMakeRange(0, headLines.count)) + String.ellipsis
+            return attributedSubstring(from: NSRange(location: 0, length: headLines.count)) + String.ellipsis
         } else {
             return self
         }

@@ -47,9 +47,7 @@ final class ConversationTextMessageCell: UIView,
         view.setContentCompressionResistancePriority(.required, for: .vertical)
         view.interactionDelegate = self
 
-        if #available(iOS 11.0, *) {
-            view.textDragInteraction?.isEnabled = false
-        }
+        view.textDragInteraction?.isEnabled = false
 
         return view
     }()
@@ -79,6 +77,7 @@ final class ConversationTextMessageCell: UIView,
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
+        setupAccessibility()
     }
 
     @available(*, unavailable)
@@ -93,7 +92,7 @@ final class ConversationTextMessageCell: UIView,
 
     private func configureConstraints() {
         messageTextView.translatesAutoresizingMaskIntoConstraints = false
-        messageTextView.fitInSuperview()
+        messageTextView.fitIn(view: self)
     }
 
     func configure(with object: Configuration, animated: Bool) {
@@ -104,6 +103,7 @@ final class ConversationTextMessageCell: UIView,
         } else {
             messageTextView.accessibilityIdentifier = "Message"
         }
+        accessibilityLabel = messageTextView.attributedText.string
     }
 
     func textView(_ textView: LinkInteractionTextView, open url: URL) -> Bool {
@@ -129,6 +129,13 @@ final class ConversationTextMessageCell: UIView,
         if !UIMenuController.shared.isMenuVisible {
             menuPresenter?.showMenu()
         }
+    }
+
+    private func setupAccessibility() {
+        typealias Conversation = L10n.Accessibility.Conversation
+
+        isAccessibilityElement = true
+        accessibilityHint = "\(Conversation.MessageInfo.hint), \(Conversation.MessageOptions.hint)"
     }
 
 }

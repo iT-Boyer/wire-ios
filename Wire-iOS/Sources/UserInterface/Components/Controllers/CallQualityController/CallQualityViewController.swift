@@ -17,14 +17,16 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
+import WireCommonComponents
 
-protocol CallQualityViewControllerDelegate: class {
+// MARK: Call Quality View Controller Delegate
+protocol CallQualityViewControllerDelegate: AnyObject {
     func callQualityControllerDidFinishWithoutScore(_ controller: CallQualityViewController)
     func callQualityController(_ controller: CallQualityViewController, didSelect score: Int)
 }
 
+// MARK: Call Quality View Controller
 final class CallQualityViewController: UIViewController, UIGestureRecognizerDelegate {
 
     let questionLabelText: String
@@ -34,9 +36,10 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
 
     let contentView = RoundedView()
     let dimmingView = UIView()
-    let closeButton = IconButton()
+    let closeButton = IconButton(fontSpec: .smallSemiboldFont)
     let titleLabel = UILabel()
-    let questionLabel = UILabel()
+    let questionLabel = DynamicFontLabel(fontSpec: .normalRegularFont,
+                                         color: SemanticColors.Label.textSectionFooter)
 
     var callQualityStackView: CustomSpacingStackView!
     var scoreSelectorView: QualityScoreSelectorView!
@@ -62,6 +65,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -81,6 +85,8 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
 
     func createViews() {
 
+        typealias QualitySurvey = L10n.Localizable.Calling.QualitySurvey
+
         self.scoreSelectorView = QualityScoreSelectorView(onScoreSet: { [weak self] score in
             self?.delegate?.callQualityController(self!, didSelect: score)
         })
@@ -88,26 +94,24 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
         dimmingView.backgroundColor = UIColor.CallQuality.backgroundDim
         dimmingView.alpha = 0
 
-        let graphite = UIColor.from(scheme: .textForeground)
-        let closeButtonTitle = "calling.quality_survey.skip_button_title".localized(uppercased: true)
+        let closeButtonTitle = QualitySurvey.skipButtonTitle
+
         closeButton.setTitle(closeButtonTitle, for: .normal)
         closeButton.accessibilityIdentifier = "score_close"
         closeButton.accessibilityLabel = closeButtonTitle
-        closeButton.titleLabel?.font = FontSpec(.small, .semibold).font!
-        closeButton.setTitleColor(graphite, for: .normal)
-        closeButton.setTitleColor(graphite.withAlphaComponent(0.6), for: .highlighted)
+        closeButton.clipsToBounds = true
+        closeButton.layer.cornerRadius = 16
+        closeButton.applyStyle(.secondaryTextButtonStyle)
 
         closeButton.addTarget(self, action: #selector(onCloseButtonTapped), for: .touchUpInside)
 
-        titleLabel.textColor = UIColor.CallQuality.title
+        titleLabel.textColor = SemanticColors.Label.textDefault
         titleLabel.font = UIFont.systemFont(ofSize: 30, weight: UIFont.Weight.medium)
-        titleLabel.text = NSLocalizedString("calling.quality_survey.title", comment: "")
+        titleLabel.text = QualitySurvey.title
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.textAlignment = .center
 
         questionLabel.text = questionLabelText
-        questionLabel.font = FontSpec(.normal, .regular).font
-        questionLabel.textColor = UIColor.CallQuality.question
         questionLabel.textAlignment = .center
         questionLabel.numberOfLines = 0
 
@@ -125,7 +129,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
         view.addGestureRecognizer(dismissTapGestureRecognizer)
 
         contentView.shape = .rounded(radius: 32)
-        contentView.backgroundColor = UIColor.CallQuality.contentBackground
+        contentView.backgroundColor = SemanticColors.View.backgroundDefault
 
         view.addSubview(dimmingView)
         view.addSubview(contentView)
@@ -133,7 +137,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
 
     }
 
-    func createConstraints() {
+    private func createConstraints() {
         dimmingView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         callQualityStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -162,13 +166,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
         iphone_leadingConstraint = contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8)
         iphone_trailingConstraint = contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8)
 
-        let bottomAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor>
-
-        if #available(iOS 11, *) {
-            bottomAnchor = view.safeAreaLayoutGuide.bottomAnchor
-        } else {
-            bottomAnchor = view.bottomAnchor
-        }
+        let bottomAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor> = view.safeAreaLayoutGuide.bottomAnchor
 
         iphone_bottomConstraint = contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
         ipad_centerYConstraint = contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
@@ -223,9 +221,14 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
     }
 
 }
+// MARK: Call Quality View
+final class CallQualityView: UIStackView {
 
-class CallQualityView: UIStackView {
-    let scoreLabel = UILabel()
+    typealias ViewColors = SemanticColors.View
+
+    let defaultTextColor = SemanticColors.Label.textDefault
+    let scoreLabel = DynamicFontLabel(fontSpec: FontSpec.mediumRegularFont,
+                                      color: SemanticColors.Label.textDefault)
     let scoreButton = Button()
     let callback: (Int) -> Void
     let labelText: String
@@ -241,35 +244,38 @@ class CallQualityView: UIStackView {
         axis = .vertical
         spacing = 16
 
+        setupSubviews()
+        addArrangedSubview(scoreLabel)
+        addArrangedSubview(scoreButton)
+
+        createConstraints()
+    }
+
+    func setupSubviews() {
         scoreLabel.text = [1, 3, 5].contains(buttonScore) ? labelText : ""
-        scoreLabel.font = FontSpec(.medium, .regular).font
         scoreLabel.textAlignment = .center
-        scoreLabel.textColor = UIColor.CallQuality.score
         scoreLabel.adjustsFontSizeToFitWidth = true
 
         scoreButton.tag = buttonScore
         scoreButton.circular = true
         scoreButton.setTitle(String(buttonScore), for: .normal)
-        scoreButton.titleLabel?.font = UIFont.monospacedDigitSystemFont(ofSize: 18, weight: UIFont.Weight.regular)
-        scoreButton.setTitleColor(UIColor.CallQuality.score, for: .normal)
-        scoreButton.setTitleColor(.white, for: .highlighted)
-        scoreButton.setTitleColor(.white, for: .selected)
+        scoreButton.titleLabel?.font = UIFont.monospacedDigitSystemFont(ofSize: 20, weight: UIFont.Weight.semibold)
         scoreButton.addTarget(self, action: #selector(onClick), for: .primaryActionTriggered)
-        scoreButton.setBackgroundImageColor(UIColor.CallQuality.scoreBackground, for: .normal)
-        scoreButton.setBackgroundImageColor(UIColor.CallQuality.scoreHighlight, for: .highlighted)
-        scoreButton.setBackgroundImageColor(UIColor.CallQuality.scoreHighlight, for: .selected)
+        scoreButton.applyStyle(.secondaryTextButtonStyle)
         scoreButton.accessibilityIdentifier = "score_\(buttonScore)"
 
         scoreButton.accessibilityLabel = labelText
-        constrain(scoreButton) {scoreButton in
-            scoreButton.width <= 48
-            scoreButton.height == scoreButton.width
-        }
-
-        addArrangedSubview(scoreLabel)
-        addArrangedSubview(scoreButton)
     }
 
+    private func createConstraints() {
+        scoreButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            scoreButton.widthAnchor.constraint(lessThanOrEqualToConstant: 48),
+            scoreButton.heightAnchor.constraint(equalTo: scoreButton.widthAnchor)
+        ])
+    }
+
+    @available(*, unavailable)
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -279,6 +285,7 @@ class CallQualityView: UIStackView {
     }
 }
 
+// MARK: Quality Score Selector View
 class QualityScoreSelectorView: UIView {
     private let scoreStackView = UIStackView()
 
@@ -300,9 +307,13 @@ class QualityScoreSelectorView: UIView {
             .forEach(scoreStackView.addArrangedSubview)
 
         addSubview(scoreStackView)
-        constrain(self, scoreStackView) { selfView, scoreStackView in
-            scoreStackView.edges == selfView.edges
-        }
+        scoreStackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            scoreStackView.topAnchor.constraint(equalTo: topAnchor),
+            scoreStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scoreStackView.leftAnchor.constraint(equalTo: leftAnchor),
+            scoreStackView.rightAnchor.constraint(equalTo: rightAnchor)
+        ])
     }
 
     override func layoutSubviews() {
@@ -321,11 +332,13 @@ class QualityScoreSelectorView: UIView {
         return NSLocalizedString("calling.quality_survey.answer.\(score)", comment: "")
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
+// MARK: Call Quality Animator
 class CallQualityAnimator: NSObject, UIViewControllerTransitioningDelegate {
     func animationController(forPresented presented: UIViewController,
                              presenting: UIViewController,

@@ -23,14 +23,13 @@ import UIKit
  * @abstract Generates the cell that displays one button
  */
 class SettingsButtonCellDescriptor: SettingsCellDescriptorType {
-    static let cellType: SettingsTableCell.Type = SettingsButtonCell.self
+    static let cellType: SettingsTableCellProtocol.Type = SettingsButtonCell.self
     let title: String
     let identifier: String?
     var visible: Bool {
         if let visibilityAction = self.visibilityAction {
             return visibilityAction(self)
-        }
-        else {
+        } else {
             return true
         }
     }
@@ -66,7 +65,6 @@ class SettingsButtonCellDescriptor: SettingsCellDescriptorType {
 
     func featureCell(_ cell: SettingsCellType) {
         cell.titleText = self.title
-        cell.titleColor = UIColor.white
     }
 
     func select(_ value: SettingsPropertyValue?) {

@@ -25,22 +25,23 @@ import UIKit
 final class UserPropertyCell: SeparatorTableViewCell {
 
     private let contentStack = UIStackView()
+    typealias LabelColors = SemanticColors.Label
 
-    private let propertyNameLabel: UILabel = {
-        let label = UILabel()
+    private let propertyNameLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(fontSpec: .smallRegularFont,
+                                     color: LabelColors.textUserPropertyCellName)
         label.numberOfLines = 1
         label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.setContentHuggingPriority(.defaultLow, for: .vertical)
-        label.font = .smallRegularFont
         return label
     }()
 
-    private let propertyValueLabel: UILabel = {
-        let label = UILabel()
+    private let propertyValueLabel: DynamicFontLabel = {
+        let label = DynamicFontLabel(fontSpec: .normalLightFont,
+                                     color: LabelColors.textDefault)
         label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.required, for: .vertical)
         label.setContentHuggingPriority(.defaultLow, for: .vertical)
-        label.font = .normalLightFont
         return label
     }()
 
@@ -78,6 +79,13 @@ final class UserPropertyCell: SeparatorTableViewCell {
     }
 
     private func configureSubviews() {
+        backgroundColor = SemanticColors.View.backgroundUserCell
+        addBorder(for: .bottom)
+
+        separator.isHidden = true
+        separator.backgroundColor = .clear
+        showSeparator = false
+
         contentStack.addArrangedSubview(propertyNameLabel)
         contentStack.addArrangedSubview(propertyValueLabel)
         contentStack.spacing = 2
@@ -86,7 +94,6 @@ final class UserPropertyCell: SeparatorTableViewCell {
         contentStack.alignment = .leading
         contentView.addSubview(contentStack)
 
-        applyColorScheme(colorSchemeVariant)
         shouldGroupAccessibilityChildren = true
     }
 
@@ -99,15 +106,6 @@ final class UserPropertyCell: SeparatorTableViewCell {
             contentStack.trailingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.trailingAnchor),
             contentStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16)
         ])
-    }
-
-    // MARK: - Configuration
-
-    override func applyColorScheme(_ variant: ColorSchemeVariant) {
-        super.applyColorScheme(variant)
-        propertyNameLabel.textColor = UIColor.from(scheme: .textDimmed, variant: variant)
-        propertyValueLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
-        backgroundColor = UIColor.from(scheme: .background, variant: variant)
     }
 
 }

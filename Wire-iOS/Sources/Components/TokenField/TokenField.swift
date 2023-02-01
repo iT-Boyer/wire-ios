@@ -18,6 +18,7 @@
 
 import UIKit
 import WireSystem
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "TokenField")
 
@@ -26,7 +27,7 @@ final class TokenField: UIView {
 
     weak var delegate: TokenFieldDelegate?
 
-    let textView: TokenizedTextView = TokenizedTextView()
+    let textView = SearchTextView(style: .default)
     let accessoryButton: IconButton = IconButton()
 
     var hasAccessoryButton = false {
@@ -49,7 +50,7 @@ final class TokenField: UIView {
         }
     }
 
-    var font: UIFont = FontSpec(.normal, .regular).fontWithoutDynamicType! {
+    var font: UIFont = FontSpec(.normal, .regular).font! {
         didSet {
             guard oldValue != font else { return }
             updateTokenAttachments()
@@ -58,9 +59,9 @@ final class TokenField: UIView {
 
     // Dynamic Type is disabled for now until the separator dots
     // vertical alignment has been fixed for larger fonts.
-    let tokenTitleFont: UIFont = FontSpec(.small, .regular).fontWithoutDynamicType!
+    let tokenTitleFont: UIFont = FontSpec(.small, .regular).font!
 
-    var tokenTitleColor: UIColor = UIColor.white {
+    var tokenTitleColor: UIColor = SemanticColors.Label.textDefault {
         didSet {
             guard oldValue != tokenTitleColor else { return }
             updateTokenAttachments()
@@ -148,12 +149,8 @@ final class TokenField: UIView {
 
     private(set) var tokens = [Token<NSObjectProtocol>]()
     private var textAttributes: [NSAttributedString.Key: Any] {
-        let inputParagraphStyle = NSMutableParagraphStyle()
-        inputParagraphStyle.lineSpacing = lineSpacing
-
         return [.font: font,
-                .foregroundColor: textColor,
-                .paragraphStyle: inputParagraphStyle]
+                .foregroundColor: textView.textColor ?? .clear]
     }
 
     // Collapse
@@ -210,16 +207,6 @@ final class TokenField: UIView {
     }
 
     // MARK: - Appearance
-
-    var textColor: UIColor = .black {
-        didSet {
-            guard oldValue != textColor else {
-                return
-            }
-
-            updateTextAttributes()
-        }
-    }
 
     var lineSpacing: CGFloat = 8 {
         didSet {
@@ -443,6 +430,7 @@ final class TokenField: UIView {
         textView.textStorage.deleteCharacters(in: nsRange)
         textView.textStorage.endEditing()
         textView.insertText("")
+        textView.resignFirstResponder()
 
         invalidateIntrinsicContentSize()
         layoutIfNeeded()
@@ -516,10 +504,7 @@ final class TokenField: UIView {
         textView.tokenizedTextViewDelegate = self
         textView.delegate = self
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.backgroundColor = UIColor.clear
-        if #available(iOS 11, *) {
-            textView.textDragInteraction?.isEnabled = false
-        }
+        textView.textDragInteraction?.isEnabled = false
         addSubview(textView)
 
         toLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -542,10 +527,17 @@ final class TokenField: UIView {
         textView.tintColor = .accent()
         textView.autocorrectionType = .no
         textView.returnKeyType = .go
-        textView.placeholderFont = .smallRegularFont
+        textView.placeholderFont = FontSpec.body.font!
+
+        textView.placeholderTextColor = SemanticColors.SearchBar.textInputViewPlaceholder
         textView.placeholderTextContainerInset = UIEdgeInsets(top: 0, left: 48, bottom: 0, right: 0)
-        textView.placeholderTextTransform = .upper
         textView.lineFragmentPadding = 0
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else { return }
+        updateTokenAttachments()
     }
 
     // MARK: - Utility

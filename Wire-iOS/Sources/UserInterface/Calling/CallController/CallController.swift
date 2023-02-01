@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2020 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,13 +33,17 @@ final class CallController: NSObject {
         return callConversationProvider?.priorityCallConversation
     }
 
-    private var dateOfLastErrorAlertByConversationId = [UUID: Date]()
+    private var dateOfLastErrorAlertByConversationId = [AVSIdentifier: Date]()
     private var alertDebounceInterval: TimeInterval { 15 * .oneMinute  }
 
     // MARK: - Init
     override init() {
         super.init()
         addObservers()
+    }
+
+    deinit {
+        observerTokens.removeAll()
     }
 
     // MARK: - Public Implementation
@@ -62,9 +66,11 @@ final class CallController: NSObject {
     }
 
     private func presentOrMinimizeActiveCall(for conversation: ZMConversation) {
-        conversation == minimizedCall
-            ? minimizeCall()
-            : presentCall(in: conversation)
+        if conversation == minimizedCall {
+            minimizeCall()
+        } else {
+            presentCall(in: conversation)
+        }
     }
 
     private func minimizeCall() {
@@ -150,7 +156,7 @@ extension CallController: WireCallCenterCallStateObserver {
 
 // MARK: - ActiveCallViewControllerDelegate
 extension CallController: ActiveCallViewControllerDelegate {
-    func activeCallViewControllerDidDisappear(_ activeCallViewController: ActiveCallViewController,
+    func activeCallViewControllerDidDisappear(_ activeCallViewController: UIViewController,
                                               for conversation: ZMConversation?) {
         router?.dismissActiveCall(animated: true, completion: nil)
         minimizedCall = conversation
@@ -159,7 +165,7 @@ extension CallController: ActiveCallViewControllerDelegate {
 
 // MARK: - WireCallCenterCallErrorObserver
 extension CallController: WireCallCenterCallErrorObserver {
-    func callCenterDidReceiveCallError(_ error: CallError, conversationId: UUID) {
+    func callCenterDidReceiveCallError(_ error: CallError, conversationId: AVSIdentifier) {
         guard
             error == .unknownProtocol,
             shouldDisplayErrorAlert(for: conversationId)
@@ -171,7 +177,7 @@ extension CallController: WireCallCenterCallErrorObserver {
         router?.presentUnsupportedVersionAlert()
     }
 
-    private func shouldDisplayErrorAlert(for conversation: UUID) -> Bool {
+    private func shouldDisplayErrorAlert(for conversation: AVSIdentifier) -> Bool {
            guard let dateOfLastErrorAlert = dateOfLastErrorAlertByConversationId[conversation] else {
                return true
            }

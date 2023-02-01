@@ -43,22 +43,24 @@ extension EmptySearchResultsViewAction {
     }
 }
 
-protocol EmptySearchResultsViewDelegate: class {
+protocol EmptySearchResultsViewDelegate: AnyObject {
     func execute(action: EmptySearchResultsViewAction, from: EmptySearchResultsView)
 }
 
 final class EmptySearchResultsView: UIView {
 
+    typealias LabelColors = SemanticColors.Label
+
     private var state: EmptySearchResultsViewState = .noUsers {
         didSet {
             iconView.image = icon
+            iconView.tintColor = iconColor
             statusLabel.text = self.text
 
             if let action = self.buttonAction {
                 actionButton.isHidden = false
-                actionButton.setTitle(action.title, for: .normal)
-            }
-            else {
+                actionButton.setup(title: action.title)
+            } else {
                 actionButton.isHidden = true
             }
         }
@@ -77,28 +79,25 @@ final class EmptySearchResultsView: UIView {
         }
     }
 
-    private let variant: ColorSchemeVariant
     private let isSelfUserAdmin: Bool
     private let isFederationEnabled: Bool
 
     private let stackView: UIStackView
     private let iconView     = UIImageView()
-    private let statusLabel  = UILabel()
-    private let actionButton: InviteButton
+    private let statusLabel  = DynamicFontLabel(fontSpec: .normalRegularFont,
+                                                color: LabelColors.textSettingsPasswordPlaceholder)
+    private let actionButton: LinkButton
+    private let iconColor = LabelColors.textSettingsPasswordPlaceholder
 
     weak var delegate: EmptySearchResultsViewDelegate?
 
-    init(variant: ColorSchemeVariant,
-         isSelfUserAdmin: Bool,
+    init(isSelfUserAdmin: Bool,
          isFederationEnabled: Bool) {
-        self.variant = variant
         self.isSelfUserAdmin = isSelfUserAdmin
         self.isFederationEnabled = isFederationEnabled
         stackView = UIStackView()
-        actionButton = InviteButton(variant: variant)
+        actionButton = LinkButton()
         super.init(frame: .zero)
-
-        iconView.alpha = 0.24
 
         stackView.alignment = .center
         stackView.spacing = 16
@@ -111,12 +110,11 @@ final class EmptySearchResultsView: UIView {
 
         addSubview(stackView)
 
-        stackView.centerInSuperview()
+        stackView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        stackView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
 
         statusLabel.numberOfLines = 0
         statusLabel.preferredMaxLayoutWidth = 200
-        statusLabel.textColor = UIColor.from(scheme: .textForeground, variant: self.variant)
-        statusLabel.font = FontSpec(.medium, .regular).font!
         statusLabel.textAlignment = .center
 
         actionButton.accessibilityIdentifier = "button.searchui.open-services-no-results"
@@ -131,27 +129,30 @@ final class EmptySearchResultsView: UIView {
         state = .noUsers
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     private var text: String {
+        typealias Message = L10n.Localizable.Peoplepicker.NoMatchingResults.Message
+
         switch state {
         case .everyoneAdded:
-            return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.usersAllAdded
+            return Message.usersAllAdded
         case .noUsers:
             if isFederationEnabled {
-                return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.usersAndFederation
+                return Message.usersAndFederation
             } else {
-                return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.users
+                return Message.users
             }
         case .noServices:
-            return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.services
+            return Message.services
         case .noServicesEnabled:
             if isSelfUserAdmin {
-                return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.servicesNotEnabledAdmin
+                return Message.servicesNotEnabledAdmin
             } else {
-                return L10n.Localizable.Peoplepicker.NoMatchingResults.Message.servicesNotEnabled
+                return Message.servicesNotEnabled
             }
         }
     }
@@ -166,8 +167,7 @@ final class EmptySearchResultsView: UIView {
             icon = .personalProfile
         }
 
-        let color = UIColor.from(scheme: .iconNormal, variant: self.variant)
-        return icon.makeImage(size: .large, color: color)
+        return icon.makeImage(size: .large, color: iconColor)
     }
 
     private var buttonAction: EmptySearchResultsViewAction? {

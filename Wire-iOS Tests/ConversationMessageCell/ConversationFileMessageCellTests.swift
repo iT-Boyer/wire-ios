@@ -16,11 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import XCTest
 @testable import Wire
 
-import XCTest
-
-final class ConversationFileMessageTests: XCTestCase {
+final class ConversationFileMessageTests: ZMSnapshotTestCase {
 
     var message: MockMessage!
     var mockSelfUser: MockUserType!
@@ -230,6 +229,15 @@ final class ConversationFileMessageTests: XCTestCase {
         message.backingFileMessageData.fileURL = Bundle.main.bundleURL
 
         verify(message: message)
+    }
+
+    // MARK: - Receiving restrictions
+
+    func testRestrictionMessageCell() {
+        message.backingIsRestricted = true
+        message.backingFileMessageData.mimeType = "application/pdf"
+
+        verify(message: message, allColorSchemes: true)
     }
 
 }

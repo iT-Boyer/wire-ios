@@ -32,11 +32,15 @@ enum VideoIconStyle: String, IconImageStyle {
         case .screenshare:
             return .screenshare
         case .video:
-            return .videoCall
+            return .camera
         }
     }
 
     var accessibilitySuffix: String {
+        return rawValue
+    }
+
+    var accessibilityLabel: String {
         return rawValue
     }
 }

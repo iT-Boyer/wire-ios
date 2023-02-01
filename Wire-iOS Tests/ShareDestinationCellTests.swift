@@ -41,7 +41,7 @@ final class MockDestination: NSObject, ShareDestination {
     }
 }
 
-final class ShareDestinationCellTests: XCTestCase {
+final class ShareDestinationCellTests: ZMSnapshotTestCase {
 
     var sut: ShareDestinationCell<MockDestination>!
     var destination: MockDestination?
@@ -58,6 +58,7 @@ final class ShareDestinationCellTests: XCTestCase {
 
         accentColor = .vividRed
         sut = ShareDestinationCell(style: .default, reuseIdentifier: "reuseIdentifier")
+        sut.overrideUserInterfaceStyle = .dark
         sut.backgroundColor = .black
     }
 

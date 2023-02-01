@@ -96,13 +96,47 @@ extension ConversationInputBarViewController {
     }
 
     func updateEphemeralIndicatorButtonTitle(_ button: ButtonWithLargerHitArea) {
-        guard let timerValue = conversation.destructionTimeout else {
-            button.setTitle("", for: .normal)
-            return
-        }
-
-        let title = timerValue.shortDisplayString
+        let title = conversation.activeMessageDestructionTimeoutValue?.shortDisplayString
         button.setTitle(title, for: .normal)
+        setupAccessibility(button)
+    }
+
+    private func setupAccessibility(_ button: ButtonWithLargerHitArea) {
+        button.accessibilityLabel = L10n.Accessibility.Conversation.EmphemeralButton.description
+        if let value = conversation.activeMessageDestructionTimeoutValue?.accessibilityValue {
+            button.accessibilityValue = value
+        }
+    }
+
+}
+
+private extension MessageDestructionTimeoutValue {
+
+    var accessibilityValue: String? {
+        typealias Conversation = L10n.Accessibility.Conversation
+
+        guard
+           self != .none,
+           let timeoutValue = shortDisplayString
+        else {
+           return nil
+        }
+        switch self {
+        case .tenSeconds:
+            return Conversation.TimerForSelfDeletingMessagesSeconds.value(timeoutValue)
+        case .fiveMinutes:
+            return Conversation.TimerForSelfDeletingMessagesMinutes.value(timeoutValue)
+        case .oneHour:
+            return Conversation.TimerForSelfDeletingMessagesHour.value(timeoutValue)
+        case .oneDay:
+            return Conversation.TimerForSelfDeletingMessagesDay.value(timeoutValue)
+        case .oneWeek:
+            return Conversation.TimerForSelfDeletingMessagesWeek.value(timeoutValue)
+        case .fourWeeks:
+            return Conversation.TimerForSelfDeletingMessagesWeeks.value(timeoutValue)
+        default:
+            return nil
+        }
     }
 
 }
@@ -120,7 +154,7 @@ extension ConversationInputBarViewController: EphemeralKeyboardViewControllerDel
         updateMarkdownButton()
 
         ZMUserSession.shared()?.enqueue {
-            conversation.messageDestructionTimeout = .local(MessageDestructionTimeoutValue(rawValue: timeout))
+            conversation.setMessageDestructionTimeoutValue(.init(rawValue: timeout), for: .selfUser)
             self.updateRightAccessoryView()
         }
     }
@@ -128,8 +162,10 @@ extension ConversationInputBarViewController: EphemeralKeyboardViewControllerDel
 }
 
 extension ConversationInputBarViewController {
+
     var ephemeralState: EphemeralState {
         var state = EphemeralState.none
+
         if !sendButtonState.ephemeral {
             state = .none
         } else if self.conversation.hasSyncedMessageDestructionTimeout {
@@ -141,11 +177,14 @@ extension ConversationInputBarViewController {
         return state
     }
 
-    func updateInputBar() {
+    func updateViewsForSelfDeletingMessageChanges() {
+        updateAccessoryViews()
+        updateInputBarButtons()
         inputBar.changeEphemeralState(to: ephemeralState)
 
         if conversation.hasSyncedMessageDestructionTimeout {
             dismissEphemeralController()
         }
     }
+
 }

@@ -17,26 +17,35 @@
 //
 
 import UIKit
-import Cartography
 import Ziphy
 import FLAnimatedImage
 import WireCommonComponents
 import WireDataModel
 
-protocol GiphySearchViewControllerDelegate: class {
+protocol GiphySearchViewControllerDelegate: AnyObject {
     func giphySearchViewController(_ giphySearchViewController: GiphySearchViewController, didSelectImageData imageData: Data, searchTerm: String)
 }
 
 final class GiphySearchViewController: VerticalColumnCollectionViewController {
 
+    typealias Giphy = L10n.Localizable.Giphy
+
     weak var delegate: GiphySearchViewControllerDelegate?
 
     let searchResultsController: ZiphySearchResultsController
-    let searchBar: UISearchBar = UISearchBar()
-    let noResultsLabel = UILabel()
+    let searchBar: TextSearchInputView = TextSearchInputView()
+    let noResultsLabel = DynamicFontLabel(text: Giphy.Error.noResult.capitalized,
+                                          fontSpec: .normalRegularFont,
+                                          color: SemanticColors.Label.textSettingsPasswordPlaceholder)
     let conversation: ZMConversation
 
-    var ziphs: [Ziph] = []
+    var ziphs: [Ziph] = [] {
+        didSet {
+            collectionView?.reloadData()
+            noResultsLabel.isHidden = self.ziphs.count > 0
+        }
+    }
+
     var searchTerm: String
     var pendingTimer: Timer?
     var pendingSearchtask: CancelableTask?
@@ -57,10 +66,11 @@ final class GiphySearchViewController: VerticalColumnCollectionViewController {
         let columnCount = AdaptiveColumnCount(compact: 2, regular: 3, large: 4)
         super.init(interItemSpacing: 1, interColumnSpacing: 1, columnCount: columnCount)
 
-        title = ""
+        navigationItem.setupNavigationBarTitle(title: conversation.displayName.capitalized)
         performSearch()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -71,7 +81,7 @@ final class GiphySearchViewController: VerticalColumnCollectionViewController {
     }
 
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return ColorScheme.default.statusBarStyle
+        return .lightContent
     }
 
     fileprivate func cleanUpPendingTask() {
@@ -97,75 +107,87 @@ final class GiphySearchViewController: VerticalColumnCollectionViewController {
 
     private func setupNoResultLabel() {
         extendedLayoutIncludesOpaqueBars = true
-
-        noResultsLabel.text = "giphy.error.no_result".localized(uppercased: true)
         noResultsLabel.isHidden = true
         view.addSubview(noResultsLabel)
+        view.addSubview(searchBar)
     }
 
     private func setupCollectionView() {
         collectionView?.showsVerticalScrollIndicator = false
         collectionView?.accessibilityIdentifier = "giphyCollectionView"
         collectionView?.register(GiphyCollectionViewCell.self, forCellWithReuseIdentifier: GiphyCollectionViewCell.CellIdentifier)
-        let offset = navigationController?.navigationBar.frame.maxY ?? 0
         edgesForExtendedLayout = []
-        collectionView.contentInset = UIEdgeInsets(top: offset,
-                                                   left: 0,
-                                                   bottom: 0,
-                                                   right: 0)
     }
 
     private func setupNavigationItem() {
-        searchBar.text = searchTerm
+        searchBar.searchInput.text = searchTerm
+        searchBar.placeholderString = Giphy.searchPlaceholder.capitalized
         searchBar.delegate = self
-        searchBar.tintColor = .accent()
-        searchBar.placeholder = "giphy.search_placeholder".localized
-        searchBar.barStyle = ColorScheme.default.variant == .dark ? .black : .default
-        searchBar.searchBarStyle = .minimal
-
         let closeImage = StyleKitIcon.cross.makeImage(size: .tiny, color: .black)
-
         let closeItem = UIBarButtonItem(image: closeImage, style: .plain, target: self, action: #selector(onDismiss))
-        closeItem.accessibilityLabel = "general.close".localized
+        closeItem.accessibilityLabel = L10n.Localizable.General.close
 
         navigationItem.rightBarButtonItem = closeItem
-        self.navigationItem.titleView = searchBar
     }
 
     private func createConstraints() {
-        constrain(view, noResultsLabel) { container, noResultsLabel in
-            noResultsLabel.center == container.center
-        }
+        noResultsLabel.translatesAutoresizingMaskIntoConstraints = false
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            noResultsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noResultsLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+            searchBar.topAnchor.constraint(equalTo: view.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            searchBar.heightAnchor.constraint(equalToConstant: 56),
+
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
 
     private func applyStyle() {
-        collectionView?.backgroundColor = UIColor.from(scheme: .background)
-        noResultsLabel.textColor = UIColor.from(scheme: .textPlaceholder)
-        noResultsLabel.font = UIFont.smallLightFont
+        let searchBarIconColor = SemanticColors.SearchBar.backgroundButton
+        collectionView?.backgroundColor = SemanticColors.View.backgroundDefault
+
+        searchBar.iconView.setTemplateIcon(.search, size: .tiny)
+        searchBar.iconView.tintColor = searchBarIconColor
+        searchBar.clearButton.setIconColor(searchBarIconColor, for: .normal)
     }
 
     // MARK: - Presentation
 
     func wrapInsideNavigationController() -> UINavigationController {
         let navigationController = GiphyNavigationController(rootViewController: self)
+        let navigationTextColor = SemanticColors.Label.textDefault
+        let navigationBackgroundColor = SemanticColors.View.backgroundDefault
 
-        let backButtonImage = StyleKitIcon.backArrow.makeImage(size: .tiny, color: .black)
+        let backButtonImage = StyleKitIcon.backArrow.makeImage(size: .tiny, color: SemanticColors.Icon.foregroundDefaultBlack)
             .with(insets: UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0), backgroundColor: .clear)?
             .withAlignmentRectInsets(UIEdgeInsets(top: 0, left: 0, bottom: -4, right: 0))
         navigationController.navigationBar.backIndicatorImage = backButtonImage
         navigationController.navigationBar.backIndicatorTransitionMaskImage = backButtonImage
 
         navigationController.navigationBar.backItem?.backBarButtonItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
-        navigationController.navigationBar.tintColor = UIColor.from(scheme: .textForeground)
-        navigationController.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: ColorScheme.default.variant)
-        navigationController.navigationBar.barTintColor = UIColor.from(scheme: .background)
+
+        navigationController.navigationBar.tintColor = navigationTextColor
+        navigationController.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: navigationTextColor)
+        navigationController.navigationBar.barTintColor = navigationBackgroundColor
         navigationController.navigationBar.isTranslucent = false
+
+        if #available(iOS 15, *) {
+            navigationController.view.backgroundColor = navigationBackgroundColor
+        }
 
         return navigationController
     }
 
     @objc func onDismiss() {
-        self.navigationController?.dismiss(animated: true, completion: nil)
+        navigationController?.dismiss(animated: true, completion: nil)
     }
 
     // MARK: - Collection View
@@ -244,9 +266,9 @@ extension GiphySearchViewController {
 
         let callback: ZiphyListRequestCallback = { [weak self] result in
             if case let .success(ziphs) = result {
-                self?.setInitialSearchResults(ziphs)
+                self?.ziphs = ziphs
             } else {
-                self?.setInitialSearchResults([])
+                self?.ziphs = []
             }
         }
 
@@ -264,12 +286,6 @@ extension GiphySearchViewController {
         pendingTimer = .scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             self?.performSearch()
         }
-    }
-
-    private func setInitialSearchResults(_ results: [Ziph]) {
-        self.ziphs = results
-        self.collectionView?.reloadData()
-        self.noResultsLabel.isHidden = self.ziphs.count > 0
     }
 
 }
@@ -324,16 +340,18 @@ extension GiphySearchViewController: GiphyConfirmationViewControllerDelegate {
 
 }
 
-// MARK: - UISearchBarDelegate
+// MARK: - TextSearchInputViewDelegate
 
-extension GiphySearchViewController: UISearchBarDelegate {
+extension GiphySearchViewController: TextSearchInputViewDelegate {
 
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchTerm = searchBar.text ?? ""
+    func searchView(_ searchView: TextSearchInputView, didChangeQueryTo query: String) {
+
+        searchTerm = searchBar.query
         performSearchAfter(delay: 0.3)
     }
 
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
+    func searchViewShouldReturn(_ searchView: TextSearchInputView) -> Bool {
+        return TextSearchQuery.isValid(query: searchBar.query)
     }
+
 }

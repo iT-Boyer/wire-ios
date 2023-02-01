@@ -82,7 +82,7 @@ final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBase
     convenience init() {
         self.init(audioRecorder: AudioRecorder(
             format: .wav,
-            maxRecordingDuration: ZMUserSession.shared()?.maxAudioLength ,
+            maxRecordingDuration: ZMUserSession.shared()?.maxAudioLength,
             maxFileSize: ZMUserSession.shared()?.maxUploadFileSize))
     }
 
@@ -98,14 +98,19 @@ final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBase
         }
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override public func viewDidLoad() {
+        UIAccessibility.post(notification: .layoutChanged, argument: self)
     }
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         recorder.stopRecording()
-        if isAppLockActive { UIApplication.shared.keyWindow?.endEditing(true) }
+        if isAppLockActive { UIApplication.shared.firstKeyWindow?.endEditing(true) }
     }
 
     // MARK: - View Configuration
@@ -161,7 +166,7 @@ final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBase
         if atRange.location != NSNotFound {
             let effects = AVSAudioEffectType.displayedEffects.filter { $0 != .none }
             let max = UInt32(effects.count)
-            let effect = effects[Int(arc4random_uniform(max))]
+            let effect = effects[Int.random(in: 0..<Int(max))]
             let image = effect.icon.makeImage(size: 14, color: color)
 
             let attachment = NSTextAttachment()
@@ -179,42 +184,50 @@ final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBase
         self.tipLabel.font = FontSpec(.small, .light).font!
         self.tipLabel.textColor = color
         self.tipLabel.textAlignment = .center
+        self.tipLabel.isAccessibilityElement = false
     }
 
     private func createButtons() {
         self.recordButton.setIcon(.recordDot, size: .tiny, for: [])
         self.recordButton.setIconColor(.white, for: [])
         self.recordButton.addTarget(self, action: #selector(recordButtonPressed), for: .touchUpInside)
-        self.recordButton.setBackgroundImageColor(.vividRed, for: .normal)
+        self.recordButton.setBackgroundImageColor(SemanticColors.LegacyColors.vividRed, for: .normal)
         self.recordButton.layer.masksToBounds = true
-        self.recordButton.accessibilityLabel = "record"
 
         self.stopRecordButton.setIcon(.stopRecording, size: .tiny, for: [])
         self.stopRecordButton.setIconColor(.white, for: [])
         self.stopRecordButton.addTarget(self, action: #selector(stopRecordButtonPressed), for: .touchUpInside)
-        self.stopRecordButton.setBackgroundImageColor(.vividRed, for: .normal)
+        self.stopRecordButton.setBackgroundImageColor(SemanticColors.LegacyColors.vividRed, for: .normal)
         self.stopRecordButton.layer.masksToBounds = true
-        self.stopRecordButton.accessibilityLabel = "stopRecording"
 
         self.confirmButton.setIcon(.checkmark, size: .tiny, for: [])
         self.confirmButton.setIconColor(.white, for: [])
         self.confirmButton.addTarget(self, action: #selector(confirmButtonPressed), for: .touchUpInside)
-        self.confirmButton.setBackgroundImageColor(.strongLimeGreen, for: .normal)
+        self.confirmButton.setBackgroundImageColor(SemanticColors.LegacyColors.strongLimeGreen, for: .normal)
         self.confirmButton.layer.masksToBounds = true
-        self.confirmButton.accessibilityLabel = "confirmRecording"
 
         self.redoButton.setIcon(.undo, size: .tiny, for: [])
         self.redoButton.setIconColor(.white, for: [])
         self.redoButton.addTarget(self, action: #selector(redoButtonPressed), for: .touchUpInside)
-        self.redoButton.accessibilityLabel = "redoRecording"
 
         self.cancelButton.setIcon(.cross, size: .tiny, for: [])
         self.cancelButton.setIconColor(.white, for: [])
         self.cancelButton.addTarget(self, action: #selector(cancelButtonPressed), for: .touchUpInside)
-        self.cancelButton.accessibilityLabel = "cancelRecording"
+
+        setupAccessibility()
     }
 
-    func createConstraints() {
+    private func setupAccessibility() {
+        typealias AudioRecord = L10n.Accessibility.AudioRecord
+
+        self.recordButton.accessibilityLabel = AudioRecord.StartButton.description
+        self.stopRecordButton.accessibilityLabel = AudioRecord.StopButton.description
+        self.confirmButton.accessibilityLabel = AudioRecord.SendButton.description
+        self.redoButton.accessibilityLabel = AudioRecord.RedoButton.description
+        self.cancelButton.accessibilityLabel = AudioRecord.CancelButton.description
+    }
+
+    private func createConstraints() {
         [self.audioPreviewView,
          self.timeLabel,
          self.tipLabel,
@@ -392,7 +405,7 @@ final class AudioRecordKeyboardViewController: UIViewController, AudioRecordBase
             let changes: () -> Void = {
                 picker.view.translatesAutoresizingMaskIntoConstraints = false
                 self.topContainer.addSubview(picker.view)
-                picker.view.fitInSuperview()
+                picker.view.fitIn(view: self.topContainer)
                 picker.view.alpha = 1
             }
 

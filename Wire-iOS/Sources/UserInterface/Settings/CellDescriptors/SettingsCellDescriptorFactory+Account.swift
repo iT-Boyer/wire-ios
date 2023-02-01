@@ -62,24 +62,47 @@ extension SettingsCellDescriptorFactory {
 
         sections.append(signOutSection())
 
-        return SettingsGroupCellDescriptor(items: sections, title: "self.settings.account_section".localized, icon: .personalProfile)
+        return SettingsGroupCellDescriptor(items: sections,
+                                           title: L10n.Localizable.Self.Settings.accountSection,
+                                           icon: .personalProfile,
+                                           accessibilityBackButtonText: L10n.Accessibility.AccountSettings.BackButton.description)
     }
 
     // MARK: - Sections
 
     func infoSection() -> SettingsSectionDescriptorType {
+        let federationEnabled = BackendInfo.isFederationEnabled
         var cellDescriptors: [SettingsCellDescriptorType] = []
         cellDescriptors = [nameElement(enabled: userRightInterfaceType.selfUserIsPermitted(to: .editName)),
-                           handleElement(enabled: userRightInterfaceType.selfUserIsPermitted(to: .editHandle))]
+                           handleElement(
+                            enabled: userRightInterfaceType.selfUserIsPermitted(to: .editHandle),
+                            federationEnabled: federationEnabled
+                           )]
 
-        if let user = ZMUser.selfUser(), !user.usesCompanyLogin {
-            if !ZMUser.selfUser().hasTeam || !(ZMUser.selfUser().phoneNumber?.isEmpty ?? true),
-               let phoneElement = phoneElement(enabled: userRightInterfaceType.selfUserIsPermitted(to: .editPhone)) {
+        let user = SelfUser.current
+
+        if !user.usesCompanyLogin {
+            if !user.hasTeam || user.phoneNumber?.isEmpty == false,
+               let phoneElement = phoneElement() {
                 cellDescriptors.append(phoneElement)
             }
 
             cellDescriptors.append(emailElement(enabled: userRightInterfaceType.selfUserIsPermitted(to: .editEmail)))
         }
+
+        if user.hasTeam {
+            cellDescriptors.append(teamElement())
+        }
+
+        if federationEnabled {
+            cellDescriptors.append(domainElement())
+        }
+
+        if URL.selfUserProfileLink != nil {
+            cellDescriptors.append(profileLinkElement())
+            cellDescriptors.append(profileLinkButton())
+        }
+
         return SettingsSectionDescriptor(
             cellDescriptors: cellDescriptors,
             header: "self.settings.account_details_group.info.title".localized,
@@ -178,46 +201,30 @@ extension SettingsCellDescriptorFactory {
         }
     }
 
-    func phoneElement(enabled: Bool = true) -> SettingsCellDescriptorType? {
-        if enabled {
-            return SettingsExternalScreenCellDescriptor(
-                title: "self.settings.account_section.phone.title".localized,
-                isDestructive: false,
-                presentationStyle: .navigation,
-                presentationAction: {
-                    return ChangePhoneViewController()
-                },
-                previewGenerator: { _ in
-                    if let phoneNumber = ZMUser.selfUser().phoneNumber, !phoneNumber.isEmpty {
-                        return SettingsCellPreview.text(phoneNumber)
-                    } else {
-                        return SettingsCellPreview.text("self.add_phone_number".localized)
-                    }
-            },
-                accessoryViewMode: .alwaysHide
-            )
+    func phoneElement() -> SettingsCellDescriptorType? {
+        if let phoneNumber = ZMUser.selfUser().phoneNumber, !phoneNumber.isEmpty {
+            return textValueCellDescriptor(propertyName: .phone, enabled: false)
         } else {
-            if let phoneNumber = ZMUser.selfUser().phoneNumber, !phoneNumber.isEmpty {
-                return textValueCellDescriptor(propertyName: .phone, enabled: enabled)
-            } else {
-                return nil
-            }
+            return nil
         }
     }
 
-    func handleElement(enabled: Bool = true) -> SettingsCellDescriptorType {
+    func handleElement(enabled: Bool = true, federationEnabled: Bool) -> SettingsCellDescriptorType {
+        typealias AccountSection = L10n.Localizable.Self.Settings.AccountSection
         if enabled {
             let presentation: () -> ChangeHandleViewController = {
                 return ChangeHandleViewController()
             }
 
-            if nil != ZMUser.selfUser().handle {
+            if let selfUser = ZMUser.selfUser(), nil != selfUser.handle {
                 let preview: PreviewGeneratorType = { _ in
-                    guard let handleDisplayString = ZMUser.selfUser()?.handleDisplayString else { return .none }
+                    guard let handleDisplayString = selfUser.handleDisplayString(withDomain: federationEnabled) else {
+                        return .none
+                    }
                     return .text(handleDisplayString)
                 }
                 return SettingsExternalScreenCellDescriptor(
-                    title: "self.settings.account_section.handle.title".localized,
+                    title: AccountSection.Handle.title,
                     isDestructive: false,
                     presentationStyle: .navigation,
                     presentationAction: presentation,
@@ -227,7 +234,7 @@ extension SettingsCellDescriptorFactory {
             }
 
             return SettingsExternalScreenCellDescriptor(
-                title: "self.settings.account_section.add_handle.title".localized,
+                title: AccountSection.AddHandle.title,
                 presentationAction: presentation
             )
         } else {
@@ -235,29 +242,46 @@ extension SettingsCellDescriptorFactory {
         }
     }
 
+    func teamElement() -> SettingsCellDescriptorType {
+        return textValueCellDescriptor(propertyName: .team, enabled: false)
+    }
+
+    func domainElement() -> SettingsCellDescriptorType {
+        return textValueCellDescriptor(propertyName: .domain, enabled: false)
+    }
+
+    func profileLinkElement() -> SettingsCellDescriptorType {
+        return SettingsProfileLinkCellDescriptor()
+    }
+
+    func profileLinkButton() -> SettingsCellDescriptorType {
+        return SettingsCopyButtonCellDescriptor()
+    }
+
     func pictureElement() -> SettingsCellDescriptorType {
+        let profileImagePicker = ProfileImagePickerManager()
         let previewGenerator: PreviewGeneratorType = { _ in
             guard let image = ZMUser.selfUser().imageSmallProfileData.flatMap(UIImage.init) else { return .none }
             return .image(image)
         }
 
-        return SettingsExternalScreenCellDescriptor(
-            title: "self.settings.account_picture_group.picture".localized,
-            isDestructive: false,
-            presentationStyle: .modal,
-            presentationAction: ProfileSelfPictureViewController.init,
-            previewGenerator: previewGenerator
-        )
+        let presentationAction: () -> (UIViewController?) = {
+            let actionSheet = profileImagePicker.selectProfileImage()
+            return actionSheet
+        }
+        return SettingsAppearanceCellDescriptor(
+            text: L10n.Localizable.`Self`.Settings.AccountPictureGroup.picture.capitalized,
+            previewGenerator: previewGenerator,
+            presentationStyle: .alert,
+            presentationAction: presentationAction)
     }
 
     func colorElement() -> SettingsCellDescriptorType {
-        return SettingsExternalScreenCellDescriptor(
-            title: "self.settings.account_picture_group.color".localized,
-            isDestructive: false,
-            presentationStyle: .modal,
-            presentationAction: AccentColorPickerController.init,
-            previewGenerator: { _ in .color(ZMUser.selfUser().accentColor) }
-        )
+        return SettingsAppearanceCellDescriptor(
+            text: L10n.Localizable.Self.Settings.AccountPictureGroup.color.capitalized,
+            previewGenerator: { _ in .color(ZMUser.selfUser().accentColor) },
+            presentationStyle: .navigation,
+            presentationAction: AccentColorPickerController.init)
     }
 
     func readReceiptsEnabledElement() -> SettingsCellDescriptorType {
@@ -280,8 +304,7 @@ extension SettingsCellDescriptorFactory {
             presentationAction: {
                 if ZMUser.selfUser().hasValidEmail || ZMUser.selfUser()!.usesCompanyLogin {
                     return BackupViewController.init(backupSource: SessionManager.shared!)
-                }
-                else {
+                } else {
                     let alert = UIAlertController(
                         title: "self.settings.history_backup.set_email.title".localized,
                         message: "self.settings.history_backup.set_email.message".localized,

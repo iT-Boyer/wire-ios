@@ -19,7 +19,6 @@
 import UIKit
 import WireSyncEngine
 import WireCommonComponents
-import WireUtilities
 
 /**
  * The first page of the user settings.
@@ -40,6 +39,7 @@ final class SelfProfileViewController: UIViewController {
     private let accountSelectorController = AccountSelectorController()
     private let profileContainerView = UIView()
     private let profileHeaderViewController: ProfileHeaderViewController
+    private let profileImagePicker = ProfileImagePickerManager()
 
     // MARK: - AppLock
     private var callback: ResultHandler?
@@ -48,10 +48,6 @@ final class SelfProfileViewController: UIViewController {
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return [.portrait]
-    }
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
     }
 
     private var userCanSetProfilePicture: Bool {
@@ -103,7 +99,6 @@ final class SelfProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        profileHeaderViewController.colorSchemeVariant = .dark
         profileHeaderViewController.imageView.addTarget(self, action: #selector(userDidTapProfileImage), for: .touchUpInside)
 
         addChild(profileHeaderViewController)
@@ -124,6 +119,8 @@ final class SelfProfileViewController: UIViewController {
         navigationItem.rightBarButtonItem = navigationController?.closeItem()
         configureAccountTitle()
         createConstraints()
+        setupAccessibility()
+        view.backgroundColor = SemanticColors.View.backgroundDefault
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -138,7 +135,7 @@ final class SelfProfileViewController: UIViewController {
         if SessionManager.shared?.accountManager.accounts.count > 1 {
             navigationItem.titleView = accountSelectorController.view
         } else {
-            title = "self.account".localized(uppercased: true)
+            navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Self.account.capitalized)
         }
     }
 
@@ -172,12 +169,22 @@ final class SelfProfileViewController: UIViewController {
         ])
     }
 
+    private func setupAccessibility() {
+        typealias AccountPage = L10n.Accessibility.AccountPage
+
+        navigationItem.rightBarButtonItem?.accessibilityLabel = AccountPage.CloseButton.description
+        navigationItem.backBarButtonItem?.accessibilityLabel = AccountPage.BackButton.description
+    }
+
     // MARK: - Events
 
     @objc func userDidTapProfileImage(sender: UserImageView) {
         guard userCanSetProfilePicture else { return }
-        let profileImageController = ProfileSelfPictureViewController()
-        self.present(profileImageController, animated: true, completion: .none)
+
+        let alertViewController = profileImagePicker.selectProfileImage()
+        alertViewController.configPopover(pointToView: profileHeaderViewController.imageView)
+
+        present(alertViewController, animated: true)
     }
 
     override func accessibilityPerformEscape() -> Bool {
@@ -226,14 +233,13 @@ extension SelfProfileViewController: SettingsPropertyFactoryDelegate {
         }
 
         self.callback = callback
-        let passcodeSetupViewController = PasscodeSetupViewController(variant: .dark,
-                                                                      context: .createPasscode,
+        let passcodeSetupViewController = PasscodeSetupViewController(context: .createPasscode,
                                                                       callback: callback)
         passcodeSetupViewController.passcodeSetupViewControllerDelegate = self
 
         let keyboardAvoidingViewController = KeyboardAvoidingViewController(viewController: passcodeSetupViewController)
 
-        let wrappedViewController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: DarkBarItemTransparentNavigationBar.self)
+        let wrappedViewController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: TransparentNavigationBar.self)
 
         let closeItem = passcodeSetupViewController.closeItem
 

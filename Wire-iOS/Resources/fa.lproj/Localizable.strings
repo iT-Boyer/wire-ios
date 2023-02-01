@@ -17,7 +17,6 @@
 //
 // General strings
 
-
 "general.ok" = "تایید";
 "general.next" = "بعدی";
 "general.cancel" = "انصراف";
@@ -30,7 +29,7 @@
 "general.later" = "بعد";
 "general.skip" = "الان نه";
 "general.accept" = "میپذیرم";
-"general.decline" = "No, thanks";
+"general.decline" = "نه، متشکرم";
 "general.failure" = "یک مشکلی بوجود آمده است";
 "general.failure.try_again" = "لطفا دوباره امتجان کنید.";
 "general.service" = "سرویس";
@@ -53,7 +52,7 @@
 "peoplepicker.search_placeholder" = "جستجو بر اساس نام یا نام‌کاربری";
 "peoplepicker.header.top_people" = "دوستان محبوب";
 "peoplepicker.button.create_conversation" = "ایجاد گروه";
-"peoplepicker.button.add_to_conversation" = "Add Participants to Group";
+"peoplepicker.button.add_to_conversation" = "Add Participants";
 "peoplepicker.header.conversations" = "گروه‌ها";
 "peoplepicker.header.team_conversations" = "%@ Groups";
 "peoplepicker.header.send_invitation" = "دعوت";
@@ -81,24 +80,20 @@
 
 "peoplepicker.no_contacts_title" = "مخاطبی موجود نیست.";
 
-"peoplepicker.no_matching_results_title" = "نتیجه‌ای یافت نشد.";
-"peoplepicker.no_matching_results_message" = "آدرس کامل ایمیل را وارد کنید.";
 "peoplepicker.no_search_results" = "No matching results. Try entering a different name.";
 
 "peoplepicker.no_matching_results.action.send_invite" = "ارسال یک دعوت‌نامه";
 "peoplepicker.no_matching_results.action.share_contacts" = "به‌اشتراک گذاشتن دوستان";
+"peoplepicker.no_matching_results.action.learn_more" = "بیشتر بدانید";
+"peoplepicker.no_matching_results.action.manage_services" = "مدیریت سرویس ها";
 
-"peoplepicker.no_matching_results_provide_valid_email" = "لطفا یک آدرس ایمیل معتبر وارد کنید";
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "نتیجه‌ای یافت نشد.";
-"peoplepicker.no_matching_results_services_title" = "سرویس ها کمک کننده هایی هستند که می‌توانند گردش کار شما را تقویت کنند. برای فعال کردن آن ها، از مدیر خود درخواست کنید.";
-"peoplepicker.no_matching_results_services_admin_title" = "سرویس ها کمک کننده هایی هستند که می‌توانند گردش کار شما را تقویت کنند.";
-"peoplepicker.no_matching_results_services_manage_services_title" = "مدیریت سرویس ها";
-/* This sentence ends with button title, contained in peoplepicker.no_matching_results_after_address_book_upload_button */
-"peoplepicker.no_matching_results_after_address_book_upload_message" = "وارد کنید آدرس کامل ایمیل یا";
-/*  */
-"peoplepicker.no_matching_results_after_address_book_upload_button" = "به‌اشتراک گذاشتن دوستان";
-
-"peoplepicker.share_contacts.no_results.title" = "با استفاده از نام و یا ایمیل آدرس می‌توانید کاربران دیگر را پیدا کنید";
+"peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
+"peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
+"peoplepicker.no_matching_results.message.users_all_added" = "Everyone’s here.";
+"peoplepicker.no_matching_results.message.services" = "نتیجه‌ای یافت نشد.";
+"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "سرویس ها کمک کننده هایی هستند که می‌توانند گردش کار شما را تقویت کنند.";
+"peoplepicker.no_matching_results.message.services_not_enabled" = "سرویس ها کمک کننده هایی هستند که می‌توانند گردش کار شما را تقویت کنند. برای فعال کردن آن ها، از مدیر خود درخواست کنید.";
 
 "peoplepicker.send_invitation.dialog.title" = "دعوت‌نامه ارسال شد";
 "peoplepicker.send_invitation.dialog.message" = "It can be used for 2 weeks. Send a new one if it expires.";
@@ -112,8 +107,6 @@
 "peoplepicker.quick-action.admin-services" = "مدیریت سرویس ها";
 
 "peoplepicker.federation.domain_unvailable" = "The federated domain is currently not available. [Learn more](%@)";
-
-"add_participants.all_contacts_added" = "Everyone’s here.";
 
 "add_participants.alert.title" = "ظرفیت مکالمه تکمیل است";
 "add_participants.alert.message.new_conversation" = "Up to %d people can join a conversation.";
@@ -142,6 +135,12 @@
 "conversation_list.header.self_team.accessibility_value.active" = "Active now.";
 "conversation_list.header.self_team.accessibility_value.has_new_messages" = "Has new messages.";
 
+// Conversation List Bottom Bar
+"conversation_list.bottom_bar.contacts.title" = "تماس‌ها";
+"conversation_list.bottom_bar.conversations.title" = "گفتگو";
+"conversation_list.bottom_bar.folders.title" = "Folders";
+"conversation_list.bottom_bar.archived.title" = "بایگانی";
+
 // Conversation List Data Usage Permission Dialog
 "conversation_list.data_usage_permission_alert.title" = "به ما برای بهتر شدن Wire کمک کنید";
 "conversation_list.data_usage_permission_alert.message" = "من قبول میکنم که Wire شاید گزارش های ارور و استفاده را به صورت ناشناس برای بهتر کردن نرم افزار Wire ایجاد و استفاده کند. من می‌توانم این اجازه را در هر زمانی لغو کنم.";
@@ -158,19 +157,8 @@
 "conversation_list.voiceover.status.missed_call" = "missed call";
 "conversation_list.voiceover.status.pause_media" = "pause media";
 "conversation_list.voiceover.status.play_media" = "play media";
-"conversation_list.voiceover.status.silenced" = "silenced";
 "conversation_list.voiceover.status.typing" = "typing";
 "conversation_list.voiceover.status.ping" = "پینگ";
-"conversation_list.voiceover.status.mention" = "you are mentioned";
-"conversation_list.voiceover.status.reply" = "reply";
-"conversation_list.voiceover.bottom_bar.recent_button.label" = "recent";
-"conversation_list.voiceover.bottom_bar.recent_button.hint" = "list of recent conversations";
-"conversation_list.voiceover.bottom_bar.folder_button.label" = "folders";
-"conversation_list.voiceover.bottom_bar.folder_button.hint" = "list of conversations organized in folders";
-"conversation_list.voiceover.bottom_bar.archived_button.label" = "archived";
-"conversation_list.voiceover.bottom_bar.archived_button.hint" = "list of archived conversations";
-"conversation_list.voiceover.bottom_bar.contacts_button.label" = "contacts";
-"conversation_list.voiceover.bottom_bar.contacts_button.hint" = "search for people on Wire";
 "conversation_list.voiceover.bottom_bar.compose_button.label" = "compose";
 "conversation_list.voiceover.bottom_bar.compose_button.hint" = "compose messages and save for later";
 "conversation_list.voiceover.bottom_bar.camera_button.label" = "camera";
@@ -196,7 +184,7 @@
 
 // Folders
 
-"folder.creation.name.title" = "Create new folder";
+"folder.creation.name.title" = "ایجاد پوشه جدید";
 "folder.creation.name.button.create" = "ایجاد";
 "folder.creation.name.header" = "Move the conversation \"%@\" to a new folder.";
 "folder.creation.name.footer" = "Maximum 64 characters";
@@ -226,10 +214,8 @@
 "list.section.groups" = "گروه‌ها";
 "list.section.contacts" = "افراد";
 "list.section.requests" = "Requests";
-"list.section.favorites" = "Favorites";
+"list.section.favorites" = "علاقه‌مندی‌ها";
 
-"conversation.voiceover.verified" = "verified";
-"conversation.voiceover.legalhold" = "legal hold";
 "conversation.voiceover.value.active" = "active";
 "conversation.voiceover.value.disabled" = "disabled";
 
@@ -278,8 +264,6 @@
 "compose.contact.title" = "مکالمات";
 "compose.message.title" = "پیام";
 
-"conversation_details.open_button.accessibility_hint" = "Double tap to view the details of the conversation.";
-
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Conversation
 "conversation.invite_more_people.title" = "Spread the word!";
@@ -292,7 +276,7 @@
 
 "conversation.input_bar.verified" = "تایید شده";
 "conversation.input_bar.placeholder" = "پیام خود را بنویسید";
-"conversation.input_bar.placeholder_ephemeral" = "پیام موقت";
+"conversation.input_bar.placeholder_ephemeral" = "Self-deleting message";
 
 "conversation.input_bar.audio_message.tooltip.pull_send" = "Swipe up to send";
 "conversation.input_bar.audio_message.tooltip.tap_send" = "Tap to send";
@@ -313,7 +297,7 @@
 "conversation.connection_view.in_address_book" = "در قسمت مخاطبین";
 
 "conversation.input_bar.shortcut.send" = "Send Message";
-"conversation.input_bar.shortcut.newline" = "Insert line break";
+"conversation.input_bar.shortcut.newline" = "Insert Line Break";
 "conversation.input_bar.shortcut.edit_last_message" = "Edit Last Message";
 "conversation.input_bar.shortcut.cancel_editing_message" = "انصراف";
 "conversation.input_bar.shortcut.choose_previous_mention" = "Choose previous mention";
@@ -327,9 +311,11 @@
 "conversation.create.guidance.empty" = "حداقل یک حرف";
 "conversation.create.guidance.toolong" = "تعداد کاراکترها زیاد است";
 "conversation.create.options.title" = "Conversation options";
-"conversation.create.options.subtitle" = "Guests and services: %@, Read receipts: %@";
-"conversation.create.guests.title" = "اجازه مهمان ها و سرویس ها را بدهید";
-"conversation.create.guests.subtitle" = "این گفتگو را برای سرویس ها و افراد خارج از تیم خود باز کنید.";
+"conversation.create.options.subtitle" = "Guests: %@, Services: %@, Read receipts: %@";
+"conversation.create.guests.title" = "Allow guests";
+"conversation.create.guests.subtitle" = "Open this conversation to people outside your team.";
+"conversation.create.services.title" = "Allow services";
+"conversation.create.services.subtitle" = "Open this conversation to services.";
 "conversation.create.receipts.title" = "رسید های خواندن";
 "conversation.create.receipts.subtitle" = "وقتی این روشن باشد، مردم می‌توانند ببینند که پیامشان در این گفتگو کی خوانده می شوند.";
 
@@ -340,9 +326,15 @@
 
 "conversation.alert.message_deleted" = "The message is deleted.";
 
-"conversation.guests_present" = "مهمان ها حاضرند";
-"conversation.services_present" = "سرویس ها فعال هستند";
-"conversation.guests_services_present" = "مهمان ها و سرویس ها حاضر هستند";
+// Conversation banner
+"conversation.banner.guests" = "Guests";
+"conversation.banner.services" = "سرویس‌ها";
+"conversation.banner.externals" = "Externals";
+"conversation.banner.remotes" = "Federated users";
+"conversation.banner.are_present" = "%@ are present";
+"conversation.banner.are_active" = "%@ are active";
+"conversation.banner.separator" = " and ";
+
 "conversation.action.search" = "جستجو";
 
 // Reply message preview
@@ -357,7 +349,7 @@
 "conversation.input_bar.message_preview.accessibility.image_message" = "Image message";
 "conversation.input_bar.message_preview.accessibility.location_message" = "Location message";
 "conversation.input_bar.message_preview.accessibility.video_message" = "Video message";
-"conversation.input_bar.message_preview.accessibility.audio_message" = "Audio message";
+"conversation.input_bar.message_preview.accessibility.audio_message" = "پیام‌ صوتی";
 "conversation.input_bar.message_preview.accessibility.file_message" = "File message (%@)";
 "conversation.input_bar.message_preview.accessibility.unknown_message" = "Unknown message";
 "conversation.input_bar.message_preview.accessibility.message_from" = "%@ from %@";
@@ -444,16 +436,20 @@
 "content.system.conversation.other.started" = "%@ started a conversation with %@";
 "content.system.conversation.other.added" = "%@ added %@";
 "content.system.conversation.other.removed" = "%@ removed %@";
+"content.system.conversation.other.removed.legalhold" = "%@ was removed from this conversation because legal hold has been activated.";
+"content.system.conversation.others.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.other.left" = "%@ left";
 
 "content.system.conversation.you.started" = "%@ started a conversation with %@";
 "content.system.conversation.you.added" = "%@ added %@";
 "content.system.conversation.you.removed" = "%@ removed %@";
+"content.system.conversation.you.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.you.left" = "%@ left";
 "content.system.conversation.team.member-leave" = "%@ was removed from the team.";
 "content.system.conversation.guest.joined" = "%@ joined";
+"content.system.conversation.guest.you_joined" = "You joined";
 
-"content.system.conversation.invite.title" = "Services and people outside your team can join this conversation.";
+"content.system.conversation.invite.title" = "افراد خارج از تیم شما می‌توانند وارد این گفتگو شوند.";
 "content.system.conversation.invite.button" = "دعوت دوستان";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ removed the conversation name";
@@ -474,8 +470,8 @@
 "content.system.you_wanted_to_talk" = "You called";
 "content.system.ephemeral_time_remaining" = "%@ left";
 
-"content.system.self_user_new_client" = "**You** started using [a new device](%@)";
-"content.system.self_user_new_self_client" = "**You** started using [this device](%@)";
+"content.system.self_user_new_client" = "You started using [a new device](%@)";
+"content.system.self_user_new_self_client" = "You started using [this device](%@)";
 
 "content.system.you_started" = "شما";
 
@@ -531,25 +527,25 @@
 "content.system.new_users" = "New user joined.";
 "content.system.verify_devices" = " دستگاه ها را تایید کنید";
 
-"content.system.unverified_self_devices" = "**You** unverified one of [your devices](%@)";
-"content.system.unverified_other_devices" = "**You** unverified one of [%1$@’s devices](%2$@)";
+"content.system.unverified_self_devices" = "You unverified one of [your devices](%@)";
+"content.system.unverified_other_devices" = "You unverified one of [%1$@’s devices](%2$@)";
 
 "content.system.missing_messages.title" = "شما از این دستگاه مدتی است که استفاده نکرده‌اید. بعضی از پیام‌ها در اینجا ظاهر نمی‌شود.";
 "content.system.missing_messages.subtitle_start" = "Meanwhile,";
 
-"content.system.cannot_decrypt.self" = "A message from **you** could not be decrypted.";
-"content.system.cannot_decrypt.other" = "A message from **%@** could not be decrypted.";
+"content.system.cannot_decrypt.self" = "A message from you could not be decrypted.";
+"content.system.cannot_decrypt.other" = "A message from %@ could not be decrypted.";
 "content.system.cannot_decrypt.reset_session" = "Fix future messages";
 "content.system.cannot_decrypt.error_details" = "(Fixed error: %d ID: %@)";
 
-"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, **you need to resend them.**";
-"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from **%1$@**. To recover lost messages, **ask %1$@ to resend them.**";
+"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, you need to resend them.";
+"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from %1$@. To recover lost messages, ask %1$@ to resend them.";
 
-"content.system.cannot_decrypt_identity_changed.self" = "**Your** device identity changed. Undelivered message.";
-"content.system.cannot_decrypt_identity_changed.other" = "**%@’s** device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
+"content.system.cannot_decrypt_identity_changed.self" = "Your device identity changed. Undelivered message.";
+"content.system.cannot_decrypt_identity_changed.other" = "%@’s device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
 
-"content.system.session_reset.other" = "**%@ was unable to decrypt some of your messages but has solved the issue**. This affected all conversations you share together.";
-"content.system.session_reset.self" = "**You were unable to decrypt some of your messages but you solved the issue**. This affected all conversations.";
+"content.system.session_reset.other" = "%@ was unable to decrypt some of your messages but has solved the issue. This affected all conversations you share together.";
+"content.system.session_reset.self" = "You were unable to decrypt some of your messages but you solved the issue. This affected all conversations.";
 
 "content.system.unknown_message.body" = "This message can’t be displayed. You may be using an older version of Wire.";
 
@@ -617,8 +613,12 @@
 
 "connection_request_pending_title" = "Connection Request";
 "connection_request.send_button_title" = "اتصال";
+"inbox.title" = "Connection Requests";
 "inbox.connection_request.connect_button_title" = "اتصال";
 "inbox.connection_request.ignore_button_title" = "نادیده گرفتن";
+"error.connection.title" = "خطا";
+"error.connection.missing_legalhold_consent" = "You cannot connect to this user due to legal hold.";
+"error.connection.generic_error" = "یک خطای ناگهانی رخ داد، لطفا دوباره امتحان کنی";
 
 // Save image errors
 "library.alert.permission_warning.title" = "Wire needs access to your Photos";
@@ -634,7 +634,7 @@
 "voice.status.video_not_available" = "Video turned off";
 "voice.status.low_connection" = "Bad connection";
 "voice.network_error.title" = "اینترنت قطع است";
-"voice.status.cbr" = "Constant Bit Rate";
+"voice.status.cbr" = "نرخ بیت ثابت";
 "voice.network_error.body" = "برای برقراری تماس شما نیاز دارید که ابتدا آنلاین باشید. لطفا وضعیت اینترنت خود را بررسی کنید.";
 "voice.degradation.new_self_device" = "You started using a new device.";
 "voice.degradation.new_user_device" = "%@ started using a new device.";
@@ -643,13 +643,15 @@
 "voice.accept_button.title" = "میپذیرم";
 "voice.decline_button.title" = "رد کن";
 "voice.hang_up_button.title" = "قطع کنید";
-"voice.mute_button.title" = "بی‌صدا";
-"voice.video_button.title" = "ویدیو";
-"voice.flip_video_button.title" = "Flip";
+"voice.mute_button.title" = "میکروفون";
+"voice.video_button.title" = "دوربین";
+"voice.flip_video_button.title" = "Switch camera";
 "voice.speaker_button.title" = "Speaker";
 "voice.cancel_button.title" = "انصراف";
 "voice.call_button.title" = "تماس";
 "voice.end_call_button.title" = "End Call";
+"voice.pick_up_button.title" = "میپذیرم";
+"voice.calling.title" = "Calling...";
 "voice.call_error.unsupported_version.title" = "Please update Wire";
 "voice.call_error.unsupported_version.message" = "You received a call that isn't supported by this version of Wire.\nGet the latest version in the App Store.";
 "voice.call_error.unsupported_version.dismiss" = "بعد";
@@ -665,6 +667,8 @@
 "voice.top_overlay.tap_to_return" = "Tap to return to call";
 "voice.top_overlay.accessibility_title" = "Ongoing call";
 
+"voice.flip_camera_button.title" = "Flip";
+
 // Voice New
 
 "call.status.connecting" = "در حال اتصال…";
@@ -674,10 +678,10 @@
 "call.status.outgoing.user" = "Calling %@…";
 "call.status.reconnecting" = "Reconnecting…";
 "call.status.terminating" = "Hanging up…";
-"call.status.constant_bitrate" = "Constant Bit Rate";
+"call.status.constant_bitrate" = "نرخ بیت ثابت";
 "call.status.variable_bitrate" = "Variable Bit Rate";
 
-"call.participants.show_all" = "Show All (%@)";
+"call.participants.show_all" = "Participants (%d)";
 "call.participants.list.title" = "Participants";
 
 "call.overlay.switch_to.speakers" = "SPEAKERS";
@@ -687,6 +691,7 @@
 
 "call.grid.hints.fullscreen" = "Double tap on a tile for fullscreen";
 "call.grid.hints.go_back_or_zoom" = "Double tap to go back, pinch to zoom";
+"call.grid.hints.go_back" = "Double tap to go back";
 "call.grid.hints.zoom" = "Pinch to zoom";
 
 "call.video.paused" = "ویدئو متوقف شد";
@@ -699,7 +704,7 @@
 "call.degraded.alert.message.unknown" = "شخصی شروع به استفاده از Wire روی یک دستگاه جدید کرد.";
 "call.degraded.alert.action.continue" = "به هر حال تماس بگیر";
 
-"call.degraded.ended.alert.title" = "Call ended";
+"call.degraded.ended.alert.title" = "تماس پایان یافت";
 "call.degraded.ended.alert.message.self" = "The call was disconnected because you started using a new device.";
 "call.degraded.ended.alert.message.user" = "The call was disconnected because %@ is no longer a verified contact.";
 "call.degraded.ended.alert.message.unknown" = "The call was disconnected because someone is no longer a verified contact.";
@@ -719,7 +724,7 @@
 "call.announcement.incoming" = "Incoming call from %@";
 "call.actions.label.toggle_mute_on" = "بی‌صدا";
 "call.actions.label.toggle_mute_off" = "همراه با صدا";
-"call.actions.label.flip_camera" = "Flip camera";
+"call.actions.label.flip_camera" = "Switch camera";
 "call.actions.label.toggle_speaker_on" = "Enable speaker";
 "call.actions.label.toggle_speaker_off" = "Disable speaker";
 "call.actions.label.accept_call" = "پاسخ به تماس";
@@ -760,7 +765,7 @@
 "meta.menu.unarchive" = "خروج از بایگانی";
 "meta.menu.delete" = "Delete Group…";
 "meta.menu.clear_content" = "Clear Content…";
-"meta.menu.move_to_folder" = "Move to…";
+"meta.menu.move_to_folder" = "انتقال به...";
 "meta.menu.remove_from_folder" = "Remove from \"%@\"";
 "meta.menu.silence.mute" = "بی‌صدا";
 "meta.menu.silence.unmute" = "همراه با صدا";
@@ -857,7 +862,7 @@
 "profile.block_button_title_action" = "مسدود کردن";
 "profile.unblock_button_title_action" = "خارج کردن از مسدود بودن";
 
-"profile.cancel_connection_button_title" = "CANCEL REQUEST";
+"profile.cancel_connection_button_title" = "Cancel Request";
 "profile.connection_request_state.blocked" = "BLOCKED";
 "profile.create_conversation_button_title" = "ایجاد گروه";
 "profile.open_conversation_button_title" = "بار کردن گفتگو";
@@ -875,10 +880,8 @@
 "profile.details.guest" = "مهمان";
 "profile.details.group_admin" = "Group admin";
 "profile.details.partner" = "external";
-
-"profile_view.accessibility.handle" = "نام کاربری";
-"profile_view.accessibility.name" = "Display name";
-"profile_view.accessibility.team_name" = "نام تیم";
+"profile.details.federated" = "ارتباط میان‌سروری";
+"profile.details.blocking_reason" = "This user is blocked due to legal hold. [LEARN MORE](%@)";
 
 // Device list
 "profile.devices.title" = "دستگاه‌ها";
@@ -906,13 +909,16 @@
 "device.type.unknown" = "ناشناخته";
 
 // Bot
-"participants.services.remove_integration.button" = "remove integration";
+"participants.services.remove_integration.button" = "Remove service";
 
 // Group details
-"group_details.guest_options_cell.title" = "مهمان ها و سرویس ها";
+"group_details.guest_options_cell.title" = "Guests";
 "group_details.guest_options_cell.enabled" = "روشن";
 "group_details.guest_options_cell.disabled" = "خاموش";
-"group_details.timeout_options_cell.title" = "پیام موقت";
+"group_details.services_options_cell.title" = "سرویس‌ها";
+"group_details.services_options_cell.enabled" = "روشن";
+"group_details.services_options_cell.disabled" = "خاموش";
+"group_details.timeout_options_cell.title" = "پیام‌های خود تخریب شونده";
 "group_details.notification_options_cell.title" = "آگاه‌سازی‌ها";
 "group_details.notification_options_cell.description" = "شما میتوانید درباره همه چیز آگاه شوید ‌‌‌(شامل تماس های صوتی و تصویری) یا فقط وقتی کسی شما را خطاب می کند یا به یکی از پیام های شما پاسخ می دهد.";
 "group_details.receipt_options_cell.title" = "رسید های خواندن";
@@ -926,8 +932,8 @@
 
 "legalhold.participants.section.title" = "Legal hold subjects";
 "legalhold.header.title" = "Legal Hold";
-"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.";
-"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.\nYour conversation partners will be aware of the recording.";
+"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.";
+"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.\nYour conversation partners will be aware of the recording.";
 "legalhold.accessibility" = "Legal hold details";
 
 
@@ -944,15 +950,9 @@
 "self.about" = "درباره";
 "self.sign_out" = "خروج";
 "self.report_abuse" = "Report Misuse";
-"self.voiceover.label" = "پروفایل";
-"self.voiceover.hint" = "Open profile and settings";
 "self.new-device.voiceover.label" = "Profile, new devices added";
 
-"self.add_phone_number" = "اضافه کردن شماره تلفن";
 "self.add_email_password" = "ایمیل آدرس خود و رمز عبور جدیدی را وارد کنید";
-
-"self.accessibility.profile_photo_image" = "Profile picture";
-"self.accessibility.profile_photo_edit_button" = "Change profile picture";
 
 // About screen
 "about.tos.title" = "شرایط و مقررات استفاده";
@@ -1002,6 +1002,11 @@
 "self.settings.account_section.phone.title" = "تلفن";
 "self.settings.account_section.handle.title" = "نام کاربری";
 "self.settings.account_section.add_handle.title" = "اضافه کردن نام کاربری";
+"self.settings.account_section.team.title" = "تیم";
+"self.settings.account_section.domain.title" = "Domain";
+"self.settings.account_section.profile_link.title" = "لینک پروفایل";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copy Profile Link";
+"self.settings.account_section.profile_link.actions.copied_link" = "Profile Link Copied!";
 
 "self.settings.account_details_group.info.footer" = "مردم شما را با این جزئیات پیدا خواهند کرد.";
 "self.settings.account_details_group.personal.footer" = "This information is not visible .";
@@ -1020,8 +1025,18 @@
 
 "self.settings.encrypt_messages_at_rest.title" = "Encrypt messages at rest";
 
-"self.settings.account_picture_group.picture" = "نمایه";
-"self.settings.account_picture_group.color" = "رنگ";
+"self.settings.account_picture_group.picture" = "Profile picture";
+"self.settings.account_picture_group.alert.title" = "Change your profile picture";
+"self.settings.account_picture_group.alert.choose_picture" = "Choose from Library";
+"self.settings.account_picture_group.alert.take_picture" = "Take Photo";
+"self.settings.account_picture_group.color" = "Profile color";
+"self.settings.account_picture_group.accent_color.blue" = "Blue";
+"self.settings.account_picture_group.accent_color.green" = "Green";
+"self.settings.account_picture_group.accent_color.yellow" = "Yellow";
+"self.settings.account_picture_group.accent_color.red" = "Red";
+"self.settings.account_picture_group.accent_color.amber" = "Amber";
+"self.settings.account_picture_group.accent_color.turquoise" = "Turquoise";
+"self.settings.account_picture_group.accent_color.purple" = "Purple";
 
 "self.settings.account_personal_information_group.title" = "Personal Information";
 
@@ -1090,7 +1105,7 @@
 "self.settings.account_section.phone_number.change.remove.action" = "Remove Phone Number";
 
 "self.settings.account_section.phone_number.change.verify.save" = "ذخيره";
-"self.settings.account_section.phone_number.change.verify.title" = "Verify";
+"self.settings.account_section.phone_number.change.verify.title" = "تایید";
 "self.settings.account_section.phone_number.change.verify.description" = "Enter the verification code we sent to: %@.";
 
 "self.settings.account_section.phone_number.change.verify.code_placeholder" = "Enter code";
@@ -1120,8 +1135,11 @@
 "self.settings.callkit.caption" = "Share with iOS";
 "self.settings.callkit.description" = "Show Wire calls on the lock screen and in iOS call history. If iCloud is enabled, call history is shared with Apple.";
 
+"self.settings.mute_other_call.caption" = "Silence other calls";
+"self.settings.mute_other_call.description" = "Enable to silence incoming calls when you are already in an ongoing call.";
+
 "self.settings.vbr.title" = "رمزگذاری متغیر نرخ بیت";
-"self.settings.vbr.description" = "این باعث استفاده کمتر تماس صوتی از داده شده و بر روی شبکه هایی با سرعت کم بهتر کار میکند. برای رمزگذاری ثابت نرخ بیت غیر فعال کنید.";
+"self.settings.vbr.description" = "This makes audio calls use less data and work better on slower networks. Turn off to use constant bitrate encoding (CBR). This setting only affects 1:1 calls; conference calls always use CBR encoding.";
 
 "self.settings.sound_menu.sounds.wire_call" = "Wire Call";
 "self.settings.sound_menu.sounds.wire_message" = "Wire Message";
@@ -1167,6 +1185,8 @@
 
 // Developer options
 "self.settings.developer_options.title" = "Developer Options";
+"self.settings.developer_options.loggin.title" = "گزینه‌ها";
+"self.settings.developer_options.database_statistics.title" = "Database Statistics";
 "self.settings.apns_logging.title" = "APNS Logging";
 
 // Privacy (visibility) options
@@ -1272,7 +1292,7 @@
 
 // Landing screen
 
-"landing.header" = "Wire. Add your Account.";
+"landing.header" = "Wire. Log in or create a personal account.";
 "landing.welcome_message" = "Trying to create a Pro or Enterprise account for your business or organization?";
 "landing.welcome_submessage" = "Unfortunately, that's not possible in the app - once you have created your team, you can log in here";
 "landing.create_account.title" = "Create a Wire personal account";
@@ -1284,24 +1304,16 @@
 "landing.login.button.title" = "وارد شوید";
 "landing.login.email.button.title" = "Log in with email";
 "landing.login.enterprise.button.title" = "Enterprise log in";
-"landing.login.sso.button.title" = "Log in with SSO";
+"landing.login.sso.button.title" = "ورود با SSO";
 
 "landing.custom_backend.title" = "Connected to \"%@\"";
 "landing.custom_backend.more_info.button.title" = "نمایش بیشتر";
 "landing.custom_backend.more_info.alert.title" = " You are connected to a third-party server: %@";
+"landing.custom_backend.alert.title" = "On-premises Backend";
+"landing.custom_backend.alert.message.backend-name" = "Backend name:";
+"landing.custom_backend.alert.message.backend-url" = "Backend URL:";
 
 // Create team
-
-"team.name.headline" = "نام تیم شما";
-"team.name.subheadline" = "شما همیشه می‌توانید آن را بعدا تغییر دهید.";
-"team.name.textfield.placeholder" = "team name";
-"team.name.textfield.accessibility" = "Set team name";
-"team.name.whatiswireforteams" = "What is Wire Pro?";
-
-"team.email.headline" = "حساب کاربری شما";
-"team.email.subheadline" = "آدرس ایمیل کار خود را وارد کنید.";
-"team.email.textfield.placeholder" = "Your company email";
-"team.email.button.learn_more" = "Learn More";
 
 "team.activation_code.headline" = "شما ایمیل دریافت کردید";
 "team.phone_activation_code.headline" = "Verification";
@@ -1319,28 +1331,13 @@
 "verification.code_label" = "Six-digit code. Text field.";
 "verification.code_hint" = "Double tap to enter the code.";
 
-// Invite Team Members
-
-"team.invite.header.title" = "تیم خود را بسازید";
-"team.invite.header.subtitle" = "Your Wire team is ready to go. Invite your colleagues as members.";
-"team.invite.textfield.placeholder" = "Colleague's email";
-"team.invite.textfield.accesibility" = "Enter email address for colleague to invite.";
-"team.invite.learn_more.title" = "بیشتر بدانید";
-"team.invite.top_bar.skip" = "رد شدن";
-"team.invite.top_bar.done" = "انجام شد";
-
-// Team Invite Errors
-"team.invite.error.generic" = "یک خطای ناگهانی رخ داد، لطفا دوباره امتحان کنی";
-"team.invite.error.already_registered" = "This email address is already in use";
-"team.invite.error.already_invited" = "This email has already been invited";
-"team.invite.error.too_many_invitations" = "The maximum number of invitations has been sent";
 "team.invite.error.no_internet" = "اینترنت قطع است";
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "اجازه مهمان ها و سرویس ها را بدهید";
-"guest_room.allow_guests.subtitle" = "این گفتگو را برای سرویس ها و افراد خارج از تیم خود باز کنید.";
-"guest_room.remove_guests.message" = "مهمان ها و سرویس های فعلی از این گفتگو حذف می شوند. اجازه مهمان ها و سرویس های جدید داده نمی شود.";
+"guest_room.allow_guests.title" = "Allow guests";
+"guest_room.allow_guests.subtitle" = "Open this conversation to people outside your team.";
+"guest_room.remove_guests.message" = "Current guests will be removed from the conversation. New guests will not be allowed.";
 "guest_room.remove_guests.action" = "حذف";
 "guest_room.revoke_link.message" = "مهمان های جدید نمی توانند با این لینک وارد شوند. مهمان های فعلی همچنان دسترسی خواهند داشت.";
 "guest_room.revoke_link.action" = "Revoke Link";
@@ -1348,8 +1345,11 @@
 "guest_room.error.generic.title" = "یک مشکلی بوجود آمده است";
 "guest_room.error.generic.message" = "Check your connection and try again";
 
-"guest_room.link.header.title" = "دعوت دیگران با لینک";
-"guest_room.link.header.subtitle" = "هرکسی می تواند با این لینک عضو این گفتگو شود، حتی اگر آن ها Wire نداشته باشند.";
+"guest_room.link.header.title" = "Guest Links";
+"guest_room.link.header.subtitle" = "Invite others with a link to this conversation. Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.not_allowed.for_self_team.explanation" = "Generating guest links is not allowed in your team.";
+"guest_room.link.not_allowed.for_other_team.explanation" = "You can't generate a guest link in this conversation, as it has been created by someone from another team and this team is not allowed to use guest links.";
+"guest_room.link.disabled.for_other_team.explanation" = "You can't disable the guest option in this conversation, as it has been created by someone from another team.";
 
 "guest_room.link.button.title" = "Create Link";
 
@@ -1362,6 +1362,14 @@
 
 "guest_room.expiration.hours_left" = "%@h left";
 "guest_room.expiration.less_than_minutes_left" = "Less than %@m left";
+
+// Services Options
+
+"services_options.allow_services.title" = "Allow services";
+"services_options.allow_services.subtitle" = "Open this conversation to services.";
+"services_options.remove_services.message" = "Current services will be removed from the conversation. New services will not be allowed.";
+"services_options.remove_services.action" = "حذف";
+
 
 // Registration
 
@@ -1420,7 +1428,7 @@
 "registration.no_history.restore_backup_failed.wrong_version.message" = "این پشتیبان با یک ورژن قدیمی تر یا جدید تر Wire ایجاد شده و نمی‌تواند اینجا بازیابی شود.";
 
 // SSO – Company Login
-"login.sso.alert.title" = "Enterprise Login";
+"login.sso.alert.title" = "ورود سازمانی";
 "login.sso.alert.message.sso_and_email" = "Please enter your email or SSO code. If your email matches an enterprise installation of Wire, this app will connect to that server.";
 "login.sso.alert.message.sso_only" = "Please enter your SSO code:";
 "login.sso.alert.action" = "وارد شوید";
@@ -1437,11 +1445,11 @@
 "login.sso.error.alert.invalid_status.message" = "Please try again later (error %@).";
 "login.sso.error.alert.invalid_format.message.sso_only" = "Please enter a valid SSO access code";
 "login.sso.error.alert.invalid_format.message.sso_and_email" = "Please enter a valid email or SSO access code";
-"login.sso.error.alert.domain_not_registered.message" = "This email cannot be used for enterprise login. Please enter the SSO code to proceed.";
+"login.sso.error.alert.domain_not_registered.message" = "این ایمیل نمیتواند برای ثبت ورود بصورت سازمانی استفاده شود. لطفا کد SSO را برای ادامه وارد کنید.";
 "login.sso.error.alert.domain_associated_with_wrong_server.message" = "This email is linked to a different server, but the app can only be connected to one server at a time. Please log out of all Wire accounts on this device and try to login again.";
 "login.sso.error.alert.unknown.message" = "لطفا بعدا دوباره تلاش کنید.";
-"login.sso.backend_switch.title" = "Redirecting...";
-"login.sso.backend_switch.subtitle" = "You are being redirected to your dedicated enterprise service.";
+"login.sso.backend_switch.title" = "تغییر مسیر...";
+"login.sso.backend_switch.subtitle" = "در حال هدایت به سرویس سازمانی خود هستید";
 "login.sso.backend_switch.information" = "Provide credentials only if you're sure this is your organization's log in.";
 
 
@@ -1481,7 +1489,7 @@
 "registration.share_contacts.hero.title" = "Find people on Wire";
 "registration.share_contacts.hero.paragraph" = "Share your contacts so we can connect you with others. We anonymize all information and do not share it with anyone else.";
 "registration.share_contacts.find_friends_button.title" = "به‌اشتراک گذاشتن دوستان";
-"registration.share_contacts.skip_button.title" = "Not now";
+"registration.share_contacts.skip_button.title" = "اکنون نه";
 
 "registration.address_book_access_denied.hero.title" = "Wire does not have access to your contacts.";
 "registration.address_book_access_denied.hero.paragraph1" = "Wire helps find your friends if you share your contacts.";
@@ -1515,7 +1523,7 @@
 
 "signin.use_email.label" = "Login with Email";
 "signin.use_phone.label" = "Login with Phone";
-"signin.forgot_password" = "Forgot password?";
+"signin.forgot_password" = "گذرواژه را فراموش کرده‌اید؟";
 "signin.use_one_password.label" = "Log in with 1Password";
 "signin.use_one_password.hint" = "Double tap to fill your password with 1Password";
 "signin.confirm" = "وارد شدن";
@@ -1539,7 +1547,7 @@
 
 "registration.add_phone_number.hero.title" = "اضافه کردن شماره تلفن";
 "registration.add_phone_number.hero.paragraph" = "This helps us find people you may know. We never share it.";
-"registration.add_phone_number.skip_button.title" = "Not now";
+"registration.add_phone_number.skip_button.title" = "اکنون نه";
 
 "registration.add_email_password.hero.title" = "Add your email and password";
 "registration.add_email_password.hero.paragraph" = "این به شما کمک می‌کند تا در دستگاه‌های مختلف از Wire استفاده کنید.";
@@ -1575,7 +1583,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "یک خطای ناگهانی رخ داد، لطفا دوباره امتحان کنی";
 "error.user.needs_credentials" = "لطفا اطلاعات وارده شده را بررسی، تایید و دوباره امتحان کنید.";
-"error.user.domain_blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"error.user.domain_blocked" = "You can't create this account as your email domain is intentionally blocked.\nPlease ask your team admin to invite you via email.";
 "error.user.invalid_credentials" = "لطفا اطلاعات وارده شده را بررسی، تایید و دوباره امتحان کنید.";
 "error.user.account_pending_activation" = "The account you are trying access is pending activation. Please verify your details.";
 "error.user.network_error" = "There seems to be a problem with your network. Please try again later.";
@@ -1613,6 +1621,9 @@
 "error.conversation.cannot_remove" = "Removing the participant failed";
 "error.conversation.too_many_members" = "The conversation is full";
 "error.conversation.offline" = "There seems to be a problem with your Internet connection. Please make sure it’s working.";
+"error.conversation.missing_legalhold_consent" = "Due to legal hold, only team members can be added to this conversation";
+"error.message.send.missing_legalhold_consent" = "You cannot send this message because you have at least one outdated device that does not support legal hold. Please update all your devices or remove them from the app settings";
+"error.message.send.title" = "Messages cannot be sent";
 
 "sketchpad.initial_hint" = "Tap colors to change brush size";
 
@@ -1624,13 +1635,49 @@
 "push.notification.new_user" = "%@ joined Wire";
 "push.notification.new_message" = "پیام جدید";
 
-
-//Force Update
+// Force Update
 "force.update.title" = "Update necessary";
 "force.update.message" = "You are missing out on new features.\nGet the latest version of Wire in the App Store.";
 "force.update.ok_button" = "Go to App Store";
 
-//Jailbroken alert
+// Feature configs
+"feature_config.alert.generic_title" = "تنظیمات تیم تغییر یافت";
+
+// Feature configs: file sharing
+"feature_config.update.file_sharing.alert.title" = "There has been a change in Wire";
+"feature_config.update.file_sharing.alert.message.disabled" = "Sharing and receiving files of any type is now disabled.";
+"feature_config.update.file_sharing.alert.message.enabled" = "Sharing and receiving files of any type is now enabled.";
+"feature_config.file_sharing_restrictions.file" = "دریافت فایل ممنوع شده است";
+"feature_config.file_sharing_restrictions.picture" = "دریافت تصویر ممنوع شده است";
+"feature_config.file_sharing_restrictions.video" = "دریافت ویدئو ممنوع شده است";
+"feature_config.file_sharing_restrictions.audio" = "Receiving audio files is prohibited";
+
+//Feature flag - Conference calling
+"feature_config.update.conference_calling.alert.title" = "Enterprise plan";
+"feature_config.update.conference_calling.alert.message" = "Your team was upgraded to the Enterprise plan. You now have access to features such as starting conference calls.";
+"feature_config.update.conference_calling.alert.message.learn_more" = "Learn more about the Enterprise plan";
+
+"feature_config.conference_calling_restrictions.admins.alert.title" = "ارتقا به طرح سازمانی";
+"feature_config.conference_calling_restrictions.admins.alert.message" = "Your team is currently on the free Basic plan. Upgrade to Enterprise to access features such as starting conference calls.";
+"feature_config.conference_calling_restrictions.admins.alert.message.learn_more" = "Learn more about Wire’s pricing";
+"feature_config.conference_calling_restrictions.admins.alert.action.upgrade" = "اکنون ارتقا دهید";
+
+"feature_config.conference_calling_restrictions.members.alert.title" = "ویژگی موجود نیست";
+"feature_config.conference_calling_restrictions.members.alert.message" = "برای آغاز تماس کنفرانس، تیم شما باید به طرح سازمانی ارتقا داده شود.";
+
+"feature_config.conference_calling_restrictions.personal.alert.title" = "ویژگی موجود نیست";
+"feature_config.conference_calling_restrictions.personal.alert.message" = "The option to initiate a conference call is only available in the paid version of Wire.";
+
+// Feature configs: self-deleting messages
+"feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timer before writing a message.";
+"feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Generating guest links is now disabled for all group admins.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Generating guest links is now enabled for all group admins.";
+
+// Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak detected";
 "jailbrokendevice.alert.message" = "For security reasons, Wire can't be used on this device. Any existing Wire data has been erased.";
 
@@ -1641,6 +1688,10 @@
 "databaseloadingfailure.alert.delete_database" = "Delete Database";
 "databaseloadingfailure.alert.delete_database.message" = "By deleting the database, all local data and messages for this account will be permanently deleted.";
 "databaseloadingfailure.alert.delete_database.continue" = "ادامه";
+
+// Backend not supported alert
+"backend_not_supported.alert.title" = "Server version not supported";
+"backend_not_supported.alert.message" = "The server version is not supported by this app. Please contact your system administrator.";
 
 // Third Party
 "giphy.conversation.message" = "%@ · via giphy.com";
@@ -1657,7 +1708,7 @@
 "invite_banner.invite_button_title" = "Invite more people";
 
 // Collections
-"collections.section.images.title" = "تصاویر";
+"collections.section.images.title" = "Images";
 "collections.section.files.title" = "فایل‌ها";
 "collections.section.videos.title" = "Videos";
 "collections.section.links.title" = "لینک‌ها";
@@ -1689,8 +1740,6 @@
 
 "availability.message.cancel" = "انصراف";
 "availability.message.set_status" = "وضعیت را تنظیم کنید";
-"availability.accessibility_label.change_status" = "Change Status";
-"availability.accessibility_label.status" = "Status";
 
 "availability.none" = "هیچ‌کدام";
 "availability.available" = "در دسترس";
@@ -1736,10 +1785,18 @@
 "url_action.switch_backend.error.invalid_backend.title" = "The server is not responding";
 "url_action.switch_backend.error.invalid_backend" = "Please check your internet connection, verify the link and try again.";
 
+// Placeholder: conversation name
+"url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
+"url_action.join_conversation.confirmation.confirm_button" = "پیوستن";
+
+"url_action.join_conversation.error.alert.title" = "You could not join the conversation";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "The conversation is full.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "The conversation link is invalid.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Learn more about guest links";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire can't find this person.";
-"url_action.invalid_user.message" = "You may not have permission with this account or it no longer exists.";
+"url_action.invalid_user.message" = "ممکن است شما با این جساب کاربری اجازه دسترسی ندارید و یا اجازه دسترسی منقضی شده است.";
 
 "url_action.invalid_conversation.title" = "Wire can't open this conversation.";
 "url_action.invalid_conversation.message" = "You may not have permission with this account or the person may not be on Wire.";
@@ -1754,7 +1811,7 @@
 // News and offers consent prompt
 
 "news_offers.consent.title" = "Do you want to receive news and product updates from Wire via email?";
-"news_offers.consent.message" = "You can unsubscribe at any time.";
+"news_offers.consent.message" = "شما در هر زمان میتوانید اشتراک را لغو کنید.";
 "news_offers.consent.button.privacy_policy.title" = "سیاست حفظ از حریم خصوصی";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1791,14 +1848,14 @@
 // Legal hold - alert
 "legalhold_request.button.accessibility" = "Pending approval.";
 "legalhold_request.alert.title" = "Legal Hold Requested";
-"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and timed messages in all conversations.";
+"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and self-deleting messages in all conversations.";
 "legalhold_request.alert.detail.enter_password" = "جهت تایید، رمز عبور خود را وارد کنید.";
 "legalhold_request.alert.error_wrong_password" = "Wrong Password";
 
 // Legal hold activated
 "legalhold_active.alert.title" = "Legal Hold is Active";
 "legalhold_active.alert.learn_more" = "Learn More";
-"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and timed messages.\n\nYour conversation partners will be aware of the recording.";
+"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and self-deleting messages.\n\nYour conversation partners will be aware of the recording.";
 
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Your session expired";
@@ -1820,10 +1877,10 @@
 
 // Custom app lock - create passcode
 "create_passcode.textfield.placeholder" = "";
-"create_passcode.title_label" = "Create a passcode";
-"create_passcode.info_label" = "It will be used to unlock Wire. If you forget this passcode **it can not be recovered.**";
-"create_passcode.info_label_forced_applock" = "Create a passcode to unlock Wire. Please remember it, as **it can not be recovered.**";
-"create_passcode.create_button.title" = "create passcode";
+"create_passcode.title_label" = "Set a passcode";
+"create_passcode.info_label" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.info_label_forced_applock" = "The app will lock itself after a certain time of inactivity. To unlock the app you need to enter this passcode. Make sure to remember it as there is no way to recover.";
+"create_passcode.create_button.title" = "Set a Passcode";
 
 // Custom app lock - create passcode validation
 "create_passcode.validation.too_short" = "At least eight characters long";
@@ -1835,9 +1892,9 @@
 // Custom app lock - unlock
 "unlock.textfield.placeholder" = "Enter your passcode";
 "unlock.title_label" = "Enter passcode to unlock Wire";
-"unlock.wipe_button" = "Access as new device";
+"unlock.wipe_button" = "Forgot your app lock passcode?";
 "unlock.error_label" = "Wrong passcode";
-"unlock.submit_button.title" = "unlock";
+"unlock.submit_button.title" = "Unlock";
 
 // Custom app lock - warning screen
 "warning_screen.title_label" = "There was a change in Wire";
@@ -1847,16 +1904,16 @@
 
 // Wipe database
 
-"wipe_database.title_label" = "Access as new device";
-"wipe_database.info_label" = "The data stored on this device can only be accessed with your passcode.\n\nIf you have forgotten your passcode, you can delete the database to log in again as a new device.\n\nBy deleting the database, ";
+"wipe_database.title_label" = "Forgot your app lock passcode?";
+"wipe_database.info_label" = "The data stored on this device can only be accessed with your app lock passcode. If you have forgotten your passpcode, you can reset this device. Please enter your Wire account password to reset this device and log in again. By resetting your device,";
 "wipe_database.info_label.highlighted" = "all local data and messages for this account will be permanently deleted.";
 
-"wipe_database.button.title" = "I want to delete the database";
+"wipe_database.button.title" = "Reset Device";
 
 // Wipe database alert
 
-"wipe_database.alert.description" = "Confirm database deletion";
-"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device.";
+"wipe_database.alert.description" = "Reset Device";
+"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device,\nto reset this device and log in again";
 "wipe_database.alert.placeholder" = "Type 'Delete'";
 "wipe_database.alert.confirm" = "حذف";
 "wipe_database.alert.confirm_input" = "حذف";
@@ -1873,4 +1930,30 @@
 "appLockModule.message.passcode" = "Unlock Wire with Passcode";
 "appLockModule.message.passcodeUnavailable" = "To unlock Wire, turn on Passcode in your device settings";
 "appLockModule.unlockButton.title" = "Unlock";
-"appLockModule.goToSettingsButton.title" = "Go to settings";
+"appLockModule.goToSettingsButton.title" = "Go to Settings";
+
+//MARK: - Keyboard shortcut
+"keyboardshortcut.scrollToBottom" = "Scroll to Bottom";
+"keyboardshortcut.conversationDetail" = "Conversation Details...";
+"keyboardshortcut.searchInConversation" = "Search in Conversation...";
+"keyboardshortcut.openPeople" = "افراد";
+
+// MARK: - Security classification
+"security_classification.security_level" = "Security level:";
+"security_classification.level.bund" = "VS-NfD";
+"security_classification.level.not_classified" = "UNCLASSIFIED";
+
+"proxy-credentials.title" = "Proxy Credentials";
+// url of proxy server as backend
+"proxy-credentials.caption" = "This backend is configured to use the following proxy server: %@.";
+"proxy-credentials.username.label" = "Proxy Email or Username";
+"proxy-credentials.username.placeholder" = "Email or Username";
+"proxy-credentials.password.label" = "Proxy Password";
+"proxy-credentials.password.placeholder" = "پسورد";
+
+"landing.alert.create-new-account.not-supported.title" = "Not supported";
+"landing.alert.create-new-account.not-supported.message" = "You can't create a personal account on an on-premises backend with proxy support.";
+"landing.alert.sso.not-supported.title" = "Not supported";
+"landing.alert.sso.not-supported.message" = "You can't log in via SSO on an on-premises backend with proxy support.";
+"credentials.general-error.alert.title" = "Invalid Information";
+"credentials.general-error.alert.message" = "These account credentials are incorrect. Please verify your details and try again.";

@@ -17,8 +17,9 @@
 //
 
 import UIKit
+import WireCommonComponents
 
-protocol UserNameTakeOverViewControllerDelegate: class {
+protocol UserNameTakeOverViewControllerDelegate: AnyObject {
     func takeOverViewController(_ viewController: UserNameTakeOverViewController, didPerformAction action: UserNameTakeOverViewControllerAction)
 }
 
@@ -28,18 +29,26 @@ enum UserNameTakeOverViewControllerAction {
 
 final class UserNameTakeOverViewController: UIViewController {
 
-    public let displayNameLabel = UILabel()
-    public let suggestedHandleLabel = UILabel()
+    typealias RegistrationSelectHandle = L10n.Localizable.Registration.SelectHandle.Takeover
+    typealias LabelColors = SemanticColors.Label
+
+    public let displayNameLabel = DynamicFontLabel(fontSpec: .largeThinFont,
+                                                   color: LabelColors.textMessageDetails)
+    public let suggestedHandleLabel = DynamicFontLabel(fontSpec: .largeFont,
+                                                       color: LabelColors.textDefault)
     public let subtitleTextView = WebLinkTextView()
 
-    private let chooseOwnButton = Button(style: .full)
-    private let keepSuggestedButton = Button(style: .empty, variant: .dark)
+    private let chooseOwnButton = Button(style: .accentColorTextButtonStyle,
+                                         cornerRadius: 16,
+                                         fontSpec: .normalSemiboldFont)
+    private let keepSuggestedButton = Button(style: .secondaryTextButtonStyle,
+                                             cornerRadius: 16,
+                                             fontSpec: .normalSemiboldFont)
     private let contentView = UIView()
     private let topContainer = UIView()
     private let suggestedHandle: String
     private let name: String
-
-    private let learnMore = "registration.select_handle.takeover.subtitle_link".localized
+    private let learnMore = RegistrationSelectHandle.subtitleLink
     fileprivate let learnMoreURL = URL(string: "action://learn-more")!
 
     weak var delegate: UserNameTakeOverViewControllerDelegate?
@@ -50,6 +59,7 @@ final class UserNameTakeOverViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -61,23 +71,19 @@ final class UserNameTakeOverViewController: UIViewController {
     }
 
     func setupViews() {
-        view.backgroundColor = UIColor.clear
+        view.backgroundColor = SemanticColors.View.backgroundDefault
         view.addSubview(contentView)
         [displayNameLabel, suggestedHandleLabel].forEach(topContainer.addSubview)
         [topContainer, subtitleTextView, chooseOwnButton, keepSuggestedButton].forEach(contentView.addSubview)
 
-        displayNameLabel.font = FontSpec(.large, .thin).font!
-        displayNameLabel.textColor = UIColor.from(scheme: .textDimmed, variant: .light)
         displayNameLabel.text = name
         displayNameLabel.textAlignment = .center
 
-        suggestedHandleLabel.font = FontSpec(.large, .none).font!
-        suggestedHandleLabel.textColor = UIColor.from(scheme: .textForeground, variant: .dark)
         suggestedHandleLabel.text = "@" + suggestedHandle
         suggestedHandleLabel.textAlignment = .center
 
-        chooseOwnButton.setTitle("registration.select_handle.takeover.choose_own".localized, for: .normal)
-        keepSuggestedButton.setTitle("registration.select_handle.takeover.keep_suggested".localized, for: .normal)
+        chooseOwnButton.setTitle(RegistrationSelectHandle.chooseOwn, for: .normal)
+        keepSuggestedButton.setTitle(RegistrationSelectHandle.keepSuggested, for: .normal)
 
         setupSubtitleLabel()
 
@@ -90,11 +96,11 @@ final class UserNameTakeOverViewController: UIViewController {
         subtitleTextView.textAlignment = .natural
         subtitleTextView.linkTextAttributes = [NSAttributedString.Key.underlineStyle: NSUnderlineStyle().rawValue as NSNumber]
 
-        let font = FontSpec(.large, .thin).font!
-        let linkFont = FontSpec(.large, .none).font!
-        let color = UIColor.from(scheme: .textForeground, variant: .dark)
+        let font = FontSpec.largeThinFont.font!
+        let linkFont = FontSpec.largeFont.font!
+        let color = LabelColors.textDefault
 
-        let subtitle = "registration.select_handle.takeover.subtitle".localized
+        let subtitle = RegistrationSelectHandle.subtitle
         let linkAttributes: [NSAttributedString.Key: Any] = [
             .font: linkFont,
             .link: learnMoreURL
@@ -102,16 +108,19 @@ final class UserNameTakeOverViewController: UIViewController {
 
         let text = (subtitle && font && color) + " " + (learnMore && linkAttributes && color)
         subtitleTextView.attributedText = text
-        subtitleTextView.accessibilityLabel = text.string
         subtitleTextView.delegate = self
     }
 
-    func createConstraints() {
+    private func createConstraints() {
 
         [displayNameLabel, suggestedHandleLabel, topContainer, subtitleTextView, chooseOwnButton, keepSuggestedButton, contentView].prepareForLayout()
 
-        displayNameLabel.fitInSuperview(exclude: [.top, .bottom])
-        suggestedHandleLabel.fitInSuperview(exclude: [.top, .bottom])
+        NSLayoutConstraint.activate([
+            displayNameLabel.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor),
+            displayNameLabel.trailingAnchor.constraint(equalTo: topContainer.trailingAnchor),
+            suggestedHandleLabel.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor),
+            suggestedHandleLabel.trailingAnchor.constraint(equalTo: topContainer.trailingAnchor)
+        ])
 
         NSLayoutConstraint.activate([
             displayNameLabel.bottomAnchor.constraint(equalTo: topContainer.centerYAnchor, constant: -4),
@@ -121,38 +130,52 @@ final class UserNameTakeOverViewController: UIViewController {
         let inset: CGFloat = 28
         let edgeInsets = EdgeInsets(margin: inset)
 
-        contentView.fitInSuperview()
-        topContainer.fitInSuperview(with: edgeInsets, exclude: [.bottom])
+        contentView.fitIn(view: view)
+        NSLayoutConstraint.activate([
+            topContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: edgeInsets.leading),
+            topContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -edgeInsets.trailing),
+            topContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: edgeInsets.top)
+        ])
 
         NSLayoutConstraint.activate([
             topContainer.bottomAnchor.constraint(equalTo: subtitleTextView.topAnchor)
             ])
 
-        subtitleTextView.fitInSuperview(with: edgeInsets, exclude: [.top, .bottom])
+        NSLayoutConstraint.activate([
+            subtitleTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: edgeInsets.leading),
+            subtitleTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -edgeInsets.trailing)
+        ])
 
         NSLayoutConstraint.activate([
             subtitleTextView.bottomAnchor.constraint(equalTo: chooseOwnButton.topAnchor, constant: -inset)
             ])
 
-        chooseOwnButton.fitInSuperview(with: edgeInsets, exclude: [.top, .bottom])
+        NSLayoutConstraint.activate([
+            chooseOwnButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: edgeInsets.leading),
+            chooseOwnButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -edgeInsets.trailing)
+        ])
         NSLayoutConstraint.activate([
             chooseOwnButton.bottomAnchor.constraint(equalTo: keepSuggestedButton.topAnchor, constant: -8),
             chooseOwnButton.heightAnchor.constraint(equalToConstant: 40)
             ])
 
-        keepSuggestedButton.fitInSuperview(with: edgeInsets, exclude: [.top])
+        NSLayoutConstraint.activate([
+            keepSuggestedButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: edgeInsets.leading),
+            keepSuggestedButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -edgeInsets.trailing),
+            keepSuggestedButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -edgeInsets.bottom)
+        ])
 
         NSLayoutConstraint.activate([
             keepSuggestedButton.heightAnchor.constraint(equalToConstant: 40)
             ])
     }
 
-    @objc func buttonTapped(sender: Button) {
+    @objc func buttonTapped(sender: LegacyButton) {
         guard let action = action(for: sender) else { return }
         delegate?.takeOverViewController(self, didPerformAction: action)
     }
 
-    private func action(for button: Button) -> UserNameTakeOverViewControllerAction? {
+    private func action(for button: LegacyButton) -> UserNameTakeOverViewControllerAction? {
         switch button {
         case chooseOwnButton: return .chooseOwn(suggestedHandle)
         case keepSuggestedButton: return .keepSuggestion(suggestedHandle)

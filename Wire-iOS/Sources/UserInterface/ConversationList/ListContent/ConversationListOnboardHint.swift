@@ -18,17 +18,20 @@
 
 import Foundation
 import UIKit
+import WireCommonComponents
 
 final class ConversationListOnboardingHint: UIView {
 
-    let messageLabel: UILabel = UILabel()
+    let messageLabel: UILabel = DynamicFontLabel(fontSpec: .largeLightFont, color: SemanticColors.Label.textDefault)
     let arrowView: UIImageView = UIImageView()
-    weak var arrowPointToView: UIView? {
+    weak var arrowPointToView: UITabBar? {
         didSet {
-            guard let arrowPointToView = arrowPointToView else { return }
+            guard let arrowPointToTabBar = arrowPointToView,
+                  let items = arrowPointToTabBar.items else { return }
+            let itemWidth = UIScreen.main.bounds.width / CGFloat(items.count)
 
             NSLayoutConstraint.activate([
-            arrowView.centerXAnchor.constraint(equalTo: arrowPointToView.centerXAnchor)])
+                arrowView.centerXAnchor.constraint(equalTo: arrowPointToTabBar.leadingAnchor, constant: itemWidth / 2)])
         }
     }
 
@@ -36,12 +39,11 @@ final class ConversationListOnboardingHint: UIView {
 
         super.init(frame: frame)
 
-        arrowView.setIcon(.longDownArrow, size: .large, color: UIColor.white.withAlphaComponent(0.4))
+        arrowView.setTemplateIcon(.longDownArrow, size: .large)
+        arrowView.tintColor = SemanticColors.Label.textDefault
 
         messageLabel.numberOfLines = 0
-        messageLabel.textColor = .white
         messageLabel.textAlignment = .left
-        messageLabel.font = FontSpec(.large, .light).font
         messageLabel.text = "conversation_list.empty.no_contacts.message".localized
 
         [arrowView, messageLabel].forEach(self.addSubview)
@@ -49,6 +51,7 @@ final class ConversationListOnboardingHint: UIView {
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

@@ -35,7 +35,7 @@ extension ConversationViewController: ConversationContentViewControllerDelegate 
 
         endEditing()
 
-        createAndPresentParticipantsPopoverController(with: frame, from: view, contentViewController: profileViewController.wrapInNavigationController())
+        createAndPresentParticipantsPopoverController(with: frame, from: view, contentViewController: profileViewController.wrapInNavigationController(setBackgroundColor: true))
     }
 
     func conversationContentViewController(_ contentViewController: ConversationContentViewController, willDisplayActiveMediaPlayerFor message: ZMConversationMessage?) {
@@ -88,10 +88,10 @@ extension ConversationViewController: ConversationContentViewControllerDelegate 
             snapshotView?.center = targetCenter
             snapshotView?.alpha = 0
             snapshotView?.transform = CGAffineTransform(scaleX: 0.01, y: 0.01)
-        }) { _ in
+        }, completion: { _ in
             snapshotView?.removeFromSuperview()
             self.inputBarController.bounceCameraIcon()
-        }
+        })
     }
 
     func conversationContentViewControllerWants(toDismiss controller: ConversationContentViewController) {
@@ -105,8 +105,20 @@ extension ConversationViewController: ConversationContentViewControllerDelegate 
         }
 
         let groupDetailsViewController = GroupDetailsViewController(conversation: conversation)
-        let navigationController = groupDetailsViewController.wrapInNavigationController()
+        let navigationController = groupDetailsViewController.wrapInNavigationController(setBackgroundColor: true)
         groupDetailsViewController.presentGuestOptions(animated: false)
+        presentParticipantsViewController(navigationController, from: sourceView)
+    }
+
+    func conversationContentViewController(_ controller: ConversationContentViewController, presentServicesOptionFrom sourceView: UIView) {
+        guard conversation.conversationType == .group else {
+            zmLog.error("Illegal Operation: Trying to show services options for non-group conversation")
+            return
+        }
+
+        let groupDetailsViewController = GroupDetailsViewController(conversation: conversation)
+        let navigationController = groupDetailsViewController.wrapInNavigationController()
+        groupDetailsViewController.presentServicesOptions(animated: false)
         presentParticipantsViewController(navigationController, from: sourceView)
     }
 
@@ -127,7 +139,9 @@ extension ConversationViewController {
         ConversationInputBarViewController.endEditingMessage()
         inputBarController.inputBar.textView.resignFirstResponder()
 
-        createAndPresentParticipantsPopoverController(with: sourceView.bounds, from: sourceView, contentViewController: viewController)
+        createAndPresentParticipantsPopoverController(with: sourceView.bounds,
+                                                      from: sourceView,
+                                                      contentViewController: viewController)
     }
 
     // MARK: - Application Events & Notifications

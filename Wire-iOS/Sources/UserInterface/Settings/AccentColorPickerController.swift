@@ -19,161 +19,143 @@
 import Foundation
 import UIKit
 import WireSyncEngine
-import Cartography
 import WireCommonComponents
 
 protocol ColorPickerControllerDelegate {
-    func colorPicker(_ colorPicker: ColorPickerController, didSelectColor color: UIColor)
+    func colorPicker(_ colorPicker: ColorPickerController, didSelectColor color: AccentColor)
     func colorPickerWantsToDismiss(_ colotPicker: ColorPickerController)
 }
 
 class ColorPickerController: UIViewController {
-    let overlayView = UIView()
-    let contentView = UIView()
     let tableView = UITableView()
-    let headerView = UIView()
-    let titleLabel = UILabel()
-    let closeButton = IconButton()
 
-    static fileprivate let rowHeight: CGFloat = 44
+    static fileprivate let rowHeight: CGFloat = 56
 
-    let colors: [UIColor]
-    var currentColor: UIColor?
-    var delegate: ColorPickerControllerDelegate?
+    fileprivate let colors: [AccentColor]
+    fileprivate var selectedColor: AccentColor?
+    fileprivate var delegate: ColorPickerControllerDelegate?
 
-    init(colors: [UIColor]) {
+    init(colors: [AccentColor]) {
         self.colors = colors
         super.init(nibName: nil, bundle: nil)
 
-        self.modalPresentationStyle = .custom
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override var title: String? {
-        didSet {
-            self.titleLabel.text = self.title
-        }
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        self.view.addSubview(self.contentView)
-
-        self.contentView.layer.cornerRadius = 10
-        self.contentView.clipsToBounds = true
-        self.contentView.backgroundColor = UIColor.white
-
-        self.closeButton.setIcon(.cross, size: .tiny, for: [])
-        self.closeButton.addTarget(self, action: #selector(ColorPickerController.didPressDismiss(_:)), for: .touchUpInside)
-        self.closeButton.setIconColor(UIColor.darkGray, for: .normal)
-
-        self.titleLabel.font = FontSpec(.small, .light).font!
-
-        self.headerView.addSubview(self.titleLabel)
-        self.headerView.addSubview(self.closeButton)
-
-        self.contentView.addSubview(self.tableView)
-        self.contentView.addSubview(self.headerView)
-
-        constrain(self.contentView, self.headerView, self.titleLabel, self.closeButton) { contentView, headerView, titleLabel, closeButton in
-            headerView.left == contentView.left
-            headerView.top == contentView.top
-            headerView.right == contentView.right
-            headerView.height == 44
-
-            titleLabel.center == headerView.center
-            titleLabel.left >= headerView.left
-            titleLabel.right <= closeButton.left
-
-            closeButton.centerY == headerView.centerY
-            closeButton.right == headerView.right
-            closeButton.height == headerView.height
-            closeButton.width == closeButton.height
-        }
-
-        constrain(self.contentView, self.tableView, self.headerView) { contentView, tableView, headerView in
-            tableView.left == contentView.left
-            tableView.bottom == contentView.bottom
-            tableView.right == contentView.right
-
-            tableView.top == headerView.bottom
-        }
-
-        constrain(self.view, self.contentView, self.headerView) { view, contentView, headerView in
-            contentView.center == view.center
-            contentView.width == 300
-            contentView.height == headerView.height + type(of: self).rowHeight * CGFloat(self.colors.count)
-        }
-
-        self.tableView.register(PickerCell.self, forCellReuseIdentifier: PickerCell.reuseIdentifier)
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.separatorStyle = .none
+        setupViews()
+        createConstraints()
     }
 
-    override var prefersStatusBarHidden: Bool {
-        return false
+    private func setupViews() {
+        view.backgroundColor = SemanticColors.View.backgroundDefault
+        view.addSubview(tableView)
+
+        tableView.register(PickerCell.self, forCellReuseIdentifier: PickerCell.reuseIdentifier)
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.separatorStyle = .none
+        self.navigationItem.rightBarButtonItem = navigationController?.closeItem()
     }
 
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+    private func createConstraints() {
+        [tableView].prepareForLayout()
+
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.heightAnchor.constraint(equalToConstant: Self.rowHeight * CGFloat(colors.count)),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
     }
 
     fileprivate class PickerCell: UITableViewCell {
         fileprivate let checkmarkView = UIImageView()
         fileprivate let colorView = UIView()
+        fileprivate let colorNameLabel: UILabel = {
+            let label = UILabel()
+            label.font = .normalLightFont
+            label.textColor = SemanticColors.Label.textDefault
+            return label
+        }()
 
         override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
             super.init(style: style, reuseIdentifier: reuseIdentifier)
-            self.selectionStyle = .none
-
-            self.contentView.addSubview(self.colorView)
-            self.contentView.addSubview(self.checkmarkView)
-
-            constrain(self.contentView, self.checkmarkView, self.colorView) { contentView, checkmarkView, colorView in
-                colorView.edges == contentView.edges
-                checkmarkView.center == contentView.center
-            }
-
-            self.checkmarkView.setIcon(.checkmark, size: .small, color: UIColor.white)
-            self.checkmarkView.isHidden = true
+            setupViews()
+            createConstraints()
         }
 
+        @available(*, unavailable)
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
 
-        var color: UIColor? {
+        var color: AccentColor? {
             didSet {
-                self.colorView.backgroundColor = color
+                if let color = color {
+                    colorView.backgroundColor = UIColor(for: color)
+                }
             }
         }
 
         override func setSelected(_ selected: Bool, animated: Bool) {
             super.setSelected(selected, animated: animated)
-            self.checkmarkView.isHidden = !selected
+            checkmarkView.isHidden = !selected
+            colorNameLabel.font = selected ? .normalSemiboldFont : .normalLightFont
         }
 
         override func prepareForReuse() {
             super.prepareForReuse()
-            self.colorView.backgroundColor = UIColor.clear
-            self.checkmarkView.isHidden = true
+            colorView.backgroundColor = UIColor.clear
+            checkmarkView.isHidden = true
+        }
+
+        private func setupViews() {
+            selectionStyle = .none
+
+            [colorView, checkmarkView, colorNameLabel].forEach {
+                            contentView.addSubview($0)
+            }
+
+            backgroundColor = SemanticColors.View.backgroundUserCell
+            addBorder(for: .bottom)
+            colorView.layer.cornerRadius = 14
+            checkmarkView.setTemplateIcon(.checkmark, size: .small)
+            checkmarkView.tintColor = SemanticColors.Label.textDefault
+            checkmarkView.isHidden = true
+        }
+
+        private func createConstraints() {
+            [checkmarkView, colorView, colorNameLabel].prepareForLayout()
+            NSLayoutConstraint.activate([
+                colorView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                colorView.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 16),
+                colorView.heightAnchor.constraint(equalToConstant: 28),
+                colorView.widthAnchor.constraint(equalToConstant: 28),
+
+                colorNameLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                colorNameLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor, constant: 64),
+
+                checkmarkView.rightAnchor.constraint(equalTo: contentView.rightAnchor, constant: -20),
+                checkmarkView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            ])
         }
 
     }
 
-    @objc func didPressDismiss(_ sender: AnyObject?) {
-        self.delegate?.colorPickerWantsToDismiss(self)
+    @objc
+    private func didPressDismiss(_ sender: AnyObject?) {
+        delegate?.colorPickerWantsToDismiss(self)
     }
 }
 
 extension ColorPickerController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.colors.count
+        return colors.count
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -182,12 +164,13 @@ extension ColorPickerController: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-        guard let cell = self.tableView.dequeueReusableCell(withIdentifier: PickerCell.reuseIdentifier) as? PickerCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: PickerCell.reuseIdentifier) as? PickerCell else {
             fatal("Cannot create cell")
         }
 
-        cell.color = self.colors[(indexPath as NSIndexPath).row]
-        cell.isSelected = cell.color == self.currentColor
+        cell.color = colors[indexPath.row]
+        cell.colorNameLabel.text = colors[indexPath.row].name
+        cell.isSelected = cell.color == selectedColor
         if cell.isSelected {
             tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
         }
@@ -195,8 +178,8 @@ extension ColorPickerController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self.delegate?.colorPicker(self, didSelectColor: self.colors[(indexPath as NSIndexPath).row])
-        self.currentColor = self.colors[(indexPath as NSIndexPath).row]
+        delegate?.colorPicker(self, didSelectColor: colors[indexPath.row])
+        selectedColor = colors[indexPath.row]
     }
 }
 
@@ -204,30 +187,36 @@ final class AccentColorPickerController: ColorPickerController {
     fileprivate let allAccentColors: [AccentColor]
 
     init() {
-        self.allAccentColors = AccentColor.allSelectable()
+        allAccentColors = AccentColor.allSelectable()
 
-        super.init(colors: self.allAccentColors.map { UIColor(for: $0) })
-        self.title = "self.settings.account_picture_group.color".localized(uppercased: true)
+        super.init(colors: allAccentColors)
 
-        if let accentColor = AccentColor(ZMAccentColor: ZMUser.selfUser().accentColorValue), let currentColorIndex = self.allAccentColors.firstIndex(of: accentColor) {
-            self.currentColor = self.colors[currentColorIndex]
+        setupControllerTitle()
+
+        if let accentColor = AccentColor(ZMAccentColor: ZMUser.selfUser().accentColorValue), let currentColorIndex = allAccentColors.firstIndex(of: accentColor) {
+            selectedColor = colors[currentColorIndex]
         }
-        self.delegate = self
+        delegate = self
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.tableView.isScrollEnabled = false
+        tableView.isScrollEnabled = false
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private func setupControllerTitle() {
+        navigationItem.setupNavigationBarTitle(title: L10n.Localizable.Self.Settings.AccountPictureGroup.color.capitalized)
     }
 }
 
 extension AccentColorPickerController: ColorPickerControllerDelegate {
-    func colorPicker(_ colorPicker: ColorPickerController, didSelectColor color: UIColor) {
-        guard let colorIndex = self.colors.firstIndex(of: color) else {
+    func colorPicker(_ colorPicker: ColorPickerController, didSelectColor color: AccentColor) {
+        guard let colorIndex = colors.firstIndex(of: color) else {
             return
         }
 
@@ -237,6 +226,6 @@ extension AccentColorPickerController: ColorPickerControllerDelegate {
     }
 
     func colorPickerWantsToDismiss(_ colotPicker: ColorPickerController) {
-        self.dismiss(animated: true, completion: .none)
+        dismiss(animated: true, completion: .none)
     }
 }

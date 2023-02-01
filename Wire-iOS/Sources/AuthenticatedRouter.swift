@@ -19,9 +19,17 @@
 import UIKit
 import WireSyncEngine
 
-protocol AuthenticatedRouterProtocol: class {
+public enum NavigationDestination {
+    case conversation(ZMConversation, ZMConversationMessage?)
+    case userProfile(UserType)
+    case connectionRequest(UUID)
+    case conversationList
+}
+
+protocol AuthenticatedRouterProtocol: AnyObject {
     func updateActiveCallPresentationState()
     func minimizeCallOverlay(animated: Bool, withCompletion completion: Completion?)
+    func navigate(to destination: NavigationDestination)
 }
 
 class AuthenticatedRouter: NSObject {
@@ -32,6 +40,7 @@ class AuthenticatedRouter: NSObject {
     private let rootViewController: RootViewController
     private let activeCallRouter: ActiveCallRouter
     private weak var _viewController: ZClientViewController?
+    private let featureServiceProvider: FeatureServiceProvider
 
     // MARK: - Public Property
 
@@ -47,7 +56,8 @@ class AuthenticatedRouter: NSObject {
          account: Account,
          selfUser: SelfUserType,
          isComingFromRegistration: Bool,
-         needToShowDataUsagePermissionDialog: Bool) {
+         needToShowDataUsagePermissionDialog: Bool,
+         featureServiceProvider: FeatureServiceProvider) {
 
         self.rootViewController = rootViewController
         activeCallRouter = ActiveCallRouter(rootviewController: rootViewController)
@@ -56,6 +66,29 @@ class AuthenticatedRouter: NSObject {
                                          selfUser: selfUser,
                                          isComingFromRegistration: needToShowDataUsagePermissionDialog,
                                          needToShowDataUsagePermissionDialog: needToShowDataUsagePermissionDialog)
+
+        self.featureServiceProvider = featureServiceProvider
+
+        super.init()
+
+        NotificationCenter.default.addObserver(
+            forName: .featureDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.notifyFeatureChange(notification)
+        }
+    }
+
+    private func notifyFeatureChange(_ note: Notification) {
+        guard
+            let change = note.object as? FeatureService.FeatureChange,
+            let alert = UIAlertController.fromFeatureChange(change, acknowledger: featureServiceProvider.featureService)
+        else {
+            return
+        }
+
+        _viewController?.presentAlert(alert)
     }
 }
 
@@ -68,6 +101,19 @@ extension AuthenticatedRouter: AuthenticatedRouterProtocol {
     func minimizeCallOverlay(animated: Bool,
                              withCompletion completion: Completion?) {
         activeCallRouter.minimizeCall(animated: animated, completion: completion)
+    }
+
+    func navigate(to destination: NavigationDestination) {
+        switch destination {
+        case .conversation(let converation, let message):
+            _viewController?.showConversation(converation, at: message)
+        case .connectionRequest(let userId):
+            _viewController?.showConnectionRequest(userId: userId)
+        case .conversationList:
+            _viewController?.showConversationList()
+        case .userProfile(let user):
+            _viewController?.showUserProfile(user: user)
+        }
     }
 }
 
@@ -96,3 +142,19 @@ struct AuthenticatedWireFrame {
         return viewController
     }
 }
+
+private extension UIViewController {
+
+    func presentAlert(_ alert: UIAlertController) {
+        present(alert, animated: true, completion: nil)
+    }
+
+}
+
+protocol FeatureServiceProvider {
+
+    var featureService: FeatureService { get }
+
+}
+
+extension ZMUserSession: FeatureServiceProvider {}

@@ -18,6 +18,7 @@
 import Foundation
 import UIKit
 import WireDataModel
+import WireCommonComponents
 
 typealias ConversationListItemViewConversation = ConversationAvatarViewConversation & ConversationStatusProvider & ConnectedUserProvider
 
@@ -26,18 +27,23 @@ extension Notification.Name {
 }
 
 final class ConversationListItemView: UIView {
+    // MARK: UI constants
+    static let minHeight: CGFloat = 64
+
     // Please use `updateForConversation:` to set conversation.
     private var conversation: ConversationAvatarViewConversation?
 
     var titleText: NSAttributedString? {
         didSet {
             titleField.attributedText = titleText
+            titleField.textColor = SemanticColors.Label.textDefault
         }
     }
 
     var subtitleAttributedText: NSAttributedString? {
         didSet {
             subtitleField.attributedText = subtitleAttributedText
+            subtitleField.textColor = SemanticColors.Label.textConversationListItemSubtitleField
             subtitleField.accessibilityValue = subtitleAttributedText?.string
         }
     }
@@ -50,7 +56,7 @@ final class ConversationListItemView: UIView {
 
     var selected = false {
         didSet {
-            backgroundColor = selected ? UIColor(white: 0, alpha: 0.08) : .clear
+            backgroundColor = .clear
         }
     }
 
@@ -65,7 +71,6 @@ final class ConversationListItemView: UIView {
     let labelsStack: UIStackView = UIStackView()
     let contentStack: UIStackView = UIStackView()
     private let subtitleField: UILabel = UILabel()
-    let lineView: UIView = UIView()
 
     init() {
         super.init(frame: .zero)
@@ -96,9 +101,6 @@ final class ConversationListItemView: UIView {
         contentStack.addArrangedSubview(labelsStack)
         contentStack.addArrangedSubview(rightAccessory)
 
-        lineView.backgroundColor = UIColor(white: 1.0, alpha: 0.08)
-        addSubview(lineView)
-
         rightAccessory.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         titleField.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -115,11 +117,27 @@ final class ConversationListItemView: UIView {
         NotificationCenter.default.addObserver(self, selector: #selector(otherConversationListItemDidScroll(_:)), name: .conversationListItemDidScroll, object: nil)
     }
 
+    private func createConstraints() {
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            // height
+            heightAnchor.constraint(greaterThanOrEqualToConstant: ConversationListItemView.minHeight),
+
+            // avatar
+            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: CGFloat.ConversationList.horizontalMargin),
+            contentStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -CGFloat.ConversationList.horizontalMargin),
+            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
+        ])
+    }
+
     private func setupLabelsStack() {
         labelsStack.axis = NSLayoutConstraint.Axis.vertical
         labelsStack.alignment = UIStackView.Alignment.leading
         labelsStack.distribution = UIStackView.Distribution.fill
         labelsStack.isAccessibilityElement = true
+        labelsStack.accessibilityTraits = .button
         labelsStack.accessibilityIdentifier = "title"
     }
 
@@ -132,28 +150,32 @@ final class ConversationListItemView: UIView {
     }
 
     private func setupTitleField() {
+        titleField.isAccessibilityElement = true
         titleField.numberOfLines = 1
         titleField.lineBreakMode = .byTruncatingTail
         labelsStack.addArrangedSubview(titleField)
     }
 
     private func setupStyle() {
-        titleField.textColor = .from(scheme: .textForeground, variant: .dark)
+        titleField.textColor = SemanticColors.Label.textDefault
+        backgroundColor = SemanticColors.View.backgroundUserCell
+        addBorder(for: .bottom)
     }
 
     private func setupSubtitleField() {
-        subtitleField.textColor = .whiteAlpha64
         subtitleField.accessibilityIdentifier = "subtitle"
         subtitleField.numberOfLines = 1
+        subtitleField.textColor = SemanticColors.Label.textConversationListItemSubtitleField
         labelsStack.addArrangedSubview(subtitleField)
     }
 
     private func configureFont() {
-        titleField.font = FontSpec(.normal, .light).font!
+        titleField.font = FontSpec(.normal, .semibold).font!
     }
 
     func updateAppearance() {
         titleField.attributedText = titleText
+        titleField.textColor = SemanticColors.Label.textDefault
     }
 
     // MARK: - Observer
@@ -218,7 +240,6 @@ final class ConversationListItemView: UIView {
         self.subtitleAttributedText = subtitle
         self.rightAccessory.icon = .pendingConnection
         avatarView.configure(context: .connect(users: users))
-
         labelsStack.accessibilityLabel = title?.string
     }
 
@@ -237,10 +258,6 @@ final class ConversationListItemView: UIView {
         let subtitle = status.description(for: conversation)
         let subtitleString = subtitle.string
 
-        if !subtitleString.isEmpty {
-            statusComponents.append(subtitleString)
-        }
-
         // Configure the title and status
         let title: NSAttributedString?
 
@@ -256,6 +273,10 @@ final class ConversationListItemView: UIView {
         } else {
             title = conversation.displayName.attributedString
             labelsStack.accessibilityLabel = conversation.displayName
+        }
+
+        if !subtitleString.isEmpty {
+            statusComponents.append(subtitleString)
         }
 
         // Configure the avatar
@@ -275,12 +296,18 @@ final class ConversationListItemView: UIView {
         if let statusIconAccessibilityValue = rightAccessory.accessibilityValue {
             statusComponents.append(statusIconAccessibilityValue)
         }
-
-        if (conversation as? ZMConversation)?.localParticipants.first?.isPendingApproval == true {
-            statusComponents.append("pending approval")
-        }
-
-        labelsStack.accessibilityValue = FormattedText.list(from: statusComponents)
         configure(with: title, subtitle: status.description(for: conversation))
+
+        typealias ConversationsList = L10n.Accessibility.ConversationsList
+
+        if let conversation = conversation as? ZMConversation,
+           let firstParticipant = conversation.localParticipants.first,
+           firstParticipant.isPendingApproval {
+            statusComponents.append(ConversationsList.ConnectionRequest.description)
+            labelsStack.accessibilityHint = ConversationsList.ConnectionRequest.hint
+        } else {
+            labelsStack.accessibilityHint = ConversationsList.ItemCell.hint
+        }
+        labelsStack.accessibilityValue = statusComponents.joined(separator: ", ")
     }
 }

@@ -23,7 +23,7 @@ import WireSyncEngine
 
 private let zmLog = ZMSLog(tag: "UI")
 
-protocol CameraKeyboardViewControllerDelegate: class {
+protocol CameraKeyboardViewControllerDelegate: AnyObject {
     func cameraKeyboardViewController(_ controller: CameraKeyboardViewController, didSelectVideo: URL, duration: TimeInterval)
     func cameraKeyboardViewController(_ controller: CameraKeyboardViewController,
                                       didSelectImageData: Data,
@@ -56,6 +56,7 @@ class CameraKeyboardViewController: UIViewController, SpinnerCapable {
     fileprivate enum CameraKeyboardSection: UInt {
         case camera = 0, photos = 1
     }
+    private let mediaSharingRestrictionsMananger = MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared())
 
     let assetLibrary: AssetLibrary?
     let imageManagerType: ImageManagerProtocol.Type
@@ -84,6 +85,7 @@ class CameraKeyboardViewController: UIViewController, SpinnerCapable {
         }
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -341,7 +343,8 @@ class CameraKeyboardViewController: UIViewController, SpinnerCapable {
             self.collectionView.delaysContentTouches = false
         }
 
-        if permissions.isPhotoLibraryAuthorized {
+        if permissions.isPhotoLibraryAuthorized,
+           mediaSharingRestrictionsMananger.hasAccessToCameraRoll {
             self.collectionViewLayout.minimumLineSpacing = 1
             self.collectionViewLayout.minimumInteritemSpacing = 0.5
             self.collectionViewLayout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 1)
@@ -361,7 +364,8 @@ extension CameraKeyboardViewController: UICollectionViewDelegateFlowLayout, UICo
         defer {
             setupPhotoKeyboardAppearance()
         }
-        guard permissions.areCameraOrPhotoLibraryAuthorized else {
+        guard permissions.areCameraOrPhotoLibraryAuthorized,
+              mediaSharingRestrictionsMananger.hasAccessToCameraRoll else {
             return 1
         }
         return 2
@@ -520,14 +524,14 @@ extension CameraKeyboardViewController: AssetLibraryDelegate {
 
 extension CameraKeyboardViewController: WireCallCenterCallStateObserver {
     func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
-        /// TODO fix undesired camera keyboard openings here
+        // TODO: fix undesired camera keyboard openings here
         self.collectionView.reloadItems(at: [IndexPath(item: 0, section: 0)])
     }
 }
 
 extension PHAsset {
 
-    func getVideoURL(completionHandler : @escaping ((_ responseURL: URL?) -> Void)) {
+    func getVideoURL(completionHandler: @escaping ((_ responseURL: URL?) -> Void)) {
         guard mediaType == .video else {
             completionHandler(nil)
             return

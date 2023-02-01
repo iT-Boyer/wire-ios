@@ -47,6 +47,11 @@ final class PostContent {
     func send(text: String,
               sharingSession: SharingSession,
               stateCallback: @escaping SendingStateCallback) {
+        guard sharingSession.fileSharingFeature.status == .enabled,
+              SecurityFlags.fileSharing.isEnabled else {
+                  stateCallback(.fileSharingRestriction)
+                  return
+              }
         guard let conversation = target else {
             stateCallback(.error(UnsentSendableError.conversationDoesNotExist))
             return

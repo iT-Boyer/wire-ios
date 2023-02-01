@@ -19,10 +19,16 @@
 import XCTest
 @testable import Wire
 
-final class ConversationImageMessageTests: XCTestCase {
+final class ConversationImageMessageTests: ZMSnapshotTestCase {
 
     var image: UIImage!
     var message: MockMessage!
+
+    override func setUp() {
+        super.setUp()
+
+        UIColor.setAccentOverride(.vividRed)
+    }
 
     override func tearDown() {
         image = nil
@@ -70,6 +76,15 @@ final class ConversationImageMessageTests: XCTestCase {
 
         // THEN
         verify(message: message)
+    }
+
+    // MARK: - Receiving restrictions
+
+    func testRestrictionMessageCell() {
+        createSut(imageName: "unsplash_matterhorn.jpg")
+        message.backingIsRestricted = true
+
+        verify(message: message, allColorSchemes: true)
     }
 
 }

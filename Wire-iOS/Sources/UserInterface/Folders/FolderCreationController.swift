@@ -18,15 +18,13 @@
 
 import Foundation
 import UIKit
-import Cartography
-import WireDataModel
 import WireSyncEngine
 
-protocol FolderCreationValuesConfigurable: class {
+protocol FolderCreationValuesConfigurable: AnyObject {
     func configure(with name: String)
 }
 
-protocol FolderCreationControllerDelegate: class {
+protocol FolderCreationControllerDelegate: AnyObject {
 
     func folderController(
         _ controller: FolderCreationController,
@@ -37,7 +35,6 @@ protocol FolderCreationControllerDelegate: class {
 final class FolderCreationController: UIViewController {
 
     static let mainViewHeight: CGFloat = 56
-    fileprivate let colorSchemeVariant = ColorScheme.default.variant
     private let collectionViewController = SectionCollectionViewController()
 
     private lazy var nameSection: FolderCreationNameSectionController = {
@@ -59,6 +56,7 @@ final class FolderCreationController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -66,8 +64,7 @@ final class FolderCreationController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = UIColor.from(scheme: .contentBackground, variant: colorSchemeVariant)
-        title = "folder.creation.name.title".localized(uppercased: true)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
 
         setupNavigationBar()
         setupViews()
@@ -79,7 +76,7 @@ final class FolderCreationController: UIViewController {
     }
 
     override public var preferredStatusBarStyle: UIStatusBarStyle {
-        return colorSchemeVariant == .light ? .compatibleDarkContent : .lightContent
+        return overrideUserInterfaceStyle == .light ? .compatibleDarkContent : .lightContent
     }
 
     override public func viewDidAppear(_ animated: Bool) {
@@ -91,18 +88,21 @@ final class FolderCreationController: UIViewController {
         // TODO: if keyboard is open, it should scroll.
         let collectionView = UICollectionView(forGroupedSections: ())
 
-        if #available(iOS 11.0, *) {
-            collectionView.contentInsetAdjustmentBehavior = .never
-        }
+        collectionView.contentInsetAdjustmentBehavior = .never
 
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.fitInSuperview(safely: true)
+        NSLayoutConstraint.activate([
+            collectionView.leadingAnchor.constraint(equalTo: view.safeLeadingAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.safeTopAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeTrailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeBottomAnchor)
+        ])
 
         collectionViewController.collectionView = collectionView
-        collectionViewController.sections = [nameSection]// , errorSection]
+        collectionViewController.sections = [nameSection]
 
-        navBarBackgroundView.backgroundColor = UIColor.from(scheme: .barBackground, variant: colorSchemeVariant)
+        navBarBackgroundView.backgroundColor = SemanticColors.View.backgroundDefault
         view.addSubview(navBarBackgroundView)
 
         navBarBackgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -112,22 +112,29 @@ final class FolderCreationController: UIViewController {
             navBarBackgroundView.topAnchor.constraint(equalTo: view.topAnchor),
             navBarBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             navBarBackgroundView.bottomAnchor.constraint(equalTo: view.safeTopAnchor)
-            ])
+        ])
     }
 
     private func setupNavigationBar() {
-        self.navigationController?.navigationBar.tintColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        self.navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes(for: colorSchemeVariant)
+        typealias FolderCreationName = L10n.Localizable.Folder.Creation.Name
+        self.navigationController?.navigationBar.tintColor = SemanticColors.Label.textDefault
+        self.navigationController?.navigationBar.titleTextAttributes = DefaultNavigationBar.titleTextAttributes()
 
         if navigationController?.viewControllers.count ?? 0 <= 1 {
             navigationItem.leftBarButtonItem = navigationController?.closeItem()
         }
 
-        let nextButtonItem = UIBarButtonItem(title: "folder.creation.name.button.create".localized(uppercased: true), style: .plain, target: self, action: #selector(tryToProceed))
+        let nextButtonItem: UIBarButtonItem = .createNavigationRightBarButtonItem(
+            title: FolderCreationName.Button.create.capitalized,
+            systemImage: false,
+            target: self,
+            action: #selector(tryToProceed)
+       )
         nextButtonItem.accessibilityIdentifier = "button.newfolder.create"
         nextButtonItem.tintColor = UIColor.accent()
         nextButtonItem.isEnabled = false
 
+        navigationItem.setupNavigationBarTitle(title: FolderCreationName.title.capitalized)
         navigationItem.rightBarButtonItem = nextButtonItem
     }
 

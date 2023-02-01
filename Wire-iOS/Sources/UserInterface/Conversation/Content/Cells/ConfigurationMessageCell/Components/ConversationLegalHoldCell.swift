@@ -36,9 +36,9 @@ final class ConversationLegalHoldSystemMessageCell: ConversationIconBasedCell, C
         setupView()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setupView()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     func setupView() {
@@ -69,10 +69,11 @@ final class ConversationLegalHoldCellDescription: ConversationMessageCellDescrip
     let containsHighlightableContent: Bool = false
 
     let accessibilityIdentifier: String? = nil
-    let accessibilityLabel: String? = nil
+    let accessibilityLabel: String?
 
     init(systemMessageType: ZMSystemMessageType, conversation: ZMConversation) {
         configuration = ConversationLegalHoldCellDescription.configuration(for: systemMessageType, in: conversation)
+        accessibilityLabel = configuration.attributedText?.string
     }
 
     private static func configuration(for systemMessageType: ZMSystemMessageType, in conversation: ZMConversation) -> View.Configuration {
@@ -98,7 +99,7 @@ final class ConversationLegalHoldCellDescription: ConversationMessageCellDescrip
             attributedText += learnMore
         }
 
-        let icon = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: .vividRed)
+        let icon = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: SemanticColors.Icon.foregroundDefaultRed)
 
         return View.Configuration(attributedText: attributedText, icon: icon, conversation: conversation)
     }

@@ -23,6 +23,7 @@ import WireCommonComponents
 enum PresentationStyle: Int {
     case modal
     case navigation
+    case alert
 }
 
 enum AccessoryViewMode: Int {
@@ -32,7 +33,7 @@ enum AccessoryViewMode: Int {
 }
 
 class SettingsExternalScreenCellDescriptor: SettingsExternalScreenCellDescriptorType, SettingsControllerGeneratorType {
-    static let cellType: SettingsTableCell.Type = SettingsGroupCell.self
+    static let cellType: SettingsTableCellProtocol.Type = SettingsTableCell.self
     var visible: Bool = true
     let title: String
     let destructive: Bool
@@ -117,12 +118,13 @@ class SettingsExternalScreenCellDescriptor: SettingsExternalScreenCellDescriptor
             self.viewController?.present(controllerToShow, animated: true, completion: .none)
         case .navigation:
             viewController?.navigationController?.pushViewController(controllerToShow, animated: true)
+        case .alert:
+            break
         }
     }
 
     func featureCell(_ cell: SettingsCellType) {
         cell.titleText = self.title
-        cell.titleColor = UIColor.white
 
         if let tableCell = cell as? SettingsTableCell {
             tableCell.valueLabel.accessibilityIdentifier = title + "Field"
@@ -134,20 +136,19 @@ class SettingsExternalScreenCellDescriptor: SettingsExternalScreenCellDescriptor
             cell.preview = preview
         }
         cell.icon = self.icon
-        if let groupCell = cell as? SettingsGroupCell {
+        if let groupCell = cell as? SettingsTableCell {
             switch accessoryViewMode {
             case .default:
                 if self.presentationStyle == .modal {
-                    groupCell.accessoryType = .none
+                    groupCell.hideDisclosureIndicator()
                 } else {
-                    groupCell.accessoryType = .disclosureIndicator
+                    groupCell.showDisclosureIndicator()
                 }
             case .alwaysHide:
-                groupCell.accessoryType = .none
+                groupCell.hideDisclosureIndicator()
             case .alwaysShow:
-                groupCell.accessoryType = .disclosureIndicator
+                groupCell.showDisclosureIndicator()
             }
-
         }
     }
 

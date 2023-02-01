@@ -26,7 +26,7 @@ import WireSystem
 
 class ConversationDetailFooterView: UIView {
 
-    private let variant: ColorSchemeVariant
+    // MARK: - Properties
     let rightButton = IconButton()
     var leftButton: IconButton
     private let containerView = UIView()
@@ -55,40 +55,41 @@ class ConversationDetailFooterView: UIView {
         }
     }
 
+    // MARK: - Initialization
     init() {
-        self.variant = ColorScheme.default.variant
-        self.leftButton = IconButton()
+        self.leftButton = IconButton(fontSpec: .normalSemiboldFont)
         super.init(frame: .zero)
         setupViews()
         createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Layout
     private func setupViews() {
+        let highlightedStateColor = UIColor.accent()
         let configureButton = { (button: IconButton) in
             self.containerView.addSubview(button)
-            button.setIconColor(UIColor.from(scheme: .iconNormal), for: .normal)
-            button.setIconColor(UIColor.from(scheme: .iconHighlighted), for: .highlighted)
-            button.setIconColor(UIColor.from(scheme: .buttonFaded), for: .disabled)
-            button.setTitleColor(UIColor.from(scheme: .iconNormal), for: .normal)
-            button.setTitleColor(UIColor.from(scheme: .textDimmed), for: .highlighted)
-            button.setTitleColor(UIColor.from(scheme: .buttonFaded), for: .disabled)
+            button.setIconColor(SemanticColors.Icon.foregroundDefault, for: .normal)
+            button.setTitleColor(SemanticColors.Label.textDefault, for: .normal)
+            button.setIconColor(highlightedStateColor, for: .highlighted)
+            button.setTitleColor(highlightedStateColor, for: .highlighted)
         }
 
         configureButton(leftButton)
         configureButton(rightButton)
 
         leftButton.setTitleImageSpacing(16)
-        leftButton.titleLabel?.font = FontSpec(.small, .regular).font
-        leftButton.addTarget(self, action: #selector(leftButtonTapped), for: .touchUpInside)
 
+        leftButton.addTarget(self, action: #selector(leftButtonTapped), for: .touchUpInside)
         rightButton.addTarget(self, action: #selector(rightButtonTapped), for: .touchUpInside)
 
-        backgroundColor = UIColor.from(scheme: .barBackground)
+        backgroundColor = SemanticColors.View.backgroundUserCell
         addSubview(containerView)
+        addBorder(for: .top)
 
         setupButtons()
     }

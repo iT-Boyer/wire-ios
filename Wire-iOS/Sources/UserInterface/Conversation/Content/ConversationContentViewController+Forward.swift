@@ -18,7 +18,6 @@
 
 import Foundation
 import WireSyncEngine
-import Cartography
 import WireCommonComponents
 import UIKit
 
@@ -46,10 +45,14 @@ extension Array where Element == ZMConversation {
     // Should be called inside ZMUserSession.shared().perform block
     func forEachNonEphemeral(_ block: (ZMConversation) -> Void) {
         forEach {
-            let timeout = $0.messageDestructionTimeout
-            $0.messageDestructionTimeout = nil
+            guard let timeout = $0.activeMessageDestructionTimeoutValue,
+                  let type = $0.activeMessageDestructionTimeoutType else {
+                      block($0)
+                      return
+                  }
+            $0.setMessageDestructionTimeoutValue(.init(rawValue: 0), for: type)
             block($0)
-            $0.messageDestructionTimeout = timeout
+            $0.setMessageDestructionTimeoutValue(timeout, for: type)
         }
     }
 }
@@ -122,7 +125,7 @@ extension ZMConversationMessage {
     func previewView() -> UIView? {
         let view = preparePreviewView(shouldDisplaySender: false)
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .white
+        view.backgroundColor = SemanticColors.View.backgroundUserCell
         return view
     }
 }
@@ -155,7 +158,7 @@ extension ConversationContentViewController {
     }
 
     func updatePopover() {
-        guard let rootViewController = UIApplication.shared.keyWindow?.rootViewController as? PopoverPresenterViewController else { return }
+        guard let rootViewController = UIApplication.shared.firstKeyWindow?.rootViewController as? PopoverPresenterViewController else { return }
 
         rootViewController.updatePopoverSourceRect()
     }
@@ -182,7 +185,7 @@ extension ConversationContentViewController: UIAdaptivePresentationControllerDel
         keyboardAvoiding.preferredContentSize = CGSize.IPadPopover.preferredContentSize
         keyboardAvoiding.modalPresentationCapturesStatusBarAppearance = true
 
-        let presenter: PopoverPresenterViewController? = (presentedViewController ?? UIApplication.shared.keyWindow?.rootViewController) as? PopoverPresenterViewController
+        let presenter: PopoverPresenterViewController? = (presentedViewController ?? UIApplication.shared.firstKeyWindow) as? PopoverPresenterViewController
 
         if let presenter = presenter,
            let pointToView = (view as? SelectableView)?.selectionView ?? view ?? self.view {

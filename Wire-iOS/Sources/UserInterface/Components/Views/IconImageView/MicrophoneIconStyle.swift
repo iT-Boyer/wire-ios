@@ -31,7 +31,7 @@ extension MicrophoneIconStyle: IconImageStyle {
     var icon: StyleKitIcon? {
         switch self {
         case .muted:
-            return .microphoneWithStrikethrough
+            return .microphoneOff
         case .unmuted, .unmutedPulsing:
             return .microphone
         case .hidden:
@@ -54,6 +54,17 @@ extension MicrophoneIconStyle: IconImageStyle {
 
     var accessibilitySuffix: String {
         return rawValue
+    }
+
+    var accessibilityLabel: String {
+        typealias Calling = L10n.Accessibility.Calling
+
+        switch self {
+        case .unmuted, .unmutedPulsing:
+            return Calling.MicrophoneOn.description
+        case .muted, .hidden:
+            return Calling.MicrophoneOff.description
+        }
     }
 }
 

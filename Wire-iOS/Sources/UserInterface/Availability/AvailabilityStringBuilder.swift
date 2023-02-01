@@ -17,6 +17,7 @@
 //
 
 import WireDataModel
+import WireCommonComponents
 
 final class AvailabilityStringBuilder: NSObject {
 
@@ -24,6 +25,7 @@ final class AvailabilityStringBuilder: NSObject {
 
         var title: String = ""
         var color = color
+        var iconColor = color
         let availability = user.availability
         var fontSize: FontSize = .small
 
@@ -37,13 +39,15 @@ final class AvailabilityStringBuilder: NSObject {
                 fontSize = .normal
 
                 if color == nil {
-                    color = UIColor.from(scheme: .textForeground, variant: .dark)
+                    color = SemanticColors.Label.textDefault
                 }
+                iconColor = self.color(for: availability)
             }
         case .participants:
             do {
                 title = (user.name ?? "").localizedUppercase
-                color = UIColor.from(scheme: .textForeground)
+                color = SemanticColors.Label.textDefault
+                iconColor = self.color(for: availability)
             }
         case .placeholder:
             do {
@@ -52,17 +56,18 @@ final class AvailabilityStringBuilder: NSObject {
                     return nil
                 }
 
-                title = "availability.\(availability.canonicalName)".localized.localizedUppercase
+                title = "availability.\(availability.canonicalName)".localized
             }
         }
 
-        guard let textColor = color else { return nil }
-        let icon = AvailabilityStringBuilder.icon(for: availability, with: textColor, and: fontSize)
+        guard let textColor = color,
+              let iconColor = iconColor else { return nil }
+        let icon = AvailabilityStringBuilder.icon(for: availability, with: iconColor, and: fontSize)
         let attributedText = IconStringsBuilder.iconString(with: icon, title: title, interactive: false, color: textColor)
         return attributedText
     }
 
-    static func icon(for availability: Availability, with color: UIColor, and size: FontSize) -> NSTextAttachment? {
+    static func icon(for availability: AvailabilityKind, with color: UIColor, and size: FontSize) -> NSTextAttachment? {
         guard availability != .none, let iconType = availability.iconType
             else { return nil }
 
@@ -71,10 +76,24 @@ final class AvailabilityStringBuilder: NSObject {
         switch size {
         case .small:
             verticalCorrection = -1
-        case .medium, .large, .normal:
+        case .medium, .large, .normal, .header, .titleThree, .subHeadline, .bodyTwo, .buttonSmall, .body, .buttonBig:
             verticalCorrection = 0
         }
 
-        return NSTextAttachment.textAttachment(for: iconType, with: color, iconSize: 10, verticalCorrection: verticalCorrection)
+        return NSTextAttachment.textAttachment(for: iconType, with: color, iconSize: 12, verticalCorrection: verticalCorrection)
+    }
+
+    static func color(for availability: AvailabilityKind) -> UIColor {
+        typealias IconColors = SemanticColors.Icon
+        switch availability {
+        case .none:
+            return UIColor.clear
+        case .available:
+            return IconColors.foregroundAvailabilityAvailable
+        case .busy:
+            return IconColors.foregroundAvailabilityBusy
+        case .away:
+            return IconColors.foregroundAvailabilityAway
+        }
     }
 }

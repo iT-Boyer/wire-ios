@@ -18,12 +18,11 @@
 
 import Foundation
 import UIKit
+import WireCommonComponents
 
 final class ServiceDetailView: UIView {
     private let serviceView: ServiceView
     private let descriptionTextView = UITextView()
-
-    public let variant: ColorSchemeVariant
 
     public var service: Service {
         didSet {
@@ -32,31 +31,24 @@ final class ServiceDetailView: UIView {
         }
     }
 
-    init(service: Service, variant: ColorSchemeVariant) {
+    init(service: Service) {
         self.service = service
-        self.variant = variant
-        self.serviceView = ServiceView(service: service, variant: variant)
+        self.serviceView = ServiceView(service: service)
         super.init(frame: .zero)
 
         [serviceView, descriptionTextView].forEach(addSubview)
 
         createConstraints()
 
-        switch variant {
-        case .dark:
-            backgroundColor = .clear
-        case .light:
-            backgroundColor = .white
-        }
-
         descriptionTextView.backgroundColor = .clear
         descriptionTextView.textContainerInset = .zero
-        descriptionTextView.textColor = UIColor.from(scheme: .textForeground, variant: variant)
+        descriptionTextView.textColor = SemanticColors.Label.textDefault
         descriptionTextView.font = FontSpec(.normal, .light).font
         descriptionTextView.isEditable = false
         updateForService()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -64,11 +56,13 @@ final class ServiceDetailView: UIView {
     private func createConstraints() {
         [self, serviceView, descriptionTextView].prepareForLayout()
 
-        serviceView.fitInSuperview(exclude: [.bottom])
-
-        descriptionTextView.fitInSuperview(exclude: [.top])
-
         NSLayoutConstraint.activate([
+            serviceView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            serviceView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            serviceView.topAnchor.constraint(equalTo: topAnchor),
+            descriptionTextView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            descriptionTextView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            descriptionTextView.bottomAnchor.constraint(equalTo: bottomAnchor),
             descriptionTextView.topAnchor.constraint(equalTo: serviceView.bottomAnchor, constant: 16)])
     }
 
@@ -82,17 +76,14 @@ final class ServiceView: UIView {
     private let nameLabel = UILabel()
     private let providerLabel = UILabel()
 
-    public let variant: ColorSchemeVariant
-
     public var service: Service {
         didSet {
             updateForService()
         }
     }
 
-    init(service: Service, variant: ColorSchemeVariant) {
+    init(service: Service) {
         self.service = service
-        self.variant = variant
         super.init(frame: .zero)
         [logoView, nameLabel, providerLabel].forEach(addSubview)
 
@@ -101,15 +92,16 @@ final class ServiceView: UIView {
         backgroundColor = .clear
 
         nameLabel.font = FontSpec(.large, .regular).font
-        nameLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
+        nameLabel.textColor = SemanticColors.Label.textDefault
         nameLabel.backgroundColor = .clear
 
         providerLabel.font = FontSpec(.medium, .regular).font
-        providerLabel.textColor = UIColor.from(scheme: .textForeground, variant: variant)
+        providerLabel.textColor = SemanticColors.Label.textDefault
         providerLabel.backgroundColor = .clear
         updateForService()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

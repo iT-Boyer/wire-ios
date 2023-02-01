@@ -102,12 +102,14 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
         self.collection.assetCollectionDelegate.remove(self)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.PictureView.CloseButton.description
 
         if let navigationBar = navigationController?.navigationBar {
             navigationBar.isTranslucent = true
@@ -148,12 +150,22 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
          overlay,
          separator].prepareForLayout()
 
-        pageViewController.view.fitInSuperview()
-        buttonsBar.fitInSuperview(exclude: [.top])
-        overlay.pin(to: buttonsBar)
+        pageViewController.view.fitIn(view: view)
+        NSLayoutConstraint.activate([
+            buttonsBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            buttonsBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            buttonsBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            overlay.topAnchor.constraint(equalTo: buttonsBar.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: buttonsBar.bottomAnchor),
+            overlay.trailingAnchor.constraint(equalTo: buttonsBar.trailingAnchor),
+            overlay.leadingAnchor.constraint(equalTo: buttonsBar.leadingAnchor),
 
-        separator.heightAnchor.constraint(equalToConstant: .hairline).isActive = true
-        separator.pin(to: buttonsBar, exclude: [.bottom])
+            separator.heightAnchor.constraint(equalToConstant: .hairline),
+            separator.topAnchor.constraint(equalTo: buttonsBar.topAnchor),
+            separator.trailingAnchor.constraint(equalTo: buttonsBar.trailingAnchor),
+            separator.leadingAnchor.constraint(equalTo: buttonsBar.leadingAnchor)
+        ])
+
     }
 
     private func createPageController() {
@@ -241,7 +253,6 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
         // if the current message is ephemeral, then it will be the only
         // message b/c ephemeral messages are excluded in the collection.
         if !currentMessage.isEphemeral {
-
             let copyButton = iconButton(messageAction:
                 .copy)
 
@@ -252,7 +263,7 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
 
             let shareButton = IconButton(style: .default)
             shareButton.setIcon(.export, size: .tiny, for: .normal)
-            shareButton.accessibilityLabel = "share"
+            shareButton.accessibilityLabel = L10n.Accessibility.MessageAction.ShareButton.description
             shareButton.addTarget(self, action: #selector(ConversationImagesViewController.shareCurrent(_:)), for: .touchUpInside)
             self.shareButton = shareButton
 
@@ -262,10 +273,12 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
             let emojiSketchButton = iconButton(messageAction:
             .sketchEmoji)
 
-            let revealButton = iconButton(messageAction:
-            .showInConversation)
-
-            buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, copyButton, saveButton, revealButton]
+            let revealButton = iconButton(messageAction: .showInConversation)
+            if !MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).canDownloadMedia {
+                buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, revealButton]
+            } else {
+                buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, copyButton, saveButton, revealButton]
+            }
         }
 
         buttons.append(deleteButton)
@@ -277,7 +290,7 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
     private func createControlsBar() {
         let buttons = createControlsBarButtons()
 
-        self.buttonsBar = InputBarButtonsView(buttons: buttons)
+        buttonsBar = InputBarButtonsView(buttons: buttons)
         self.buttonsBar.clipsToBounds = true
         self.buttonsBar.expandRowButton.setIconColor(UIColor.from(scheme: .textForeground), for: .normal)
         self.buttonsBar.backgroundColor = UIColor.from(scheme: .barBackground)
@@ -320,6 +333,8 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
             return
         }
         navigationItem.titleView = TwoLineTitleView(first: (sender.name ?? "").localizedUppercase, second: serverTimestamp.formattedDate)
+        navigationItem.titleView?.accessibilityTraits = .header
+        navigationItem.titleView?.accessibilityLabel = "\(sender.name ?? ""), \(serverTimestamp.formattedDate)"
     }
 
     private func updateButtonsForMessage() {
@@ -345,6 +360,8 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
                                        for: message ?? currentMessage,
                                        view: sender as? UIView ?? view)
     }
+
+    // MARK: icon button actions
 
     @objc
     private func copyCurrent(_ sender: AnyObject!) {
@@ -486,21 +503,22 @@ extension ConversationImagesViewController: MenuVisibilityController {
     }
 
     func fadeAndHideMenu(_ hidden: Bool) {
-        let duration = UIApplication.shared.statusBarOrientationAnimationDuration
+        let duration = 0.3
 
-        showNavigationBarVisible(hidden: hidden)
+        showNavigationBarVisible(hidden: hidden, duration: duration)
 
         buttonsBar.fadeAndHide(hidden, duration: duration)
         separator.fadeAndHide(hidden, duration: duration)
     }
 
-    private func showNavigationBarVisible(hidden: Bool) {
+    private func showNavigationBarVisible(hidden: Bool, duration: TimeInterval) {
         guard let view = navigationController?.view else { return }
 
-        UIView.transition(with: view, duration: UIApplication.shared.statusBarOrientationAnimationDuration, animations: {
+        UIView.transition(with: view, duration: duration, animations: {
             self.navigationController?.setNavigationBarHidden(hidden, animated: false)
         })
     }
+
 }
 
 extension ConversationImagesViewController {
@@ -508,6 +526,23 @@ extension ConversationImagesViewController {
     @available(iOS, introduced: 9.0, deprecated: 13.0, message: "UIViewControllerPreviewing is deprecated. Please use UIContextMenuInteraction.")
     override var previewActionItems: [UIPreviewActionItem] {
         return currentActionController?.previewActionItems ?? []
+    }
+
+}
+
+// MARK: - Helper
+
+extension UIView {
+
+    func fadeAndHide(_ hide: Bool, duration: TimeInterval = 0.2, options: UIView.AnimationOptions = UIView.AnimationOptions()) {
+        if !hide {
+            alpha = 0
+            isHidden = false
+        }
+
+        let animations = { self.alpha = hide ? 0 : 1 }
+        let completion: (Bool) -> Void = { _ in self.isHidden = hide }
+        UIView.animate(withDuration: duration, delay: 0, options: UIView.AnimationOptions(), animations: animations, completion: completion)
     }
 
 }

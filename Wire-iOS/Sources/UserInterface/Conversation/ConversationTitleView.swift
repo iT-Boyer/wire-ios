@@ -37,10 +37,8 @@ final class ConversationTitleView: TitleView {
     }
 
     func configure() {
-        titleColor = UIColor.from(scheme: .textForeground)
-        titleColorSelected = UIColor.from(scheme: .textDimmed)
-        titleFont = FontSpec(.medium, .semibold).font!
-        accessibilityHint = "conversation_details.open_button.accessibility_hint".localized
+        titleColor = SemanticColors.Label.textDefault
+        titleFont = .normalSemiboldFont
 
         var attachments: [NSTextAttachment] = []
 
@@ -52,26 +50,50 @@ final class ConversationTitleView: TitleView {
             attachments.append(.verifiedShield())
         }
 
+        var subtitle: String?
+        if conversation.conversationType == .oneOnOne,
+           let user = conversation.connectedUserType,
+           user.isFederated {
+            subtitle = user.handleDisplayString(withDomain: true)
+        }
+
         super.configure(icons: attachments,
-                        title: conversation.displayName.localizedUppercase,
+                        title: conversation.displayName.localized,
+                        subtitle: subtitle,
                         interactive: self.interactive && conversation.relatedConnectionState != .sent)
 
+        setupAccessibility()
+    }
+
+    private func setupAccessibility() {
+        typealias Conversation = L10n.Accessibility.Conversation
+
         var components: [String] = []
-        components.append(conversation.displayName.localizedUppercase)
+        components.append(conversation.displayName.localized)
 
         if conversation.securityLevel == .secure {
-            components.append("conversation.voiceover.verified".localized)
+            components.append(Conversation.VerifiedIcon.description)
         }
 
         if conversation.isUnderLegalHold {
-            components.append("conversation.voiceover.legalhold".localized)
+            components.append(Conversation.LegalHoldIcon.description)
         }
 
         if !UIApplication.isLeftToRightLayout {
             components.reverse()
         }
 
-        self.accessibilityLabel = components.joined(separator: ", ")
+        accessibilityLabel = components.joined(separator: ", ")
+
+        guard interactive else {
+            accessibilityTraits = .header
+            return
+        }
+
+        accessibilityTraits = .button
+        accessibilityHint = conversation.conversationType == .oneOnOne
+        ? Conversation.TitleViewForOneToOne.hint
+        : Conversation.TitleViewForGroup.hint
     }
 
 }
@@ -89,7 +111,7 @@ extension NSTextAttachment {
 
     static func legalHold() -> NSTextAttachment {
         let attachment = NSTextAttachment()
-        let legalHold = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: .vividRed)
+        let legalHold = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: SemanticColors.Icon.foregroundDefaultRed)
         attachment.image = legalHold
         let ratio = legalHold.size.width / legalHold.size.height
         let height: CGFloat = 12

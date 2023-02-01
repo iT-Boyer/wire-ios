@@ -19,17 +19,14 @@
 import Foundation
 
 enum SecurityFlags {
-    case clipboard
-    case saveMessage
-    case gifAction
-    case externalFilePicker
     case generateLinkPreviews
     case forceConstantBitRateCalls
-    case openFilePreview
     case customBackend
-    case shareExtension
     case cameraRoll
     case backup
+    case maxNumberAccounts
+    case fileSharing
+    case forceCallKitDisabled
 
     /// Whether encryption at rest is enabled and can't be disabled.
 
@@ -37,31 +34,33 @@ enum SecurityFlags {
 
     var bundleKey: String {
         switch self {
-        case .clipboard:
-            return "ClipboardEnabled"
-        case .saveMessage:
-            return "SaveMessageEnabled"
-        case .gifAction:
-            return "FileGifActionEnabled"
-        case .externalFilePicker:
-            return "ExternalFilePickerEnabled"
+        case .maxNumberAccounts:
+            return "MaxNumberAccounts"
         case .generateLinkPreviews:
             return "GenerateLinkPreviewEnabled"
         case .forceConstantBitRateCalls:
             return "ForceCBREnabled"
-        case .openFilePreview:
-            return "OpenFilePreviewEnabled"
         case .customBackend:
             return "CustomBackendEnabled"
-        case .shareExtension:
-            return "ShareExtensionEnabled"
         case .cameraRoll:
             return "CameraRollEnabled"
         case .backup:
             return "BackupEnabled"
         case .forceEncryptionAtRest:
             return "ForceEncryptionAtRestEnabled"
+        case .fileSharing:
+            return "FileSharingEnabled"
+        case .forceCallKitDisabled:
+            return "ForceCallKitDisabled"
         }
+    }
+
+    var intValue: Int? {
+        guard let string = Bundle.appMainBundle.infoForKey(bundleKey) else {
+            return nil
+        }
+
+        return Int(string)
     }
 
     var isEnabled: Bool {

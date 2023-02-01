@@ -19,14 +19,35 @@
 import XCTest
 @testable import Wire
 
-final class AddParticipantsViewControllerSnapshotTests: XCTestCase, CoreDataFixtureTestHelper {
+final class MockTeam: TeamType {
+    var conversations: Set<ZMConversation> = []
+
+    var name: String?
+
+    var pictureAssetId: String?
+
+    var pictureAssetKey: String?
+
+    var remoteIdentifier: UUID?
+
+    var imageData: Data?
+
+    func requestImage() {
+        // no-op
+    }
+
+    func refreshMetadata() {
+        // no-op
+    }
+}
+
+final class AddParticipantsViewControllerSnapshotTests: ZMSnapshotTestCase, CoreDataFixtureTestHelper {
     var coreDataFixture: CoreDataFixture!
 
     var sut: AddParticipantsViewController!
 
     override func setUp() {
         super.setUp()
-
         coreDataFixture = CoreDataFixture()
     }
 
@@ -42,19 +63,32 @@ final class AddParticipantsViewControllerSnapshotTests: XCTestCase, CoreDataFixt
     func testForEveryOneIsHere() {
         let newValues = ConversationCreationValues(name: "", participants: [], allowGuests: true, selfUser: selfUser)
 
-        sut = AddParticipantsViewController(context: .create(newValues), variant: .light)
+        sut = AddParticipantsViewController(context: .create(newValues))
         verify(matching: sut)
     }
 
     func testForAddParticipantsButtonIsShown() {
         let conversation = createGroupConversation()
-
-        sut = AddParticipantsViewController(context: .add(conversation), variant: .light)
-
+        sut = AddParticipantsViewController(context: .add(conversation))
         let user = createUser(name: "Bill")
         sut.userSelection.add(user)
         sut.userSelection(UserSelection(), didAddUser: user)
 
+        verify(matching: sut)
+    }
+
+    func testThatTabBarIsShown_WhenBotCanBeAdded() {
+        // GIVEN
+        let mockConversation = MockGroupDetailsConversation()
+
+        // WHEN
+        mockConversation.conversationType = .group
+        mockConversation.teamType = MockTeam()
+        mockConversation.allowServices = true
+
+        sut = AddParticipantsViewController(context: .add(mockConversation))
+
+        // THEN
         verify(matching: sut)
     }
 

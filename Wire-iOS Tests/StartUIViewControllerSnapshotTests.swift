@@ -66,13 +66,15 @@ final class StartUIViewControllerSnapshotTests: CoreDataSnapshotTestCase {
     func setupSut() {
         sut = StartUIViewController(addressBookHelperType: MockAddressBookHelper.self)
         sut.view.backgroundColor = .black
+        sut.overrideUserInterfaceStyle = .dark
     }
 
     func testForWrappedInNavigationViewController() {
         nonTeamTest {
             setupSut()
 
-            let navigationController = UIViewController().wrapInNavigationController(navigationControllerClass: ClearBackgroundNavigationController.self)
+            let navigationController = UIViewController().wrapInNavigationController(navigationControllerClass: NavigationController.self)
+            navigationController.overrideUserInterfaceStyle = .dark
 
             navigationController.pushViewController(sut, animated: false)
 

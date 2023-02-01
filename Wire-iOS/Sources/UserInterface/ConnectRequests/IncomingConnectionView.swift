@@ -17,30 +17,25 @@
 //
 
 import Foundation
-import Cartography
 import WireSyncEngine
+import WireCommonComponents
 
 final class IncomingConnectionView: UIView {
 
-    static private var correlationFormatter: AddressBookCorrelationFormatter = {
-        return AddressBookCorrelationFormatter(
-            lightFont: FontSpec(.small, .light).font!,
-            boldFont: FontSpec(.small, .medium).font!,
-            color: UIColor.from(scheme: .textDimmed)
-        )
-    }()
-
     private let usernameLabel = UILabel()
     private let userDetailView = UserNameDetailView()
+    private let securityLevelView = SecurityLevelView()
     private let userImageView = UserImageView()
     private let incomingConnectionFooter = UIView()
-    private let acceptButton = Button(style: .full)
-    private let ignoreButton = Button(style: .empty)
+    private let acceptButton = Button(style: .accentColorTextButtonStyle, cornerRadius: 16, fontSpec: .smallSemiboldFont)
+    private let ignoreButton = Button(style: .secondaryTextButtonStyle, cornerRadius: 16, fontSpec: .smallSemiboldFont)
+
+    private let classificationProvider: ClassificationProviding?
 
     var user: UserType {
         didSet {
-            self.setupLabelText()
-            self.userImageView.user = self.user
+            setupLabelText()
+            userImageView.user = user
         }
     }
 
@@ -48,39 +43,42 @@ final class IncomingConnectionView: UIView {
     var onAccept: UserAction?
     var onIgnore: UserAction?
 
-    init(user: UserType) {
+    init(user: UserType, classificationProvider: ClassificationProviding? = ZMUserSession.shared()) {
         self.user = user
+        self.classificationProvider = classificationProvider
+
         super.init(frame: .zero)
 
         userImageView.userSession = ZMUserSession.shared()
         userImageView.initialsFont = UIFont.systemFont(ofSize: 55, weight: .semibold).monospaced()
-        self.setup()
-        self.createConstraints()
+        setup()
+        createConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
     private func setup() {
-        self.acceptButton.accessibilityLabel = "accept"
-        self.acceptButton.setTitle("inbox.connection_request.connect_button_title".localized(uppercased: true), for: .normal)
-        self.acceptButton.addTarget(self, action: #selector(onAcceptButton), for: .touchUpInside)
+        acceptButton.accessibilityLabel = "accept"
+        acceptButton.setTitle("inbox.connection_request.connect_button_title".localized(uppercased: true), for: .normal)
+        acceptButton.addTarget(self, action: #selector(onAcceptButton), for: .touchUpInside)
 
-        self.ignoreButton.accessibilityLabel = "ignore"
-        self.ignoreButton.setTitle("inbox.connection_request.ignore_button_title".localized(uppercased: true), for: .normal)
-        self.ignoreButton.addTarget(self, action: #selector(onIgnoreButton), for: .touchUpInside)
+        ignoreButton.accessibilityLabel = "ignore"
+        ignoreButton.setTitle("inbox.connection_request.ignore_button_title".localized(uppercased: true), for: .normal)
+        ignoreButton.addTarget(self, action: #selector(onIgnoreButton), for: .touchUpInside)
 
-        self.userImageView.accessibilityLabel = "user image"
-        self.userImageView.shouldDesaturate = false
-        self.userImageView.size = .big
-        self.userImageView.user = self.user
+        userImageView.accessibilityLabel = "user image"
+        userImageView.shouldDesaturate = false
+        userImageView.size = .big
+        userImageView.user = user
 
-        self.incomingConnectionFooter.addSubview(self.acceptButton)
-        self.incomingConnectionFooter.addSubview(self.ignoreButton)
+        incomingConnectionFooter.addSubview(acceptButton)
+        incomingConnectionFooter.addSubview(ignoreButton)
 
-        [self.usernameLabel, self.userDetailView, self.userImageView, self.incomingConnectionFooter].forEach(self.addSubview)
-        self.setupLabelText()
+        [usernameLabel, userDetailView, securityLevelView, userImageView, incomingConnectionFooter].forEach(addSubview)
+        setupLabelText()
     }
 
     private func setupLabelText() {
@@ -93,49 +91,62 @@ final class IncomingConnectionView: UIView {
         usernameLabel.attributedText = viewModel.title
         usernameLabel.accessibilityIdentifier = "name"
         userDetailView.configure(with: viewModel)
+        securityLevelView.configure(with: [user], provider: classificationProvider)
     }
 
     private func createConstraints() {
-        constrain(self.incomingConnectionFooter, self.acceptButton, self.ignoreButton) { incomingConnectionFooter, acceptButton, ignoreButton in
-            ignoreButton.left == incomingConnectionFooter.left + 16
-            ignoreButton.top == incomingConnectionFooter.top + 12
-            ignoreButton.bottom == incomingConnectionFooter.bottom - 16
-            ignoreButton.height == 40
-            ignoreButton.right == incomingConnectionFooter.centerX - 8
+        [incomingConnectionFooter,
+         acceptButton,
+         ignoreButton,
+         usernameLabel,
+         userDetailView,
+         securityLevelView,
+         userImageView].prepareForLayout()
 
-            acceptButton.right == incomingConnectionFooter.right - 16
-            acceptButton.left == incomingConnectionFooter.centerX + 8
-            acceptButton.centerY == ignoreButton.centerY
-            acceptButton.height == ignoreButton.height
-        }
+        NSLayoutConstraint.activate([
+            ignoreButton.leftAnchor.constraint(equalTo: incomingConnectionFooter.leftAnchor, constant: 16),
+            ignoreButton.topAnchor.constraint(equalTo: incomingConnectionFooter.topAnchor, constant: 12),
+            ignoreButton.bottomAnchor.constraint(equalTo: incomingConnectionFooter.bottomAnchor, constant: -16),
+            ignoreButton.heightAnchor.constraint(equalToConstant: 40),
+            ignoreButton.rightAnchor.constraint(equalTo: incomingConnectionFooter.centerXAnchor, constant: -8),
 
-        constrain(self, self.usernameLabel, self.userDetailView, self.incomingConnectionFooter, self.userImageView) { selfView, usernameLabel, userDetailView, incomingConnectionFooter, userImageView in
-            usernameLabel.top == selfView.top + 18
-            usernameLabel.centerX == selfView.centerX
-            usernameLabel.left >= selfView.left
+            acceptButton.rightAnchor.constraint(equalTo: incomingConnectionFooter.rightAnchor, constant: -16),
+            acceptButton.leftAnchor.constraint(equalTo: incomingConnectionFooter.centerXAnchor, constant: 8),
+            acceptButton.centerYAnchor.constraint(equalTo: ignoreButton.centerYAnchor),
+            acceptButton.heightAnchor.constraint(equalTo: ignoreButton.heightAnchor),
 
-            userDetailView.centerX == selfView.centerX
-            userDetailView.top == usernameLabel.bottom + 4
-            userDetailView.left >= selfView.left
-            userDetailView.bottom <= userImageView.top
+            usernameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 18),
+            usernameLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            usernameLabel.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
 
-            userImageView.center == selfView.center
-            userImageView.left >= selfView.left + 54
-            userImageView.width == userImageView.height
-            userImageView.height <= 264
+            userDetailView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            userDetailView.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 4),
+            userDetailView.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor),
 
-            incomingConnectionFooter.top >= userImageView.bottom
-            incomingConnectionFooter.left == selfView.left
-            incomingConnectionFooter.bottom == selfView.bottom
-            incomingConnectionFooter.right == selfView.right
-        }
+            securityLevelView.topAnchor.constraint(equalTo: userDetailView.bottomAnchor, constant: 4),
+            securityLevelView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            securityLevelView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            securityLevelView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            securityLevelView.bottomAnchor.constraint(lessThanOrEqualTo: userImageView.topAnchor),
+
+            userImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            userImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            userImageView.leftAnchor.constraint(greaterThanOrEqualTo: leftAnchor, constant: 54),
+            userImageView.widthAnchor.constraint(equalTo: userImageView.heightAnchor),
+            userImageView.heightAnchor.constraint(lessThanOrEqualToConstant: 264),
+
+            incomingConnectionFooter.topAnchor.constraint(greaterThanOrEqualTo: userImageView.bottomAnchor),
+            incomingConnectionFooter.leftAnchor.constraint(equalTo: leftAnchor),
+            incomingConnectionFooter.bottomAnchor.constraint(equalTo: bottomAnchor),
+            incomingConnectionFooter.rightAnchor.constraint(equalTo: rightAnchor)
+        ])
     }
 
     // MARK: - Actions
 
     @objc
     private func onAcceptButton(sender: AnyObject!) {
-        onAccept?(self.user)
+        onAccept?(user)
     }
 
     @objc

@@ -23,7 +23,7 @@ import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "TextView")
 
-protocol InformalTextViewDelegate: class {
+protocol InformalTextViewDelegate: AnyObject {
     func textView(_ textView: UITextView, hasImageToPaste image: MediaAsset)
     func textView(_ textView: UITextView, firstResponderChanged resigned: Bool)
 }
@@ -69,12 +69,6 @@ class TextView: UITextView {
         }
     }
 
-    var placeholderTextTransform: TextTransform = .upper {
-        didSet {
-            placeholderLabel.textTransform = placeholderTextTransform
-        }
-    }
-
     var lineFragmentPadding: CGFloat = 0 {
         didSet {
             textContainer.lineFragmentPadding = lineFragmentPadding
@@ -116,9 +110,9 @@ class TextView: UITextView {
         }
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setup()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     override init(frame: CGRect, textContainer: NSTextContainer?) {
@@ -203,7 +197,6 @@ class TextView: UITextView {
         let linePadding = textContainer.lineFragmentPadding
         placeholderLabel.font = placeholderFont
         placeholderLabel.textColor = placeholderTextColor
-        placeholderLabel.textTransform = placeholderTextTransform
         placeholderLabel.textAlignment = placeholderTextAlignment
         placeholderLabel.isAccessibilityElement = false
 

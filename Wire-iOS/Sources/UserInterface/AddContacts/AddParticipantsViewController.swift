@@ -17,9 +17,9 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 import WireDataModel
+import WireCommonComponents
 
 extension ConversationLike where Self: SwiftConversationLike {
     var canAddGuest: Bool {
@@ -29,20 +29,19 @@ extension ConversationLike where Self: SwiftConversationLike {
         }
 
         // Access mode and/or role is unknown: let's try to add and observe the result.
-        guard let accessMode = accessMode,
-              let accessRole = accessRole else {
-                return true
+        guard let accessMode = accessMode else {
+            return true
         }
 
         let canAddGuest = accessMode.contains(.invite)
-        let guestCanBeAdded = accessRole != .team
+        let guestCanBeAdded = accessRoles.contains(.nonTeamMember) && accessRoles.contains(.guest)
 
         return canAddGuest && guestCanBeAdded
     }
+
 }
 
-protocol AddParticipantsConversationCreationDelegate: class {
-
+protocol AddParticipantsConversationCreationDelegate: AnyObject {
     func addParticipantsViewController(_ addParticipantsViewController: AddParticipantsViewController, didPerform action: AddParticipantsViewController.CreateAction)
 }
 
@@ -66,18 +65,19 @@ extension AddParticipantsViewController.Context {
     }
 
     var alertForSelectionOverflow: UIAlertController {
+        typealias AddParticipantsAlert = L10n.Localizable.AddParticipants.Alert
         let max = ZMConversation.maxParticipants
         let message: String
         switch self {
         case .add(let conversation):
             let freeSpace = conversation.freeParticipantSlots
-            message = "add_participants.alert.message.existing_conversation".localized(args: max, freeSpace)
+            message = AddParticipantsAlert.Message.existingConversation(max, freeSpace)
         case .create:
-            message = "add_participants.alert.message.new_conversation".localized(args: max)
+            message = AddParticipantsAlert.Message.newConversation(max)
         }
 
         let controller = UIAlertController(
-            title: "add_participants.alert.title".localized,
+            title: AddParticipantsAlert.title.capitalized,
             message: message,
             preferredStyle: .alert
         )
@@ -99,19 +99,19 @@ final class AddParticipantsViewController: UIViewController {
         case create(ConversationCreationValues)
     }
 
-    fileprivate let variant: ColorSchemeVariant
     fileprivate let searchResultsViewController: SearchResultsViewController
     fileprivate let searchGroupSelector: SearchGroupSelector
     fileprivate let searchHeaderViewController: SearchHeaderViewController
     let userSelection: UserSelection = UserSelection()
     fileprivate let collectionView: UICollectionView
     fileprivate let collectionViewLayout: UICollectionViewFlowLayout
-    fileprivate let confirmButtonHeight: CGFloat = 46.0
+    fileprivate let confirmButtonHeight: CGFloat = 56.0
     fileprivate let confirmButton: IconButton
     fileprivate let emptyResultView: EmptySearchResultsView
-    fileprivate var bottomConstraint: NSLayoutConstraint?
+    fileprivate lazy var bottomConstraint: NSLayoutConstraint = confirmButton.bottomAnchor.constraint(equalTo: view.bottomAnchor,
+                                                                                                      constant: -bottomMargin)
     fileprivate let backButtonDescriptor = BackButtonDescription()
-    private let bottomMargin: CGFloat = UIScreen.hasBottomInset ? 8 : 16
+    fileprivate let bottomMargin: CGFloat = 24
 
     weak var conversationCreationDelegate: AddParticipantsConversationCreationDelegate?
 
@@ -125,6 +125,7 @@ final class AddParticipantsViewController: UIViewController {
         userSelection.remove(observer: self)
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -143,11 +144,9 @@ final class AddParticipantsViewController: UIViewController {
     }
 
     init(context: Context,
-         variant: ColorSchemeVariant = ColorScheme.default.variant,
-         isFederationEnabled: Bool = Settings.shared[.federationEnabled] == true) {
-        self.variant = variant
+         isFederationEnabled: Bool = BackendInfo.isFederationEnabled) {
 
-        viewModel = AddParticipantsViewModel(with: context, variant: variant)
+        viewModel = AddParticipantsViewModel(with: context)
 
         collectionViewLayout = UICollectionViewFlowLayout()
         collectionViewLayout.scrollDirection = .vertical
@@ -161,28 +160,24 @@ final class AddParticipantsViewController: UIViewController {
         collectionView.bounces = true
         collectionView.alwaysBounceVertical = true
 
-        confirmButton = IconButton()
-        confirmButton.setIconColor(UIColor.from(scheme: .iconNormal, variant: .dark), for: .normal)
-        confirmButton.setIconColor(UIColor.from(scheme: .iconHighlighted, variant: .dark), for: .highlighted)
-        confirmButton.setTitleColor(UIColor.from(scheme: .iconNormal, variant: .dark), for: .normal)
-        confirmButton.setTitleColor(UIColor.from(scheme: .iconHighlighted, variant: .dark), for: .highlighted)
-        confirmButton.titleLabel?.font = FontSpec(.small, .medium).font!
-        confirmButton.backgroundColor = UIColor.accent()
+        confirmButton = IconButton(fontSpec: .normalSemiboldFont)
+        confirmButton.applyStyle(.addParticipantsDisabledButtonStyle)
+        confirmButton.setBackgroundImageColor(SemanticColors.Button.backgroundPrimaryDisabled, for: .disabled)
         confirmButton.contentHorizontalAlignment = .center
         confirmButton.setTitleImageSpacing(16, horizontalMargin: 24)
-        confirmButton.hasRoundCorners = true
+        confirmButton.layer.cornerRadius = 16
+        confirmButton.layer.masksToBounds = true
 
-        searchHeaderViewController = SearchHeaderViewController(userSelection: userSelection, variant: self.variant)
+        searchHeaderViewController = SearchHeaderViewController(userSelection: userSelection)
 
-        searchGroupSelector = SearchGroupSelector(style: self.variant)
+        searchGroupSelector = SearchGroupSelector()
 
         searchResultsViewController = SearchResultsViewController(userSelection: userSelection,
                                                                   isAddingParticipants: true,
                                                                   shouldIncludeGuests: viewModel.context.includeGuests,
                                                                   isFederationEnabled: isFederationEnabled)
 
-        emptyResultView = EmptySearchResultsView(variant: self.variant,
-                                                 isSelfUserAdmin: SelfUser.current.canManageTeam,
+        emptyResultView = EmptySearchResultsView(isSelfUserAdmin: SelfUser.current.canManageTeam,
                                                  isFederationEnabled: isFederationEnabled)
         super.init(nibName: nil, bundle: nil)
 
@@ -211,6 +206,9 @@ final class AddParticipantsViewController: UIViewController {
             // not going to be added to the new conversation with the bot.
             if group == .services {
                 self.searchHeaderViewController.clearInput()
+                self.confirmButton.isHidden = true
+            } else {
+                self.confirmButton.isHidden = false
             }
 
             self.searchResultsViewController.searchGroup = group
@@ -236,10 +234,10 @@ final class AddParticipantsViewController: UIViewController {
         view.addSubview(searchResultsViewController.view)
         searchResultsViewController.didMove(toParent: self)
         searchResultsViewController.searchResultsView.emptyResultView = emptyResultView
-        searchResultsViewController.searchResultsView.backgroundColor = UIColor.from(scheme: .contentBackground, variant: self.variant)
+        searchResultsViewController.searchResultsView.backgroundColor = SemanticColors.View.backgroundDefault
         searchResultsViewController.searchResultsView.collectionView.accessibilityIdentifier = "add_participants.list"
 
-        view.backgroundColor = UIColor.from(scheme: .contentBackground, variant: self.variant)
+        view.backgroundColor = SemanticColors.View.backgroundDefault
         view.addSubview(confirmButton)
 
         createConstraints()
@@ -250,48 +248,60 @@ final class AddParticipantsViewController: UIViewController {
         }
     }
 
-    func createConstraints() {
-        let margin = (searchResultsViewController.view as! SearchResultsView).accessoryViewMargin
+    private func createConstraints() {
+        let searchMargin: CGFloat = confirmButton.isHidden ? 0 : (confirmButtonHeight + bottomMargin * 2)
+        guard let searchHeaderView = searchHeaderViewController.view,
+              let searchResultsView = searchResultsViewController.view,
+              let margin = (searchResultsView as? SearchResultsView)?.accessoryViewMargin else {
+                  return
+              }
 
-        constrain(view, searchHeaderViewController.view, searchResultsViewController.view, confirmButton) {
-            container, searchHeaderView, searchResultsView, confirmButton in
+        [searchHeaderView,
+         searchResultsView,
+         confirmButton,
+         searchGroupSelector].prepareForLayout()
 
-            searchHeaderView.top == container.top
-            searchHeaderView.left == container.left
-            searchHeaderView.right == container.right
+        var constraints: [NSLayoutConstraint] = [
+            searchHeaderView.topAnchor.constraint(equalTo: view.topAnchor),
+            searchHeaderView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            searchHeaderView.rightAnchor.constraint(equalTo: view.rightAnchor),
 
-            searchResultsView.left == container.left
-            searchResultsView.right == container.right
-            searchResultsView.bottom == container.bottom
+            searchResultsView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            searchResultsView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            searchResultsView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -searchMargin),
 
-            confirmButton.height == self.confirmButtonHeight
-            confirmButton.left == container.left + margin
-            confirmButton.right == container.right - margin
-
-            self.bottomConstraint = confirmButton.bottom == container.safeAreaLayoutGuideOrFallback.bottom - bottomMargin
-        }
+            confirmButton.heightAnchor.constraint(equalToConstant: confirmButtonHeight),
+            confirmButton.leftAnchor.constraint(equalTo: view.leftAnchor, constant: margin),
+            confirmButton.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -margin),
+            bottomConstraint
+        ]
 
         if viewModel.botCanBeAdded {
-            constrain(view, searchHeaderViewController.view, searchGroupSelector, searchResultsViewController.view) {
-                view, searchHeaderView, searchGroupSelector, searchResultsView in
-                searchGroupSelector.top == searchHeaderView.bottom
-                searchGroupSelector.leading == view.leading
-                searchGroupSelector.trailing == view.trailing
-                searchResultsView.top == searchGroupSelector.bottom
-            }
+            constraints.append(contentsOf: [
+                searchGroupSelector.topAnchor.constraint(equalTo: searchHeaderView.bottomAnchor),
+                searchGroupSelector.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                searchGroupSelector.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                searchResultsView.topAnchor.constraint(equalTo: searchGroupSelector.bottomAnchor)
+            ])
+        } else {
+            constraints.append(
+                searchResultsView.topAnchor.constraint(equalTo: searchHeaderView.bottomAnchor)
+            )
         }
-        else {
-            constrain(searchHeaderViewController.view, searchResultsViewController.view) {
-                searchHeaderView, searchResultsView in
-                searchResultsView.top == searchHeaderView.bottom
-            }
-        }
+
+        NSLayoutConstraint.activate(constraints)
     }
 
     private func updateValues() {
-        confirmButton.setTitle(viewModel.confirmButtonTitle, for: .normal)
+        if let buttonTitle = viewModel.confirmButtonTitle {
+            confirmButton.isHidden = false
+            confirmButton.setTitle(buttonTitle, for: .normal)
+        } else {
+            confirmButton.isHidden = true
+        }
         updateTitle()
         navigationItem.rightBarButtonItem = viewModel.rightNavigationItem(target: self, action: #selector(rightNavigationItemTapped))
+        navigationItem.rightBarButtonItem?.accessibilityLabel = L10n.Accessibility.AddParticipantsConversationSettings.CloseButton.description
     }
 
     fileprivate func updateSelectionValues() {
@@ -300,19 +310,23 @@ final class AddParticipantsViewController: UIViewController {
             let updated = ConversationCreationValues(name: values.name,
                                                      participants: userSelection.users,
                                                      allowGuests: true,
+                                                     allowServices: true,
                                                      selfUser: ZMUser.selfUser())
-            viewModel = AddParticipantsViewModel(with: .create(updated), variant: variant)
+            viewModel = AddParticipantsViewModel(with: .create(updated))
         }
 
-        // Update confirm button visibility & collection view content inset
-        confirmButton.isHidden = userSelection.users.isEmpty || !viewModel.showsConfirmButton
-        let bottomInset = confirmButton.isHidden ? bottomMargin : confirmButtonHeight + 16 + bottomMargin
-        searchResultsViewController.searchResultsView.collectionView.contentInset.bottom = bottomInset
+        // Enable button & collection view content inset
+        updateConfirmButtonState(state: !userSelection.users.isEmpty)
 
         updateTitle()
 
         // Notify delegate
         conversationCreationDelegate?.addParticipantsViewController(self, didPerform: .updatedUsers(userSelection.users))
+    }
+
+    private func updateConfirmButtonState(state: Bool) {
+        confirmButton.isEnabled = state
+        confirmButton.applyStyle(state ? .addParticipantsButtonStyle : .addParticipantsDisabledButtonStyle)
     }
 
     private func updateTitle() {
@@ -322,6 +336,10 @@ final class AddParticipantsViewController: UIViewController {
             case .add: return viewModel.title(with: userSelection.users)
             }
         }()
+
+        guard let title = title else { return }
+        navigationItem.setupNavigationBarTitle(title: title.capitalized)
+
     }
 
     @objc private func rightNavigationItemTapped(_ sender: Any!) {
@@ -344,12 +362,8 @@ final class AddParticipantsViewController: UIViewController {
             guard let weakSelf = self else { return }
 
             let keyboardHeight = keyboardFrameInView.size.height - inputAccessoryHeight
-            let margin: CGFloat = {
-                guard UIScreen.hasNotch, keyboardHeight > 0 else { return weakSelf.bottomMargin }
-                return -weakSelf.bottomMargin
-            }()
 
-            weakSelf.bottomConstraint?.constant = -(keyboardHeight + margin)
+            weakSelf.bottomConstraint.constant = -(keyboardHeight + weakSelf.bottomMargin)
             weakSelf.view.layoutIfNeeded()
         })
     }
@@ -446,8 +460,7 @@ extension AddParticipantsViewController: SearchResultsViewControllerDelegate {
         guard case let .add(conversation) = viewModel.context else { return }
         let detail = ServiceDetailViewController(
             serviceUser: user,
-            actionType: .addService(conversation as! ZMConversation),
-            variant: .init(colorScheme: self.variant, opaque: true)
+            actionType: .addService(conversation as! ZMConversation)
         ) { [weak self] result in
             guard let `self` = self, let result = result else { return }
             switch result {
@@ -459,7 +472,7 @@ extension AddParticipantsViewController: SearchResultsViewControllerDelegate {
             }
         }
 
-        self.navigationController?.pushViewController(detail, animated: true)
+        navigationController?.pushViewController(detail, animated: true)
     }
 
 }
